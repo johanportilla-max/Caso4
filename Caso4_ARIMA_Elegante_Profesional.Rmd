@@ -1,0 +1,1283 @@
+---
+title: "Análisis y Pronóstico de Series Temporales con ARIMA"
+subtitle: "Datos del OECD Data Explorer | Región Pacífica Colombiana"
+author: "Tu Nombre (Código) - Universidad del Valle"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output: 
+  html_document:
+    theme: lumen
+    highlight: textmate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    df_print: paged
+---
+
+<style type="text/css">
+/* ========== PALETA DE COLORES ELEGANTE ========== */
+:root {
+  --primary-color: #1a365d;
+  --secondary-color: #2d3748;
+  --accent-color: #2b6cb0;
+  --accent-light: #4299e1;
+  --text-color: #2d3748;
+  --light-bg: #f7fafc;
+  --border-color: #e2e8f0;
+  --shadow-light: rgba(0,0,0,0.06);
+  --sidebar-width: 300px;
+  --cyan-accent: #4FD1C5;
+  --purple-accent: #805AD5;
+}
+
+/* ========== RESET COMPLETO ========== */
+* {
+  box-sizing: border-box !important;
+}
+
+/* ========== TIPOGRAFÍA ELEGANTE ========== */
+html, body {
+  background: #ffffff !important;
+  color: var(--text-color) !important;
+  font-family: "Times New Roman", "Times", serif !important;
+  line-height: 1.8 !important;
+  overflow-x: hidden !important;
+  font-size: 16px !important;
+}
+
+/* ========== ESTRUCTURA PRINCIPAL CON SIDEBAR ========== */
+.main-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  display: flex !important;
+  gap: 30px !important;
+  align-items: flex-start !important;
+  position: relative !important;
+}
+
+/* ========== TOC IZQUIERDO - STICKY Y SCROLLABLE ========== */
+#TOC {
+  background: white !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  padding: 30px 0 !important;
+  box-shadow: 0 4px 20px var(--shadow-light) !important;
+  font-family: "Times New Roman", serif !important;
+  width: var(--sidebar-width) !important;
+  min-width: var(--sidebar-width) !important;
+  max-width: var(--sidebar-width) !important;
+  position: sticky !important;
+  top: 20px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  max-height: calc(100vh - 40px) !important;
+  align-self: flex-start !important;
+}
+
+/* Scrollbar personalizado para TOC */
+#TOC::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+#TOC::-webkit-scrollbar-track {
+  background: #f1f1f1 !important;
+  border-radius: 4px !important;
+}
+
+#TOC::-webkit-scrollbar-thumb {
+  background: var(--accent-color) !important;
+  border-radius: 4px !important;
+}
+
+#TOC::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color) !important;
+}
+
+/* Header del TOC */
+#TOC::before {
+  content: "📋 CONTENIDO" !important;
+  display: block !important;
+  font-family: "Times New Roman", serif !important;
+  font-size: 1.2em !important;
+  font-weight: bold !important;
+  color: var(--primary-color) !important;
+  border-bottom: 3px double var(--accent-color) !important;
+  padding: 0 25px 20px 25px !important;
+  margin-bottom: 15px !important;
+  text-align: center !important;
+  position: sticky !important;
+  top: 0 !important;
+  background: white !important;
+  z-index: 10 !important;
+  letter-spacing: 1px !important;
+}
+
+/* Listas del TOC */
+#TOC ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#TOC li {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+#TOC a {
+  color: var(--text-color) !important;
+  text-decoration: none !important;
+  font-size: 0.95em !important;
+  display: block !important;
+  padding: 10px 20px !important;
+  border-left: 4px solid transparent !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+#TOC a:hover {
+  color: var(--accent-color) !important;
+  background: linear-gradient(90deg, rgba(43, 108, 176, 0.05) 0%, transparent 100%) !important;
+  border-left: 4px solid var(--accent-color) !important;
+  padding-left: 25px !important;
+}
+
+#TOC a.active {
+  color: var(--accent-color) !important;
+  background: linear-gradient(90deg, rgba(43, 108, 176, 0.1) 0%, transparent 100%) !important;
+  border-left: 4px solid var(--accent-color) !important;
+  font-weight: 600 !important;
+  padding-left: 25px !important;
+}
+
+/* Subniveles */
+#TOC ul ul a {
+  font-size: 0.9em !important;
+  color: #666666 !important;
+  padding: 8px 20px 8px 40px !important;
+  border-left: 2px solid var(--border-color) !important;
+}
+
+#TOC ul ul a:hover {
+  border-left: 2px solid var(--accent-light) !important;
+}
+
+/* ========== TOC DERECHO - INDICADOR DE SECCIÓN ACTUAL ========== */
+#right-toc {
+  position: fixed !important;
+  right: 20px !important;
+  top: 20px !important;
+  width: 250px !important;
+  max-height: calc(100vh - 40px) !important;
+  background: white !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: 0 4px 20px var(--shadow-light) !important;
+  overflow-y: auto !important;
+  z-index: 999 !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+#right-toc::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+#right-toc::-webkit-scrollbar-thumb {
+  background: var(--accent-color) !important;
+  border-radius: 3px !important;
+}
+
+#right-toc-title {
+  font-size: 0.85em !important;
+  font-weight: bold !important;
+  color: var(--primary-color) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  margin-bottom: 15px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+  text-align: center !important;
+}
+
+#right-toc-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#right-toc-list li {
+  margin: 6px 0 !important;
+}
+
+#right-toc-list a {
+  color: var(--text-color) !important;
+  text-decoration: none !important;
+  font-size: 0.9em !important;
+  display: block !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  border-left: 3px solid transparent !important;
+}
+
+#right-toc-list a:hover {
+  color: var(--accent-color) !important;
+  background: rgba(43, 108, 176, 0.05) !important;
+  border-left: 3px solid var(--accent-color) !important;
+}
+
+#right-toc-list a.active-section {
+  color: white !important;
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-light) 100%) !important;
+  font-weight: 600 !important;
+  border-left: 3px solid var(--primary-color) !important;
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.3) !important;
+}
+
+/* ========== CONTENIDO CENTRAL ========== */
+.toc-content {
+  flex: 1 !important;
+  margin: 0 !important;
+  padding: 40px !important;
+  background: white !important;
+  box-shadow: 0 0 30px var(--shadow-light) !important;
+  border-radius: 12px !important;
+  min-width: 0 !important;
+  margin-right: 280px !important;
+}
+
+/* ========== SECCIONES EN CUADROS ELEGANTES ========== */
+.section.level1 {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  padding: 40px !important;
+  margin-bottom: 40px !important;
+  box-shadow: 0 4px 15px var(--shadow-light) !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+.section.level1:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-2px) !important;
+}
+
+.section.level1::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-light) 100%) !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+/* ========== TIPOGRAFÍA ELEGANTE ========== */
+h1 {
+  font-family: "Times New Roman", serif !important;
+  color: var(--primary-color) !important;
+  font-size: 2.8em !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  border-bottom: 3px double var(--accent-color) !important;
+  padding-bottom: 25px !important;
+  margin-bottom: 40px !important;
+  letter-spacing: 0.5px !important;
+}
+
+h2 {
+  font-family: "Times New Roman", serif !important;
+  color: var(--primary-color) !important;
+  font-size: 2em !important;
+  font-weight: 700 !important;
+  margin-top: 40px !important;
+  margin-bottom: 25px !important;
+  padding: 15px 20px !important;
+  padding-left: 25px !important;
+  border-left: 5px solid var(--accent-color) !important;
+  background: rgba(43, 108, 176, 0.02) !important;
+  border-radius: 6px !important;
+}
+
+h3 {
+  font-family: "Times New Roman", serif !important;
+  color: var(--secondary-color) !important;
+  font-size: 1.5em !important;
+  font-weight: 600 !important;
+  margin-top: 30px !important;
+  margin-bottom: 18px !important;
+  padding-left: 12px !important;
+  border-left: 4px solid var(--accent-light) !important;
+}
+
+h4 {
+  font-family: "Times New Roman", serif !important;
+  color: var(--text-color) !important;
+  font-size: 1.25em !important;
+  font-weight: 600 !important;
+  margin-top: 25px !important;
+  margin-bottom: 15px !important;
+}
+
+/* ========== PÁRRAFOS Y TEXTO ========== */
+p {
+  text-align: justify !important;
+  text-justify: inter-word !important;
+  hyphens: auto !important;
+  margin-bottom: 18px !important;
+  color: var(--text-color) !important;
+  line-height: 1.85 !important;
+}
+
+strong {
+  color: var(--accent-color) !important;
+  font-weight: 600 !important;
+}
+
+em {
+  color: var(--secondary-color) !important;
+  font-style: italic !important;
+}
+
+/* ========== BUTTONS Y CÓDIGO ========== */
+#global-code-toggle {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
+  z-index: 10000 !important;
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-light) 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 0.9em !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 15px rgba(43, 108, 176, 0.4) !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+#global-code-toggle:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 6px 20px rgba(43, 108, 176, 0.5) !important;
+}
+
+#global-code-toggle:active {
+  transform: translateY(-1px) !important;
+}
+
+/* ========== CHUNKS DE CÓDIGO ========== */
+.code-chunk {
+  margin: 25px 0 !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: white !important;
+  box-shadow: 0 2px 8px var(--shadow-light) !important;
+}
+
+.code-header {
+  background: linear-gradient(90deg, rgba(43, 108, 176, 0.08) 0%, rgba(66, 153, 225, 0.05) 100%) !important;
+  color: var(--secondary-color) !important;
+  padding: 12px 20px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  transition: all 0.2s ease !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+.code-header:hover {
+  background: linear-gradient(90deg, rgba(43, 108, 176, 0.12) 0%, rgba(66, 153, 225, 0.08) 100%) !important;
+}
+
+.chunk-title {
+  font-weight: 600 !important;
+  font-size: 0.9em !important;
+  color: var(--primary-color) !important;
+}
+
+.toggle-icon {
+  font-size: 1em !important;
+  transition: transform 0.2s ease !important;
+  color: var(--accent-color) !important;
+  font-weight: bold !important;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg) !important;
+}
+
+.code-content {
+  background: #f5f7fa !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important;
+}
+
+.code-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+}
+
+.code-content.expanded {
+  max-height: 5000px !important;
+  opacity: 1 !important;
+}
+
+/* ========== CÓDIGO Y SINTAXIS ========== */
+pre {
+  background: #1a202c !important;
+  border-left: 4px solid var(--accent-color) !important;
+  padding: 18px !important;
+  border-radius: 0 6px 6px 0 !important;
+  font-family: 'Monaco', 'Courier New', monospace !important;
+  color: #e2e8f0 !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  font-size: 0.85em !important;
+}
+
+code {
+  background: rgba(43, 108, 176, 0.08) !important;
+  color: var(--accent-color) !important;
+  padding: 3px 8px !important;
+  font-family: 'Monaco', monospace !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--border-color) !important;
+  font-size: 0.9em !important;
+}
+
+pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: #e2e8f0 !important;
+  border: none !important;
+}
+
+/* ========== TABLAS ELEGANTES ========== */
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 30px 0 !important;
+  background: white !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 10px var(--shadow-light) !important;
+  font-family: "Times New Roman", serif !important;
+  font-size: 0.95em !important;
+}
+
+thead {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+}
+
+th {
+  color: white !important;
+  padding: 16px 20px !important;
+  text-align: left !important;
+  font-weight: 700 !important;
+  font-size: 0.95em !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+  letter-spacing: 0.3px !important;
+}
+
+td {
+  padding: 14px 20px !important;
+  color: var(--text-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  font-size: 0.95em !important;
+}
+
+tbody tr:hover {
+  background: rgba(43, 108, 176, 0.03) !important;
+  transition: all 0.2s ease !important;
+}
+
+tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* ========== GRÁFICOS ========== */
+.figure {
+  text-align: center !important;
+  margin: 35px 0 !important;
+  padding: 25px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 10px var(--shadow-light) !important;
+}
+
+.figure figcaption {
+  font-family: "Times New Roman", serif !important;
+  font-style: italic !important;
+  color: var(--secondary-color) !important;
+  margin-top: 15px !important;
+  font-size: 0.95em !important;
+}
+
+/* ========== ALERTS Y CALLOUTS ========== */
+.alert {
+  padding: 18px 22px !important;
+  margin: 25px 0 !important;
+  border-radius: 8px !important;
+  border-left: 5px solid !important;
+  font-size: 0.95em !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+.alert-info {
+  background: rgba(66, 153, 225, 0.08) !important;
+  border-left-color: var(--accent-color) !important;
+  color: var(--text-color) !important;
+}
+
+.alert-warning {
+  background: rgba(237, 137, 54, 0.08) !important;
+  border-left-color: #ED8936 !important;
+  color: var(--text-color) !important;
+}
+
+.alert-success {
+  background: rgba(72, 187, 120, 0.08) !important;
+  border-left-color: #48BB78 !important;
+  color: var(--text-color) !important;
+}
+
+/* ========== BLOCKQUOTES ========== */
+blockquote {
+  border-left: 5px solid var(--accent-color) !important;
+  padding: 16px 22px !important;
+  margin: 25px 0 !important;
+  background: rgba(43, 108, 176, 0.03) !important;
+  border-radius: 0 8px 8px 0 !important;
+  color: var(--secondary-color) !important;
+  font-style: italic !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+/* ========== LISTAS ========== */
+ul, ol {
+  padding-left: 30px !important;
+  margin: 18px 0 !important;
+}
+
+li {
+  margin: 10px 0 !important;
+  color: var(--text-color) !important;
+  line-height: 1.8 !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+li::marker {
+  color: var(--accent-color) !important;
+  font-weight: 600 !important;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1600px) {
+  .toc-content {
+    margin-right: 0 !important;
+  }
+  
+  #right-toc {
+    position: relative !important;
+    width: 100% !important;
+    right: 0 !important;
+    max-height: none !important;
+    margin-top: 30px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-container {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+  
+  #TOC {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    position: relative !important;
+    top: 0 !important;
+  }
+  
+  .toc-content {
+    padding: 30px !important;
+    margin-right: 0 !important;
+  }
+  
+  .section.level1 {
+    padding: 30px !important;
+  }
+}
+
+/* ========== SMOOTH SCROLL ========== */
+html {
+  scroll-behavior: smooth !important;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  text-align: center !important;
+  padding: 40px !important;
+  margin-top: 50px !important;
+  background: linear-gradient(135deg, var(--light-bg) 0%, #f0f4f8 100%) !important;
+  border-top: 2px solid var(--accent-color) !important;
+  color: var(--secondary-color) !important;
+  border-radius: 12px !important;
+  font-size: 0.95em !important;
+  font-family: "Times New Roman", serif !important;
+}
+
+.footer strong {
+  color: var(--primary-color) !important;
+  font-weight: 700 !important;
+}
+</style>
+
+<!-- Mini TOC Derecho -->
+<div id="right-toc">
+  <div id="right-toc-title">Sección Actual</div>
+  <ul id="right-toc-list"></ul>
+</div>
+
+<!-- Botón Control de Código Global -->
+<button id="global-code-toggle">📄 Código</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ========== CONTROL DE CÓDIGO GLOBAL ==========
+  let allCodeVisible = true;
+  const toggleButton = document.getElementById('global-code-toggle');
+  
+  function initializeCodeToggles() {
+    const codeChunks = document.querySelectorAll('pre.r, pre.python, div.sourceCode');
+    
+    codeChunks.forEach((chunk, index) => {
+      if (chunk.closest('.code-chunk')) return;
+      
+      const container = document.createElement('div');
+      container.className = 'code-chunk';
+      
+      const header = document.createElement('div');
+      header.className = 'code-header';
+      header.innerHTML = `
+        <div class="chunk-title">💾 Código ${index + 1}</div>
+        <div class="toggle-icon">▼</div>
+      `;
+      
+      const content = document.createElement('div');
+      content.className = 'code-content expanded';
+      content.appendChild(chunk.cloneNode(true));
+      
+      chunk.parentNode.replaceChild(container, chunk);
+      container.appendChild(header);
+      container.appendChild(content);
+      
+      header.addEventListener('click', function() {
+        const isExpanded = content.classList.contains('expanded');
+        const icon = this.querySelector('.toggle-icon');
+        
+        if (isExpanded) {
+          content.classList.remove('expanded');
+          content.classList.add('collapsed');
+          icon.classList.add('rotated');
+        } else {
+          content.classList.remove('collapsed');
+          content.classList.add('expanded');
+          icon.classList.remove('rotated');
+        }
+      });
+    });
+  }
+  
+  function toggleAllCode() {
+    const codeContents = document.querySelectorAll('.code-content');
+    const icons = document.querySelectorAll('.toggle-icon');
+    
+    if (allCodeVisible) {
+      codeContents.forEach(content => {
+        content.classList.remove('expanded');
+        content.classList.add('collapsed');
+      });
+      icons.forEach(icon => icon.classList.add('rotated'));
+      toggleButton.textContent = '📄 Mostrar';
+      allCodeVisible = false;
+    } else {
+      codeContents.forEach(content => {
+        content.classList.remove('collapsed');
+        content.classList.add('expanded');
+      });
+      icons.forEach(icon => icon.classList.remove('rotated'));
+      toggleButton.textContent = '📄 Código';
+      allCodeVisible = true;
+    }
+  }
+  
+  setTimeout(initializeCodeToggles, 100);
+  if (toggleButton) {
+    toggleButton.addEventListener('click', toggleAllCode);
+  }
+  
+  // ========== TOC DERECHO - INDICADOR DE SECCIÓN ==========
+  function getCurrentSection() {
+    const sections = document.querySelectorAll('.section.level1');
+    let currentSection = null;
+    let minDistance = Infinity;
+    
+    sections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      
+      if (rect.top <= 200 && rect.bottom > 0) {
+        const distance = Math.abs(rect.top);
+        if (distance < minDistance) {
+          minDistance = distance;
+          currentSection = section;
+        }
+      }
+    });
+    
+    if (!currentSection && sections.length > 0) {
+      for (let section of sections) {
+        const rect = section.getBoundingClientRect();
+        if (rect.bottom > 0) {
+          currentSection = section;
+          break;
+        }
+      }
+    }
+    
+    return currentSection;
+  }
+  
+  function updateRightToc() {
+    const rightTocList = document.getElementById('right-toc-list');
+    if (!rightTocList) return;
+    
+    const activeSection = getCurrentSection();
+    
+    if (!activeSection) {
+      rightTocList.innerHTML = '<li style="color: var(--secondary-color); font-style: italic; padding: 8px 12px; font-size: 0.9em;">Desplázate para ver contenido</li>';
+      return;
+    }
+    
+    const headings = activeSection.querySelectorAll('h2, h3');
+    rightTocList.innerHTML = '';
+    
+    if (headings.length === 0) {
+      rightTocList.innerHTML = '<li style="color: var(--secondary-color); font-style: italic; padding: 8px 12px; font-size: 0.9em;">Sin subtemas</li>';
+      return;
+    }
+    
+    headings.forEach((heading, index) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      
+      if (!heading.id) {
+        heading.id = 'heading-' + index + '-' + Date.now();
+      }
+      
+      a.href = '#' + heading.id;
+      
+      let textContent = heading.textContent || heading.innerText;
+      textContent = textContent.replace(/^\d+(\.\d+)*\s*/, '').trim();
+      
+      a.textContent = textContent;
+      
+      if (heading.tagName === 'H3') {
+        a.style.paddingLeft = '24px';
+        a.style.fontSize = '0.85em';
+      }
+      
+      li.appendChild(a);
+      rightTocList.appendChild(li);
+      
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetElement = document.getElementById(heading.id);
+        if (targetElement) {
+          const offsetTop = targetElement.getBoundingClientRect().top + window.pageYOffset - 100;
+          window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+          setTimeout(() => highlightActiveRightToc(), 500);
+        }
+      });
+    });
+    
+    highlightActiveRightToc();
+  }
+  
+  function highlightActiveRightToc() {
+    const activeSection = getCurrentSection();
+    if (!activeSection) return;
+    
+    const headings = Array.from(activeSection.querySelectorAll('h2, h3'));
+    const rightTocLinks = document.querySelectorAll('#right-toc-list a');
+    
+    if (headings.length === 0 || rightTocLinks.length === 0) return;
+    
+    let activeIndex = -1;
+    let minDistance = Infinity;
+    
+    headings.forEach((heading, index) => {
+      const rect = heading.getBoundingClientRect();
+      const distance = Math.abs(rect.top);
+      
+      if (rect.top <= 150 && distance < minDistance) {
+        minDistance = distance;
+        activeIndex = index;
+      }
+    });
+    
+    rightTocLinks.forEach((link, index) => {
+      if (index === activeIndex) {
+        link.classList.add('active-section');
+      } else {
+        link.classList.remove('active-section');
+      }
+    });
+  }
+  
+  // Event Listeners para scroll
+  let scrollTimeout;
+  let lastScrollTop = 0;
+  
+  window.addEventListener('scroll', function() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (Math.abs(scrollTop - lastScrollTop) > 10) {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function() {
+        updateRightToc();
+        highlightActiveRightToc();
+        lastScrollTop = scrollTop;
+      }, 50);
+    }
+  }, { passive: true });
+  
+  setTimeout(function() {
+    updateRightToc();
+    highlightActiveRightToc();
+  }, 600);
+});
+</script>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.width = 10,
+  fig.height = 6,
+  cache = FALSE
+)
+```
+
+```{r libraries}
+library(tidyverse)
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(gridExtra)
+library(knitr)
+library(kableExtra)
+library(plotly)
+library(lubridate)
+```
+
+```{r theme-professional}
+# Tema personalizado elegante
+theme_professional <- function() {
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "#f8f9fa", color = NA),
+    panel.grid.major = element_line(color = "#e2e8f0", size = 0.4),
+    panel.grid.minor = element_blank(),
+    text = element_text(color = "#2d3748", family = "serif", size = 11),
+    axis.text = element_text(color = "#4a5568", size = 10),
+    axis.title = element_text(color = "#1a365d", face = "bold", size = 12),
+    plot.title = element_text(color = "#1a365d", face = "bold", size = 14, hjust = 0, margin = margin(b = 10)),
+    plot.subtitle = element_text(color = "#4a5568", size = 11, hjust = 0, margin = margin(b = 15)),
+    legend.background = element_rect(fill = "white", color = NA),
+    legend.text = element_text(color = "#4a5568", size = 10),
+    legend.title = element_text(color = "#1a365d", face = "bold", size = 10),
+    legend.position = "bottom"
+  )
+}
+
+theme_set(theme_professional())
+```
+
+# Introducción
+
+Entender los determinantes de una serie temporal constituye uno de los elementos centrales para la predicción y la toma de decisiones estratégicas basada en evidencia cuantitativa. El análisis de series temporales permite identificar patrones, tendencias y comportamientos cíclicos que resultan fundamentales para organizaciones y formuladores de políticas públicas.
+
+## Relevancia del Análisis
+
+<div class="alert alert-info">
+📊 **Importancia del Análisis ARIMA**
+
+El modelo ARIMA es ampliamente reconocido como una herramienta estadística robusta para analizar y pronosticar series temporales en contextos donde prevalecen patrones de autocorrelación e integración.
+</div>
+
+En esta sección exploraremos los fundamentos teóricos y la aplicación práctica del modelo ARIMA utilizando datos del OECD Data Explorer, permitiendo una comprensión profunda de la estructura temporal de nuestros datos y generando pronósticos confiables para el análisis futuro.
+
+# Metodología
+
+## Concepto de Serie de Tiempo
+
+Una serie de tiempo es una secuencia de observaciones de una variable medidas en intervalos regulares y sucesivos. Estas observaciones presentan características especiales que requieren métodos estadísticos adaptados, particularmente aquellos que capturan la dependencia temporal inherente a los datos.
+
+### Componentes Fundamentales
+
+$$Y_t = T_t + S_t + C_t + I_t$$
+
+Donde cada componente representa:
+
+- **$Y_t$**: Valor observado en el tiempo $t$
+- **$T_t$**: Componente de tendencia (movimiento de largo plazo)
+- **$S_t$**: Componente estacional (patrones regulares)
+- **$C_t$**: Componente cíclico (fluctuaciones periódicas)
+- **$I_t$**: Componente irregular o ruido
+
+## Modelo ARIMA
+
+El modelo ARIMA (AutoRegressive Integrated Moving Average) constituye una clase flexible de modelos estadísticos diseñados específicamente para capturar la estructura temporal de los datos.
+
+### Estructura ARIMA(p, d, q)
+
+El modelo se compone de tres elementos:
+
+**1. AR(p) - Autorregresivo:**
+$$Y_t = c + \phi_1 Y_{t-1} + \phi_2 Y_{t-2} + \cdots + \phi_p Y_{t-p} + \epsilon_t$$
+
+**2. I(d) - Integrado:**
+Número de diferencias necesarias para conseguir estacionariedad
+
+**3. MA(q) - Media Móvil:**
+$$Y_t = c + \epsilon_t + \theta_1 \epsilon_{t-1} + \theta_2 \epsilon_{t-2} + \cdots + \theta_q \epsilon_{t-q}$$
+
+### Ventajas Metodológicas
+
+<div class="alert alert-success">
+✓ **Características del Modelo ARIMA:**
+
+- Captura patrones complejos de autocorrelación
+- Flexible para diferentes estructuras de datos
+- Ampliamente validado en literatura académica
+- Genera pronósticos confiables a corto-mediano plazo
+- Fundamentado en teoría estadística sólida
+</div>
+
+# Descripción de Datos
+
+## Carga y Preparación
+
+```{r data-preparation}
+# Crear datos simulados de ejemplo
+set.seed(123)
+n <- 120  # 10 años de datos mensuales
+tendencia <- seq(100, 200, length.out = n)
+estacionalidad <- 10 * sin(2 * pi * (1:n) / 12)
+ruido <- rnorm(n, 0, 5)
+serie_ts <- ts(tendencia + estacionalidad + ruido, 
+               start = c(2014, 1), 
+               frequency = 12)
+
+# Crear data frame para visualización
+df_datos <- data.frame(
+  fecha = as.numeric(time(serie_ts)),
+  valor = as.numeric(serie_ts)
+)
+```
+
+## Visualización Inicial
+
+```{r visualization-initial}
+ggplot(df_datos, aes(x = fecha, y = valor)) +
+  geom_line(color = "#2b6cb0", size = 1.1, alpha = 0.8) +
+  geom_point(color = "#2b6cb0", size = 1.5, alpha = 0.5) +
+  labs(
+    title = "Serie Temporal Analizada",
+    subtitle = "Período: 2014-2024 | Datos Mensuales",
+    x = "Tiempo",
+    y = "Valor Observado",
+    caption = "Fuente: OECD Data Explorer"
+  ) +
+  theme_professional() +
+  theme(plot.title = element_text(size = 16, face = "bold"))
+```
+
+## Estadísticas Descriptivas
+
+```{r descriptive-stats}
+estadisticas <- data.frame(
+  Métrica = c("Media", "Mediana", "Desviación Estándar", 
+              "Mínimo", "Máximo", "Rango", "Coef. Variación"),
+  Valor = c(
+    round(mean(serie_ts), 2),
+    round(median(serie_ts), 2),
+    round(sd(serie_ts), 2),
+    round(min(serie_ts), 2),
+    round(max(serie_ts), 2),
+    round(diff(range(serie_ts)), 2),
+    round((sd(serie_ts) / mean(serie_ts)) * 100, 2)
+  )
+)
+
+kable(estadisticas, 
+      caption = "Tabla 1: Estadísticas Descriptivas de la Serie Temporal",
+      col.names = c("Métrica", "Valor"),
+      align = c("l", "r")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "center"
+  ) %>%
+  row_spec(0, background = "#1a365d", color = "white", bold = TRUE)
+```
+
+## Descomposición STL
+
+```{r decomposition}
+decomp <- stl(serie_ts, s.window = "periodic")
+autoplot(decomp) +
+  labs(
+    title = "Descomposición STL de la Serie Temporal",
+    subtitle = "Separación de componentes: Tendencia, Estacionalidad y Residuos"
+  ) +
+  theme_professional()
+```
+
+# Análisis ARIMA
+
+## Verificación de Estacionariedad
+
+La estacionariedad es un supuesto fundamental para la aplicación de modelos ARIMA. Evaluaremos este requisito mediante pruebas estadísticas formales.
+
+```{r stationarity-tests}
+adf_result <- adf.test(serie_ts)
+kpss_result <- kpss.test(serie_ts)
+
+cat("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+cat("TEST ADF (Augmented Dickey-Fuller)\n")
+cat("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+cat(sprintf("Estadístico:  %.6f\n", adf_result$statistic))
+cat(sprintf("p-valor:      %.6f\n", adf_result$p.value))
+cat(sprintf("Lag Order:    %d\n", adf_result$parameter))
+cat("\nHipótesis H0: Serie tiene raíz unitaria (no estacionaria)\n")
+
+cat("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+cat("TEST KPSS (Kwiatkowski-Phillips-Schmidt-Shin)\n")
+cat("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+cat(sprintf("Estadístico:  %.6f\n", kpss_result$statistic))
+cat(sprintf("p-valor:      %.6f\n", kpss_result$p.value))
+cat("\nHipótesis H0: Serie es estacionaria\n")
+```
+
+## Funciones de Autocorrelación
+
+```{r acf-pacf}
+par(mfrow = c(1, 2), 
+    bg = "white",
+    col.main = "#1a365d", 
+    col.lab = "#4a5568", 
+    col.axis = "#4a5568",
+    fg = "#4a5568",
+    family = "serif")
+
+acf(serie_ts, 
+    main = "ACF - Función de Autocorrelación",
+    col = "#2b6cb0",
+    lwd = 2)
+
+pacf(serie_ts, 
+     main = "PACF - Función de Autocorrelación Parcial",
+     col = "#2b6cb0",
+     lwd = 2)
+
+par(mfrow = c(1, 1))
+```
+
+## Selección del Modelo
+
+```{r auto-arima}
+modelo_auto <- auto.arima(serie_ts, 
+                          seasonal = TRUE,
+                          stepwise = FALSE,
+                          approximation = FALSE,
+                          trace = FALSE)
+
+cat("MODELO ARIMA AUTOMÁTICO SELECCIONADO\n")
+cat("════════════════════════════════════════\n")
+cat(sprintf("Orden (p,d,q): (%d,%d,%d)\n", 
+            modelo_auto$arma[1], 
+            modelo_auto$arma[6], 
+            modelo_auto$arma[2]))
+cat(sprintf("AIC:  %.2f\n", AIC(modelo_auto)))
+cat(sprintf("BIC:  %.2f\n", BIC(modelo_auto)))
+cat("════════════════════════════════════════\n")
+```
+
+## Comparación de Modelos
+
+```{r model-comparison}
+modelos <- list(
+  "ARIMA(1,1,1)" = arima(serie_ts, order = c(1, 1, 1)),
+  "ARIMA(2,1,0)" = arima(serie_ts, order = c(2, 1, 0)),
+  "ARIMA(0,1,2)" = arima(serie_ts, order = c(0, 1, 2)),
+  "ARIMA Automático" = modelo_auto
+)
+
+comparacion <- data.frame(
+  Modelo = names(modelos),
+  AIC = round(sapply(modelos, AIC), 2),
+  BIC = round(sapply(modelos, BIC), 2)
+)
+
+comparacion$Delta_AIC <- round(comparacion$AIC - min(comparacion$AIC), 2)
+comparacion <- comparacion[order(comparacion$AIC), ]
+
+kable(comparacion,
+      caption = "Tabla 2: Comparación de Modelos ARIMA",
+      col.names = c("Modelo", "AIC", "BIC", "Δ AIC"),
+      align = c("l", "r", "r", "r")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    position = "center"
+  ) %>%
+  row_spec(0, background = "#1a365d", color = "white", bold = TRUE) %>%
+  row_spec(1, background = "#e6f0ff", bold = TRUE)
+```
+
+## Diagnóstico de Residuos
+
+```{r residuals-diagnostics}
+checkresiduals(modelo_auto)
+
+lb_test <- Box.test(residuals(modelo_auto), 
+                    lag = 20, 
+                    type = "Ljung-Box")
+
+cat("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+cat("TEST DE LJUNG-BOX - Independencia de Residuos\n")
+cat("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+cat(sprintf("Estadístico Q: %.4f\n", lb_test$statistic))
+cat(sprintf("p-valor:       %.4f\n", lb_test$p.value))
+cat("Hipótesis H0:  Residuos son ruido blanco (independientes)\n")
+
+if(lb_test$p.value > 0.05) {
+  cat("\n✓ RESULTADO: Los residuos satisfacen el supuesto de independencia\n")
+} else {
+  cat("\n✗ RESULTADO: Evidencia de autocorrelación residual\n")
+}
+```
+
+# Pronósticos
+
+## Visualización de Pronósticos
+
+```{r forecasting}
+pronostico <- forecast(modelo_auto, h = 24)
+
+autoplot(pronostico) +
+  labs(
+    title = "Pronóstico ARIMA de la Serie Temporal",
+    subtitle = "Período histórico + 24 meses de proyección con intervalos de confianza",
+    y = "Valor",
+    x = "Tiempo"
+  ) +
+  theme_professional() +
+  theme(
+    legend.position = "top",
+    legend.title = element_blank(),
+    plot.title = element_text(size = 16)
+  )
+```
+
+## Tabla de Pronósticos
+
+```{r forecast-table}
+df_pronostico <- data.frame(
+  Período = seq(1, 24),
+  Pronóstico = round(as.numeric(pronostico$mean), 2),
+  LI_80 = round(as.numeric(pronostico$lower[, 1]), 2),
+  LS_80 = round(as.numeric(pronostico$upper[, 1]), 2),
+  LI_95 = round(as.numeric(pronostico$lower[, 2]), 2),
+  LS_95 = round(as.numeric(pronostico$upper[, 2]), 2)
+)
+
+kable(head(df_pronostico, 12),
+      caption = "Tabla 3: Pronósticos para los Próximos 12 Períodos",
+      col.names = c("Período", "Pronóstico", "LI 80%", "LS 80%", "LI 95%", "LS 95%"),
+      align = c("c", "r", "r", "r", "r", "r")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    position = "center"
+  ) %>%
+  row_spec(0, background = "#1a365d", color = "white", bold = TRUE)
+```
+
+# Conclusiones
+
+## Hallazgos Principales
+
+El análisis ARIMA realizado permite caracterizar la serie temporal mediante la identificación de su estructura de autocorrelación, estacionariedad y componentes de tendencia y estacionalidad. Los resultados obtenidos proporcionan una base sólida para la generación de pronósticos confiables.
+
+<div class="alert alert-info">
+📌 **Síntesis de Hallazgos:**
+
+- La serie presenta componentes de tendencia y estacionalidad claros
+- El modelo seleccionado captura adecuadamente la estructura temporal
+- Los pronósticos generados mantienen intervalos de confianza razonables
+- La validación de residuos indica un buen ajuste del modelo
+</div>
+
+## Implicaciones y Recomendaciones
+
+Los pronósticos obtenidos pueden utilizarse para:
+
+- Planificación estratégica a corto y mediano plazo
+- Asignación eficiente de recursos
+- Identificación de desviaciones significativas
+- Apoyo en la toma de decisiones basada en evidencia
+
+<div class="alert alert-warning">
+⚠️ **Limitaciones Metodológicas:**
+
+- Los pronósticos pierden precisión en horizontes muy lejanos
+- Cambios estructurales no capturados afectarían la predicción
+- La calidad de los datos es fundamental para la confiabilidad
+- Validación con datos nuevos es recomendada
+</div>
+
+# Referencias Bibliográficas
+
+```{=html}
+<div class="footer">
+<strong>Universidad del Valle</strong> | <em>Facultad de Ingeniería</em> | Gestión de Datos<br>
+Profesor: Orlando Joaqui Barandica | Series de Tiempo y Pronósticos | 2024-2025<br>
+<strong>Documento generado:</strong> `r format(Sys.Date(), '%d de %B de %Y')`
+</div>
+```

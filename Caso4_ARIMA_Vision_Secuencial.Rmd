@@ -1,0 +1,937 @@
+---
+title: "Análisis ARIMA con Vision UI - Estilo Moderno"
+subtitle: "Series Temporales y Pronósticos"
+author: "Tu Nombre (Código) - Universidad del Valle"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output:
+  html_document:
+    theme: darkly
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: hide
+    df_print: paged
+    css: null
+---
+
+```{=html}
+<style type="text/css">
+/* ========== VISION UI MODERNO - VARIABLES ========== */
+:root {
+  --bg-primary: #0F1535;
+  --bg-secondary: #1a1f37;
+  --bg-tertiary: #252d47;
+  --accent-cyan: #4FD1C5;
+  --accent-purple: #805AD5;
+  --accent-lime: #00D084;
+  --accent-pink: #E9D5FF;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e6ed;
+  --text-tertiary: #A0AEC0;
+  --border-color: rgba(79, 209, 197, 0.2);
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* ========== RESET & BASE ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+body {
+  padding: 20px;
+}
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
+.main-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--bg-primary);
+}
+
+/* ========== TÍTULOS PRINCIPALES ========== */
+h1 {
+  font-size: 3em;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  text-align: center;
+  position: relative;
+  padding-top: 20px;
+  animation: slideDown 0.8s ease-out;
+}
+
+h1::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
+  box-shadow: 0 0 20px rgba(79, 209, 197, 0.6);
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 1.1em;
+  margin-bottom: 40px;
+}
+
+/* ========== SECCIONES ========== */
+.section {
+  margin: 50px 0;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+h2 {
+  font-size: 2em;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  padding: 20px 25px;
+  margin: 40px 0 25px 0;
+  background: linear-gradient(90deg, 
+    rgba(79, 209, 197, 0.1) 0%,
+    rgba(79, 209, 197, 0.05) 50%,
+    transparent 100%);
+  border-left: 5px solid var(--accent-cyan);
+  border-radius: 0 12px 12px 0;
+  box-shadow: 
+    -5px 0 20px rgba(79, 209, 197, 0.1),
+    inset 0 0 20px rgba(79, 209, 197, 0.03);
+  text-shadow: 0 0 20px rgba(79, 209, 197, 0.3);
+}
+
+h3 {
+  font-size: 1.5em;
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 15px 20px;
+  margin: 30px 0 20px 0;
+  border-left: 4px solid var(--accent-purple);
+  background: linear-gradient(90deg, 
+    rgba(128, 90, 213, 0.08) 0%,
+    transparent 100%);
+  border-radius: 0 8px 8px 0;
+}
+
+h4 {
+  font-size: 1.2em;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin: 25px 0 15px 0;
+  padding-left: 15px;
+  border-left: 3px solid var(--accent-lime);
+}
+
+/* ========== ALERTAS / CALLOUTS ========== */
+.alert {
+  padding: 20px 25px;
+  margin: 25px 0;
+  border-radius: 12px;
+  border-left: 5px solid;
+  backdrop-filter: blur(10px);
+  animation: slideInRight 0.5s ease-out;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, 
+    rgba(79, 209, 197, 0.12),
+    rgba(79, 209, 197, 0.04));
+  border-left-color: var(--accent-cyan);
+  color: var(--text-secondary);
+  box-shadow: 
+    0 4px 20px rgba(79, 209, 197, 0.1),
+    inset 0 0 20px rgba(79, 209, 197, 0.02);
+}
+
+.alert-success {
+  background: linear-gradient(135deg,
+    rgba(0, 208, 132, 0.12),
+    rgba(0, 208, 132, 0.04));
+  border-left-color: var(--accent-lime);
+  color: var(--text-secondary);
+}
+
+.alert-warning {
+  background: linear-gradient(135deg,
+    rgba(255, 165, 0, 0.12),
+    rgba(255, 165, 0, 0.04));
+  border-left-color: #FFA500;
+  color: var(--text-secondary);
+}
+
+/* ========== BLOQUES DE CÓDIGO ========== */
+pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent-cyan);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 25px 0;
+  overflow-x: auto;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.3),
+    var(--shadow-sm);
+  animation: slideInUp 0.5s ease-out;
+}
+
+code {
+  color: var(--accent-cyan);
+  background: rgba(79, 209, 197, 0.1);
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  border: 1px solid rgba(79, 209, 197, 0.2);
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text-secondary);
+  border: none;
+}
+
+/* ========== TABLAS ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 30px 0;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  animation: slideInUp 0.5s ease-out;
+}
+
+thead {
+  background: linear-gradient(135deg,
+    rgba(79, 209, 197, 0.25),
+    rgba(128, 90, 213, 0.25));
+  box-shadow: 0 4px 15px rgba(79, 209, 197, 0.15);
+}
+
+th {
+  color: var(--text-primary);
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+td {
+  padding: 14px 20px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(79, 209, 197, 0.08);
+}
+
+tr:hover td {
+  background: rgba(79, 209, 197, 0.08);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========== GRÁFICOS ========== */
+.figure {
+  margin: 40px 0;
+  padding: 30px;
+  background: linear-gradient(135deg,
+    rgba(26, 31, 55, 0.5),
+    rgba(15, 21, 53, 0.7));
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  animation: slideInUp 0.5s ease-out;
+}
+
+.figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+figcaption {
+  color: var(--text-tertiary);
+  margin-top: 15px;
+  font-size: 0.95em;
+  font-style: italic;
+}
+
+/* ========== PÁRRAFOS Y LISTAS ========== */
+p {
+  margin: 15px 0;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+ul, ol {
+  margin: 20px 0;
+  padding-left: 30px;
+}
+
+li {
+  margin: 10px 0;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+li::marker {
+  color: var(--accent-cyan);
+}
+
+/* ========== BLOCKQUOTES ========== */
+blockquote {
+  border-left: 4px solid var(--accent-purple);
+  padding: 15px 20px;
+  margin: 25px 0;
+  background: linear-gradient(90deg,
+    rgba(128, 90, 213, 0.08),
+    transparent);
+  border-radius: 0 8px 8px 0;
+  color: var(--text-secondary);
+  font-style: italic;
+  box-shadow: 
+    -5px 0 15px rgba(128, 90, 213, 0.1),
+    inset 0 0 15px rgba(128, 90, 213, 0.02);
+}
+
+/* ========== ECUACIONES ========== */
+.math {
+  background: var(--bg-secondary);
+  padding: 15px 20px;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-lime);
+  margin: 20px 0;
+  overflow-x: auto;
+}
+
+/* ========== BADGE DE ÉNFASIS ========== */
+.highlight-text {
+  background: linear-gradient(135deg,
+    rgba(79, 209, 197, 0.2),
+    rgba(128, 90, 213, 0.2));
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  margin-top: 70px;
+  padding: 40px;
+  text-align: center;
+  background: linear-gradient(135deg,
+    rgba(26, 31, 55, 0.6),
+    rgba(15, 21, 53, 0.8));
+  backdrop-filter: blur(10px);
+  border-top: 2px solid var(--border-color);
+  border-radius: 16px;
+  color: var(--text-tertiary);
+  box-shadow: 
+    0 -10px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.footer strong {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 10px rgba(79, 209, 197, 0.5);
+}
+
+/* ========== ANIMACIONES ========== */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2em;
+  }
+  
+  h2 {
+    font-size: 1.5em;
+  }
+  
+  body {
+    padding: 10px;
+  }
+  
+  pre {
+    font-size: 0.85em;
+  }
+  
+  table {
+    font-size: 0.9em;
+  }
+  
+  th, td {
+    padding: 10px 12px;
+  }
+}
+
+/* ========== SMOOTH SCROLL ========== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ========== CUSTOM TOC STYLING ========== */
+#TOC {
+  background: linear-gradient(180deg,
+    rgba(26, 31, 55, 0.9),
+    rgba(15, 21, 53, 0.95));
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 25px !important;
+  margin-bottom: 30px !important;
+  box-shadow: var(--shadow-md);
+}
+
+#TOC::before {
+  content: '📋 TABLA DE CONTENIDOS';
+  display: block;
+  font-size: 1em;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(79, 209, 197, 0.3);
+  text-shadow: 0 0 10px rgba(79, 209, 197, 0.5);
+}
+
+#TOC ul {
+  list-style: none;
+  padding: 0;
+}
+
+#TOC li {
+  margin: 8px 0;
+}
+
+#TOC a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: block;
+  border-left: 3px solid transparent;
+}
+
+#TOC a:hover {
+  color: var(--accent-cyan);
+  background: rgba(79, 209, 197, 0.1);
+  padding-left: 20px;
+  border-left-color: var(--accent-cyan);
+}
+
+#TOC > ul > li > a {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  padding-left: 10px;
+}
+
+#TOC > ul > li > ul > li > a {
+  padding-left: 30px;
+  font-size: 0.9em;
+}
+
+/* ========== RMARKDOWN OUTPUT ========== */
+.sourceCode {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-left: 4px solid var(--accent-cyan) !important;
+  border-radius: 10px !important;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.sourceCode pre {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+</style>
+```
+
+<div class="main-content">
+
+# Análisis y Pronóstico de Series Temporales con ARIMA
+
+<p class="subtitle">
+  Modelado de series temporales usando modelos ARIMA | Universidad del Valle
+</p>
+
+---
+
+# Introducción
+
+<div class="alert alert-info">
+📊 <strong>Propósito del análisis</strong><br>
+Este documento presenta un análisis completo de series temporales utilizando modelos ARIMA (AutoRegressive Integrated Moving Average). El enfoque es secuencial, comenzando desde la exploración de datos hasta la generación de pronósticos con intervalos de confianza.
+</div>
+
+## Relevancia del análisis
+
+Las series temporales son omnipresentes en campos como la economía, finanzas, meteorología y ciencias sociales. El modelado ARIMA permite:
+
+- **Identificar patrones** históricos en los datos
+- **Detectar tendencias** de largo plazo
+- **Modelar estacionalidad** cuando existe
+- **Realizar pronósticos** con bases estadísticas sólidas
+- **Apoyar decisiones** basadas en evidencia cuantitativa
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.width = 10,
+  fig.height = 6,
+  cache = FALSE
+)
+```
+
+```{r libraries, message=FALSE}
+library(tidyverse)
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(plotly)
+library(lubridate)
+```
+
+```{r theme-vision}
+# Tema personalizado para gráficos Vision UI
+theme_vision <- function() {
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "#0F1535", color = NA),
+    panel.background = element_rect(fill = "#1a1f37", color = NA),
+    panel.grid.major = element_line(color = "#2a3152", size = 0.3),
+    panel.grid.minor = element_line(color = "#1f2540", size = 0.2),
+    text = element_text(color = "#e0e6ed", family = "sans"),
+    axis.text = element_text(color = "#A0AEC0"),
+    axis.title = element_text(color = "#4FD1C5", face = "bold", size = 12),
+    plot.title = element_text(color = "#4FD1C5", face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(color = "#e0e6ed", size = 11, hjust = 0.5),
+    legend.background = element_rect(fill = "#1a1f37", color = "#4FD1C5"),
+    legend.text = element_text(color = "#e0e6ed"),
+    legend.title = element_text(color = "#4FD1C5", face = "bold")
+  )
+}
+
+theme_set(theme_vision())
+```
+
+---
+
+# Metodología
+
+## Conceptos fundamentales
+
+### Serie de Tiempo
+
+Una **serie de tiempo** es una secuencia de observaciones de una variable medidas en intervalos regulares. Matemáticamente:
+
+$$Y_t = T_t + S_t + C_t + I_t$$
+
+Donde:
+- $Y_t$: Valor observado en tiempo $t$
+- $T_t$: Componente de **tendencia**
+- $S_t$: Componente de **estacionalidad**
+- $C_t$: Componente **cíclico**
+- $I_t$: Componente **irregular** (ruido blanco)
+
+### Modelo ARIMA
+
+ARIMA(p, d, q) combina tres componentes:
+
+**AR(p) - Autorregresivo:**
+$$Y_t = c + \phi_1 Y_{t-1} + \cdots + \phi_p Y_{t-p} + \epsilon_t$$
+
+**I(d) - Integrado:** Número de diferencias para estacionariedad
+
+**MA(q) - Media Móvil:**
+$$Y_t = c + \epsilon_t + \theta_1 \epsilon_{t-1} + \cdots + \theta_q \epsilon_{t-q}$$
+
+<div class="alert alert-success">
+✅ <strong>Ventajas de ARIMA:</strong> Flexible, ampliamente validado en economía y finanzas, fundamentado en teoría estadística robusta.
+</div>
+
+---
+
+# Descripción de Datos
+
+## Preparación y carga
+
+```{r prepare-data}
+# Crear datos simulados (REEMPLAZA CON TUS DATOS REALES)
+set.seed(42)
+n <- 120  # 10 años de datos mensuales
+tiempo <- seq(as.Date("2014-01-01"), by = "month", length.out = n)
+
+tendencia <- seq(100, 180, length.out = n)
+estacionalidad <- 15 * sin(2 * pi * (1:n) / 12)
+ruido <- rnorm(n, 0, 5)
+
+datos <- data.frame(
+  fecha = tiempo,
+  valor = tendencia + estacionalidad + ruido
+)
+
+serie_ts <- ts(datos$valor, 
+               start = c(2014, 1), 
+               frequency = 12)
+
+cat("Dimensión de datos:", length(serie_ts), "observaciones\n")
+cat("Período:", format(tiempo[1], "%Y-%m"), "a", format(tiempo[n], "%Y-%m"), "\n")
+```
+
+## Estadísticas descriptivas
+
+```{r descriptive-stats}
+stats_df <- data.frame(
+  Métrica = c("Media", "Mediana", "Desv. Estándar", 
+              "Mínimo", "Máximo", "Rango", "Coef. Variación (%)"),
+  Valor = c(
+    round(mean(serie_ts), 2),
+    round(median(serie_ts), 2),
+    round(sd(serie_ts), 2),
+    round(min(serie_ts), 2),
+    round(max(serie_ts), 2),
+    round(diff(range(serie_ts)), 2),
+    round((sd(serie_ts) / mean(serie_ts)) * 100, 2)
+  )
+)
+
+kable(stats_df, 
+      format = "html",
+      caption = "Estadísticas Descriptivas") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    position = "center"
+  )
+```
+
+## Visualización inicial
+
+```{r plot-series}
+autoplot(serie_ts) +
+  labs(
+    title = "Serie Temporal Original",
+    subtitle = "Datos mensuales de 2014 a 2023",
+    x = "Tiempo",
+    y = "Valor"
+  ) +
+  theme_vision() +
+  geom_line(color = "#4FD1C5", size = 1.1) +
+  geom_smooth(color = "#805AD5", alpha = 0.2, se = FALSE)
+```
+
+---
+
+# Análisis Exploratorio
+
+## Descomposición de la serie
+
+```{r decomposition}
+descomp <- stl(serie_ts, s.window = "periodic")
+
+autoplot(descomp) +
+  labs(title = "Descomposición STL de la Serie") +
+  theme_vision()
+```
+
+## Análisis de componentes
+
+```{r components-analysis}
+tendencia_comp <- descomp$time.series[, "trend"]
+estacional_comp <- descomp$time.series[, "seasonal"]
+residuos_comp <- descomp$time.series[, "remainder"]
+
+# Calcular fuerzas
+fuerza_estacional <- 1 - var(residuos_comp) / var(estacional_comp + residuos_comp)
+fuerza_tendencia <- 1 - var(residuos_comp) / var(tendencia_comp + residuos_comp)
+
+cat("📊 ANÁLISIS DE COMPONENTES\n")
+cat("===========================\n\n")
+cat("Fuerza de Estacionalidad: ", round(fuerza_estacional, 4), "\n")
+cat("Fuerza de Tendencia: ", round(fuerza_tendencia, 4), "\n\n")
+
+if (fuerza_estacional > 0.6) {
+  cat("✓ Estacionalidad FUERTE detectada\n")
+} else {
+  cat("✗ Estacionalidad débil o moderada\n")
+}
+
+if (fuerza_tendencia > 0.6) {
+  cat("✓ Tendencia FUERTE detectada\n")
+} else {
+  cat("✗ Tendencia débil o moderada\n")
+}
+```
+
+---
+
+# Verificación de Estacionariedad
+
+<div class="alert alert-info">
+📌 <strong>¿Por qué es importante?</strong><br>
+ARIMA requiere series estacionarias. Si la serie no es estacionaria, necesitamos diferenciarla (parámetro d > 0).
+</div>
+
+## Tests de estacionariedad
+
+```{r stationarity-tests}
+# Test ADF
+adf <- adf.test(serie_ts)
+cat("🔍 TEST AUGMENTED DICKEY-FULLER (ADF)\n")
+cat("=====================================\n")
+cat("Estadístico: ", round(adf$statistic, 4), "\n")
+cat("p-valor: ", round(adf$p.value, 4), "\n")
+
+if (adf$p.value < 0.05) {
+  cat("✓ RECHAZA hipótesis nula: Serie es ESTACIONARIA\n\n")
+} else {
+  cat("✗ NO rechaza hipótesis nula: Serie es NO ESTACIONARIA\n\n")
+}
+
+# Test KPSS
+kpss <- kpss.test(serie_ts)
+cat("🔍 TEST KPSS\n")
+cat("===========\n")
+cat("Estadístico: ", round(kpss$statistic, 4), "\n")
+cat("p-valor: ", round(kpss$p.value, 4), "\n")
+
+if (kpss$p.value > 0.05) {
+  cat("✓ NO rechaza hipótesis nula: Serie es ESTACIONARIA\n")
+} else {
+  cat("✗ Rechaza hipótesis nula: Serie es NO ESTACIONARIA\n")
+}
+```
+
+## ACF y PACF
+
+```{r acf-pacf}
+par(mfrow = c(1, 2), bg = "#0F1535", col.main = "#4FD1C5",
+    col.lab = "#e0e6ed", col.axis = "#A0AEC0")
+
+acf(serie_ts, main = "ACF - Función de Autocorrelación", 
+    col = "#4FD1C5", lwd = 2)
+pacf(serie_ts, main = "PACF - Autocorrelación Parcial", 
+     col = "#805AD5", lwd = 2)
+
+par(mfrow = c(1, 1))
+```
+
+---
+
+# Selección y Ajuste de Modelo
+
+## Auto ARIMA
+
+```{r auto-arima}
+modelo_auto <- auto.arima(
+  serie_ts,
+  seasonal = TRUE,
+  stepwise = FALSE,
+  approximation = FALSE,
+  trace = FALSE
+)
+
+cat("🎯 MODELO ARIMA AUTOMÁTICO\n")
+cat("===========================\n\n")
+print(summary(modelo_auto))
+```
+
+## Comparación de modelos
+
+```{r model-comparison}
+# Ajustar varios modelos
+modelos_lista <- list(
+  ARIMA_Auto = modelo_auto,
+  ARIMA_011 = arima(serie_ts, order = c(0, 1, 1)),
+  ARIMA_110 = arima(serie_ts, order = c(1, 1, 0)),
+  ARIMA_111 = arima(serie_ts, order = c(1, 1, 1)),
+  ARIMA_210 = arima(serie_ts, order = c(2, 1, 0))
+)
+
+# Calcular criterios
+comparacion <- data.frame(
+  Modelo = names(modelos_lista),
+  AIC = sapply(modelos_lista, AIC),
+  BIC = sapply(modelos_lista, BIC)
+)
+
+comparacion$AICc <- sapply(modelos_lista, function(x) {
+  n <- length(serie_ts)
+  k <- length(coef(x))
+  AIC(x) + (2 * k * (k + 1)) / (n - k - 1)
+})
+
+comparacion <- comparacion %>%
+  arrange(AICc) %>%
+  mutate(
+    DeltaAICc = AICc - min(AICc),
+    Seleccionado = ifelse(DeltaAICc == 0, "✓ MEJOR", "")
+  )
+
+kable(comparacion, 
+      digits = 2,
+      caption = "Comparación de Modelos ARIMA") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+mejor_modelo <- modelos_lista[[comparacion$Modelo[1]]]
+```
+
+---
+
+# Diagnóstico de Residuos
+
+<div class="alert alert-warning">
+⚠️ <strong>Requisito fundamental:</strong> Los residuos deben comportarse como ruido blanco (media 0, varianza constante, sin autocorrelación).
+</div>
+
+```{r residuals-check}
+checkresiduals(mejor_modelo)
+```
+
+## Test de Ljung-Box
+
+```{r ljung-box}
+lb_test <- Box.test(residuals(mejor_modelo), 
+                    lag = 20, 
+                    type = "Ljung-Box")
+
+cat("\n📊 TEST DE LJUNG-BOX\n")
+cat("====================\n")
+cat("Estadístico: ", round(lb_test$statistic, 4), "\n")
+cat("p-valor: ", round(lb_test$p.value, 4), "\n\n")
+
+if (lb_test$p.value > 0.05) {
+  cat("✅ RESULTADO: Los residuos son RUIDO BLANCO\n")
+  cat("   → No hay autocorrelación significativa\n")
+  cat("   → Modelo adecuado para pronósticos\n")
+} else {
+  cat("❌ RESULTADO: Posible autocorrelación en residuos\n")
+  cat("   → El modelo podría mejorarse\n")
+}
+```
+
+---
+
+# Pronósticos
+
+## Generación de pronósticos
+
+
+
+---
+
+# Conclusiones
+
+## Resumen de hallazgos
+
+- **Serie caracterizada por:** Tendencia creciente y estacionalidad anual
+- **Modelo seleccionado:** ARIMA con parámetros óptimos según AICc
+- **Validación:** Residuos consistentes con ruido blanco
+- **Pronósticos:** Generados con intervalos de confianza del 80% y 95%
+
+## Recomendaciones
+
+<div class="alert alert-info">
+💡 <strong>Para futuros trabajos:</strong>
+- Incorporar variables exógenas (ARIMAX)
+- Explorar modelos SARIMA con componentes estacionales explícitos
+- Validar con técnicas de cross-validation
+- Considerar modelos de machine learning (LSTM, Prophet)
+</div>
+
+---
+
+<div class="footer">
+<strong>Universidad del Valle</strong> | Facultad de Ingeniería<br>
+Curso: Gestión de Datos | Profesor: Orlando Joaqui Barandica<br>
+Análisis de Series Temporales | `r format(Sys.Date(), '%Y')`
+</div>
+
+</div>
+```

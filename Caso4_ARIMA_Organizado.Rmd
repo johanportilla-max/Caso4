@@ -1,0 +1,1520 @@
+---
+title: "Análisis y Pronóstico de Series Temporales con ARIMA"
+subtitle: "Datos del OECD Data Explorer"
+author: "Tu Nombre (Código) - Universidad del Valle"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output: 
+  html_document:
+    theme: darkly
+    highlight: kate
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    df_print: paged
+---
+
+```{=html}
+<style type="text/css">
+/* ========== VISION UI DASHBOARD - PALETA DE COLORES ========== */
+:root {
+  --bg-black: #0F1535;
+  --bg-dark: #0a0e1a;
+  --bg-card: #1a1f37;
+  --bg-sidebar: #0d1117;
+  --accent-cyan: #4FD1C5;
+  --accent-blue: #0084ff;
+  --accent-purple: #805AD5;
+  --accent-pink: #E9D5FF;
+  --text-white: #ffffff;
+  --text-light: #e0e6ed;
+  --text-gray: #A0AEC0;
+  --border-glow: rgba(79, 209, 197, 0.4);
+  --sidebar-width: 300px;
+  --right-toc-width: 260px;
+}
+
+/* ========== RESET & BASE ========== */
+* {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg-black) !important;
+  color: var(--text-light) !important;
+  font-family: 'Plus Jakarta Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  line-height: 1.8 !important;
+  overflow-x: hidden !important;
+  height: 100% !important;
+}
+
+/* ========== ESTRUCTURA PRINCIPAL ========== */
+.main-container {
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  padding-left: var(--sidebar-width) !important;
+  padding-right: var(--right-toc-width) !important;
+  background: var(--bg-black) !important;
+  min-height: 100vh !important;
+}
+
+/* ========== TOC IZQUIERDO - VISION UI STYLE ========== */
+#TOC {
+  background: linear-gradient(180deg, rgba(26, 31, 55, 0.95), rgba(15, 21, 53, 0.98)) !important;
+  backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(79, 209, 197, 0.2) !important;
+  padding: 30px 20px 100px 20px !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: var(--sidebar-width) !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 1000 !important;
+  box-shadow: 
+    4px 0 30px rgba(0, 0, 0, 0.5),
+    inset -1px 0 20px rgba(79, 209, 197, 0.05) !important;
+}
+
+#TOC::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+#TOC::-webkit-scrollbar-track {
+  background: rgba(15, 21, 53, 0.4) !important;
+  border-radius: 4px !important;
+}
+
+#TOC::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple)) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 15px rgba(79, 209, 197, 0.5) !important;
+}
+
+#TOC::before {
+  content: "📊 CONTENIDO" !important;
+  display: block !important;
+  font-size: 1.1em !important;
+  font-weight: 800 !important;
+  color: var(--accent-cyan) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2.5px !important;
+  padding: 20px 15px !important;
+  margin-bottom: 25px !important;
+  background: linear-gradient(135deg, rgba(79, 209, 197, 0.15), rgba(128, 90, 213, 0.15)) !important;
+  border-radius: 10px !important;
+  text-align: center !important;
+  text-shadow: 0 0 20px rgba(79, 209, 197, 0.6) !important;
+  border: 1px solid rgba(79, 209, 197, 0.3) !important;
+}
+
+/* ========== ENLACES TOC - GLASSMORPHISM ========== */
+#TOC ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#TOC li {
+  margin: 6px 0 !important;
+  background: transparent !important;
+}
+
+#TOC a {
+  color: var(--text-gray) !important;
+  text-decoration: none !important;
+  font-size: 0.92em !important;
+  display: block !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: transparent !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#TOC a::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 3px !important;
+  background: linear-gradient(180deg, transparent, var(--accent-cyan), transparent) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+#TOC a:hover {
+  color: var(--accent-cyan) !important;
+  background: rgba(79, 209, 197, 0.1) !important;
+  transform: translateX(5px) !important;
+  box-shadow: 
+    inset 0 0 20px rgba(79, 209, 197, 0.1),
+    0 4px 15px rgba(79, 209, 197, 0.2) !important;
+}
+
+#TOC a:hover::before {
+  opacity: 1 !important;
+}
+
+#TOC a.active {
+  color: var(--accent-cyan) !important;
+  background: linear-gradient(90deg, rgba(79, 209, 197, 0.2), rgba(128, 90, 213, 0.15)) !important;
+  font-weight: 700 !important;
+  box-shadow: 
+    inset 0 0 25px rgba(79, 209, 197, 0.15),
+    0 6px 20px rgba(79, 209, 197, 0.25) !important;
+  border-left: 3px solid var(--accent-cyan) !important;
+  padding-left: 20px !important;
+  transform: translateX(8px) !important;
+}
+
+#TOC a.active::after {
+  content: '●' !important;
+  position: absolute !important;
+  right: 15px !important;
+  color: var(--accent-cyan) !important;
+  font-size: 0.8em !important;
+  animation: pulse 2s infinite !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+#TOC .toc-section-number {
+  color: var(--accent-cyan) !important;
+  font-weight: 700 !important;
+  margin-right: 10px !important;
+  display: inline-block !important;
+  min-width: 28px !important;
+  background: rgba(79, 209, 197, 0.15) !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.85em !important;
+}
+
+#TOC ul ul {
+  padding-left: 20px !important;
+  margin-top: 8px !important;
+  border-left: 2px solid rgba(79, 209, 197, 0.15) !important;
+  margin-left: 15px !important;
+}
+
+#TOC ul ul a {
+  font-size: 0.87em !important;
+  padding: 10px 14px !important;
+}
+
+/* ========== BOTÓN CONTROL DE CÓDIGO ========== */
+#global-code-toggle {
+  position: fixed !important;
+  bottom: 35px !important;
+  right: calc(var(--right-toc-width) + 35px) !important;
+  z-index: 10000 !important;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)) !important;
+  color: var(--bg-black) !important;
+  border: none !important;
+  padding: 16px 32px !important;
+  border-radius: 50px !important;
+  font-weight: 800 !important;
+  font-size: 0.9em !important;
+  cursor: pointer !important;
+  box-shadow: 
+    0 8px 30px rgba(79, 209, 197, 0.4),
+    0 0 40px rgba(79, 209, 197, 0.2) !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+}
+
+#global-code-toggle::before {
+  content: '⚡ ' !important;
+}
+
+#global-code-toggle:hover {
+  transform: translateY(-4px) scale(1.05) !important;
+  box-shadow: 
+    0 12px 40px rgba(79, 209, 197, 0.6),
+    0 0 60px rgba(79, 209, 197, 0.3) !important;
+}
+
+/* ========== MINI-TOC DERECHO ========== */
+#right-toc {
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  width: var(--right-toc-width) !important;
+  height: 100vh !important;
+  background: linear-gradient(180deg, rgba(26, 31, 55, 0.95), rgba(15, 21, 53, 0.98)) !important;
+  backdrop-filter: blur(20px) !important;
+  border-left: 1px solid rgba(128, 90, 213, 0.2) !important;
+  padding: 30px 20px !important;
+  overflow-y: auto !important;
+  z-index: 999 !important;
+  box-shadow: 
+    -4px 0 30px rgba(0, 0, 0, 0.5),
+    inset 1px 0 20px rgba(128, 90, 213, 0.05) !important;
+}
+
+#right-toc::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+#right-toc::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent-purple), var(--accent-cyan)) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 0 10px rgba(128, 90, 213, 0.5) !important;
+}
+
+#right-toc-title {
+  font-size: 0.85em !important;
+  font-weight: 800 !important;
+  color: var(--accent-purple) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  margin-bottom: 20px !important;
+  padding: 15px !important;
+  background: linear-gradient(135deg, rgba(128, 90, 213, 0.15), rgba(79, 209, 197, 0.15)) !important;
+  border-radius: 8px !important;
+  text-align: center !important;
+  text-shadow: 0 0 15px rgba(128, 90, 213, 0.6) !important;
+  border: 1px solid rgba(128, 90, 213, 0.3) !important;
+}
+
+#right-toc-list {
+  list-style: none !important;
+  padding: 0 !important;
+}
+
+#right-toc-list li {
+  margin: 8px 0 !important;
+}
+
+#right-toc-list a {
+  color: var(--text-gray) !important;
+  text-decoration: none !important;
+  font-size: 0.85em !important;
+  display: block !important;
+  padding: 10px 14px !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+#right-toc-list a:hover {
+  color: var(--accent-purple) !important;
+  background: rgba(128, 90, 213, 0.12) !important;
+  padding-left: 20px !important;
+  box-shadow: 
+    inset 0 0 15px rgba(128, 90, 213, 0.1),
+    0 4px 12px rgba(128, 90, 213, 0.2) !important;
+}
+
+#right-toc-list a.active-section {
+  color: var(--accent-purple) !important;
+  background: linear-gradient(90deg, rgba(128, 90, 213, 0.2), rgba(79, 209, 197, 0.15)) !important;
+  font-weight: 700 !important;
+  padding-left: 18px !important;
+  border-left: 3px solid var(--accent-purple) !important;
+  box-shadow: 
+    inset 0 0 20px rgba(128, 90, 213, 0.15),
+    0 6px 18px rgba(128, 90, 213, 0.25) !important;
+}
+
+/* ========== CONTENIDO CENTRAL ========== */
+.toc-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 50px 70px !important;
+  background: var(--bg-black) !important;
+  min-height: 100vh !important;
+}
+
+/* ========== SECCIONES CON GLASSMORPHISM ========== */
+.section.level1 {
+  background: linear-gradient(135deg, rgba(26, 31, 55, 0.6), rgba(15, 21, 53, 0.8)) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(79, 209, 197, 0.2) !important;
+  border-radius: 16px !important;
+  padding: 40px !important;
+  margin-bottom: 35px !important;
+  box-shadow: 
+    0 10px 50px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.section.level1::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--accent-cyan) 20%, 
+    var(--accent-purple) 80%, 
+    transparent) !important;
+  box-shadow: 0 0 20px rgba(79, 209, 197, 0.5) !important;
+}
+
+/* ========== TÍTULOS - VISION UI STYLE ========== */
+h1 {
+  color: var(--text-white) !important;
+  font-size: 2.5em !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  padding: 25px 0 !important;
+  margin-bottom: 35px !important;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  position: relative !important;
+  text-shadow: none !important;
+}
+
+h1::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 5px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 200px !important;
+  height: 4px !important;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--accent-cyan) 20%, 
+    var(--accent-purple) 80%, 
+    transparent) !important;
+  box-shadow: 0 0 25px rgba(79, 209, 197, 0.8) !important;
+  border-radius: 2px !important;
+}
+
+h2 {
+  color: var(--accent-cyan) !important;
+  font-size: 1.9em !important;
+  font-weight: 700 !important;
+  padding: 18px 25px !important;
+  margin-top: 40px !important;
+  margin-bottom: 25px !important;
+  background: linear-gradient(90deg, 
+    rgba(79, 209, 197, 0.15) 0%, 
+    rgba(79, 209, 197, 0.05) 50%,
+    transparent 100%) !important;
+  border-left: 5px solid var(--accent-cyan) !important;
+  border-radius: 0 10px 10px 0 !important;
+  text-shadow: 0 0 25px rgba(79, 209, 197, 0.4) !important;
+  box-shadow: 
+    -5px 0 20px rgba(79, 209, 197, 0.1),
+    inset 0 0 30px rgba(79, 209, 197, 0.05) !important;
+}
+
+h3 {
+  color: var(--text-white) !important;
+  font-size: 1.6em !important;
+  font-weight: 600 !important;
+  padding: 12px 20px !important;
+  padding-left: 18px !important;
+  margin-top: 30px !important;
+  margin-bottom: 18px !important;
+  border-left: 4px solid var(--accent-purple) !important;
+  background: linear-gradient(90deg, 
+    rgba(128, 90, 213, 0.12) 0%, 
+    transparent 100%) !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+h4 {
+  color: var(--text-light) !important;
+  font-size: 1.3em !important;
+  font-weight: 600 !important;
+  margin-top: 25px !important;
+  margin-bottom: 15px !important;
+  padding-left: 15px !important;
+  border-left: 3px solid var(--text-gray) !important;
+}
+
+/* ========== CHUNKS DE CÓDIGO - GLASSMORPHISM ========== */
+.code-chunk {
+  margin: 35px 0 !important;
+  border: 1px solid rgba(79, 209, 197, 0.25) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: linear-gradient(135deg, rgba(15, 21, 53, 0.6), rgba(10, 14, 26, 0.8)) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.code-header {
+  background: linear-gradient(90deg, 
+    rgba(79, 209, 197, 0.2), 
+    rgba(128, 90, 213, 0.15)) !important;
+  color: var(--accent-cyan) !important;
+  padding: 14px 24px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid rgba(79, 209, 197, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.code-header:hover {
+  background: linear-gradient(90deg, 
+    rgba(79, 209, 197, 0.3), 
+    rgba(128, 90, 213, 0.25)) !important;
+  box-shadow: inset 0 0 30px rgba(79, 209, 197, 0.1) !important;
+}
+
+.chunk-title {
+  font-weight: 700 !important;
+  font-size: 0.95em !important;
+  letter-spacing: 0.5px !important;
+}
+
+.toggle-icon {
+  font-size: 1.2em !important;
+  transition: transform 0.3s ease !important;
+  filter: drop-shadow(0 0 8px rgba(79, 209, 197, 0.6)) !important;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg) !important;
+}
+
+.code-content {
+  background: var(--bg-dark) !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important;
+}
+
+.code-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+}
+
+.code-content.expanded {
+  max-height: 5000px !important;
+  opacity: 1 !important;
+}
+
+.code-content pre {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* ========== TABLAS - VISION UI STYLE ========== */
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 30px 0 !important;
+  background: linear-gradient(135deg, rgba(26, 31, 55, 0.6), rgba(15, 21, 53, 0.8)) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(79, 209, 197, 0.2) !important;
+}
+
+thead {
+  background: linear-gradient(135deg, 
+    rgba(79, 209, 197, 0.3), 
+    rgba(128, 90, 213, 0.3)) !important;
+  box-shadow: 0 4px 15px rgba(79, 209, 197, 0.2) !important;
+}
+
+th {
+  color: var(--text-white) !important;
+  padding: 18px 24px !important;
+  text-align: left !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-size: 0.9em !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+td {
+  padding: 16px 24px !important;
+  color: var(--text-light) !important;
+  border-bottom: 1px solid rgba(79, 209, 197, 0.1) !important;
+}
+
+tr:hover td {
+  background: rgba(79, 209, 197, 0.08) !important;
+  box-shadow: inset 0 0 20px rgba(79, 209, 197, 0.05) !important;
+}
+
+tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* ========== CÓDIGO ========== */
+pre {
+  background: var(--bg-dark) !important;
+  border: 1px solid rgba(79, 209, 197, 0.25) !important;
+  border-left: 4px solid var(--accent-cyan) !important;
+  border-radius: 10px !important;
+  padding: 24px !important;
+  margin: 30px 0 !important;
+  overflow-x: auto !important;
+  box-shadow: 
+    inset 0 0 30px rgba(0, 0, 0, 0.5),
+    0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+code {
+  color: var(--accent-cyan) !important;
+  background: rgba(79, 209, 197, 0.1) !important;
+  padding: 4px 10px !important;
+  border-radius: 5px !important;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace !important;
+  font-size: 0.88em !important;
+  border: 1px solid rgba(79, 209, 197, 0.2) !important;
+}
+
+pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: var(--text-light) !important;
+  border: none !important;
+}
+
+/* ========== GRÁFICOS ========== */
+.figure {
+  text-align: center !important;
+  margin: 40px 0 !important;
+  padding: 30px !important;
+  background: linear-gradient(135deg, rgba(26, 31, 55, 0.6), rgba(15, 21, 53, 0.8)) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(79, 209, 197, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ========== ALERTS / CALLOUTS ========== */
+.alert {
+  padding: 20px 25px !important;
+  margin: 25px 0 !important;
+  border-radius: 10px !important;
+  border-left: 5px solid !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.alert-info {
+  background: linear-gradient(90deg, rgba(79, 209, 197, 0.15), rgba(79, 209, 197, 0.05)) !important;
+  border-left-color: var(--accent-cyan) !important;
+  color: var(--text-light) !important;
+  box-shadow: 
+    0 4px 20px rgba(79, 209, 197, 0.1),
+    inset 0 0 30px rgba(79, 209, 197, 0.05) !important;
+}
+
+.alert-warning {
+  background: linear-gradient(90deg, rgba(255, 165, 0, 0.15), rgba(255, 165, 0, 0.05)) !important;
+  border-left-color: #FFA500 !important;
+  color: var(--text-light) !important;
+}
+
+.alert-success {
+  background: linear-gradient(90deg, rgba(72, 187, 120, 0.15), rgba(72, 187, 120, 0.05)) !important;
+  border-left-color: #48BB78 !important;
+  color: var(--text-light) !important;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1400px) {
+  .main-container {
+    padding-right: 0 !important;
+  }
+  
+  #right-toc {
+    display: none !important;
+  }
+  
+  #global-code-toggle {
+    right: 35px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-container {
+    padding-left: 0 !important;
+  }
+  
+  #TOC {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 30px 20px !important;
+  }
+  
+  .toc-content {
+    padding: 25px !important;
+  }
+  
+  #global-code-toggle {
+    position: relative !important;
+    right: 0 !important;
+    margin: 25px auto !important;
+    display: block !important;
+    width: 85% !important;
+  }
+}
+
+/* ========== SMOOTH SCROLL ========== */
+html {
+  scroll-behavior: smooth !important;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  text-align: center !important;
+  padding: 50px !important;
+  margin-top: 70px !important;
+  background: linear-gradient(135deg, rgba(26, 31, 55, 0.6), rgba(15, 21, 53, 0.8)) !important;
+  backdrop-filter: blur(10px) !important;
+  border-top: 2px solid rgba(79, 209, 197, 0.3) !important;
+  color: var(--text-gray) !important;
+  border-radius: 16px 16px 0 0 !important;
+  box-shadow: 
+    0 -10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.footer strong {
+  color: var(--accent-cyan) !important;
+  text-shadow: 0 0 10px rgba(79, 209, 197, 0.5) !important;
+}
+
+/* ========== BLOCKQUOTES ========== */
+blockquote {
+  border-left: 4px solid var(--accent-purple) !important;
+  padding: 15px 20px !important;
+  margin: 25px 0 !important;
+  background: linear-gradient(90deg, rgba(128, 90, 213, 0.1), transparent) !important;
+  border-radius: 0 8px 8px 0 !important;
+  color: var(--text-light) !important;
+  font-style: italic !important;
+}
+
+/* ========== LISTAS ========== */
+ul, ol {
+  padding-left: 30px !important;
+  margin: 20px 0 !important;
+}
+
+li {
+  margin: 10px 0 !important;
+  color: var(--text-light) !important;
+  line-height: 1.8 !important;
+}
+
+li::marker {
+  color: var(--accent-cyan) !important;
+}
+</style>
+```
+
+```{=html}
+<!-- Mini TOC Derecho -->
+<div id="right-toc">
+  <div id="right-toc-title">🔍 EN ESTA SECCIÓN</div>
+  <ul id="right-toc-list"></ul>
+</div>
+
+<!-- Botón Control de Código -->
+<button id="global-code-toggle">Código</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ========== CONTROL DE CÓDIGO ==========
+  let allCodeVisible = true;
+  const toggleButton = document.getElementById('global-code-toggle');
+  
+  function initializeCodeToggles() {
+    const codeChunks = document.querySelectorAll('pre.r, pre.python, div.sourceCode');
+    
+    codeChunks.forEach((chunk, index) => {
+      if (chunk.closest('.code-chunk')) return;
+      
+      const container = document.createElement('div');
+      container.className = 'code-chunk';
+      
+      const header = document.createElement('div');
+      header.className = 'code-header';
+      header.innerHTML = `
+        <div class="chunk-title">💻 Código R - Chunk ${index + 1}</div>
+        <div class="toggle-icon">▼</div>
+      `;
+      
+      const content = document.createElement('div');
+      content.className = 'code-content expanded';
+      content.appendChild(chunk.cloneNode(true));
+      
+      chunk.parentNode.replaceChild(container, chunk);
+      container.appendChild(header);
+      container.appendChild(content);
+      
+      header.addEventListener('click', function() {
+        const isExpanded = content.classList.contains('expanded');
+        const icon = this.querySelector('.toggle-icon');
+        
+        if (isExpanded) {
+          content.classList.remove('expanded');
+          content.classList.add('collapsed');
+          icon.classList.add('rotated');
+        } else {
+          content.classList.remove('collapsed');
+          content.classList.add('expanded');
+          icon.classList.remove('rotated');
+        }
+      });
+    });
+  }
+  
+  function toggleAllCode() {
+    const codeContents = document.querySelectorAll('.code-content');
+    const icons = document.querySelectorAll('.toggle-icon');
+    
+    if (allCodeVisible) {
+      codeContents.forEach(content => {
+        content.classList.remove('expanded');
+        content.classList.add('collapsed');
+      });
+      icons.forEach(icon => icon.classList.add('rotated'));
+      toggleButton.textContent = 'Mostrar Código';
+      allCodeVisible = false;
+    } else {
+      codeContents.forEach(content => {
+        content.classList.remove('collapsed');
+        content.classList.add('expanded');
+      });
+      icons.forEach(icon => icon.classList.remove('rotated'));
+      toggleButton.textContent = 'Ocultar Código';
+      allCodeVisible = true;
+    }
+  }
+  
+  setTimeout(initializeCodeToggles, 100);
+  if (toggleButton) {
+    toggleButton.addEventListener('click', toggleAllCode);
+  }
+  
+  // ========== TOC FUNCTIONS ==========
+  function getCurrentSection() {
+    const sections = document.querySelectorAll('.section.level1');
+    const scrollPos = window.pageYOffset || document.documentElement.scrollTop;
+    const windowHeight = window.innerHeight;
+    
+    let currentSection = null;
+    let minDistance = Infinity;
+    
+    sections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      
+      if (rect.top <= windowHeight / 3 && rect.bottom > 0) {
+        const distance = Math.abs(rect.top);
+        if (distance < minDistance) {
+          minDistance = distance;
+          currentSection = section;
+        }
+      }
+    });
+    
+    if (!currentSection && sections.length > 0) {
+      for (let section of sections) {
+        const rect = section.getBoundingClientRect();
+        if (rect.bottom > 0) {
+          currentSection = section;
+          break;
+        }
+      }
+    }
+    
+    return currentSection;
+  }
+  
+  function updateRightToc() {
+    const rightTocList = document.getElementById('right-toc-list');
+    if (!rightTocList) return;
+    
+    const activeSection = getCurrentSection();
+    
+    if (!activeSection) {
+      rightTocList.innerHTML = '<li style="color: var(--text-gray); font-style: italic; padding: 10px;">Desplázate para ver contenido</li>';
+      return;
+    }
+    
+    const headings = activeSection.querySelectorAll('h2, h3, h4');
+    rightTocList.innerHTML = '';
+    
+    if (headings.length === 0) {
+      rightTocList.innerHTML = '<li style="color: var(--text-gray); font-style: italic; padding: 10px;">Sin subtítulos en esta sección</li>';
+      return;
+    }
+    
+    headings.forEach((heading, index) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      
+      if (!heading.id) {
+        heading.id = 'sub-heading-' + index + '-' + Date.now();
+      }
+      
+      a.href = '#' + heading.id;
+      
+      let textContent = heading.textContent || heading.innerText;
+      textContent = textContent.replace(/^\d+(\.\d+)*\s*/, '').trim();
+      
+      a.textContent = textContent;
+      
+      if (heading.tagName === 'H3') {
+        a.style.paddingLeft = '20px';
+        a.style.fontSize = '0.8em';
+      } else if (heading.tagName === 'H4') {
+        a.style.paddingLeft = '30px';
+        a.style.fontSize = '0.75em';
+      }
+      
+      li.appendChild(a);
+      rightTocList.appendChild(li);
+      
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetElement = document.getElementById(heading.id);
+        if (targetElement) {
+          const offsetTop = targetElement.getBoundingClientRect().top + window.pageYOffset - 100;
+          window.scrollTo({ 
+            top: offsetTop, 
+            behavior: 'smooth' 
+          });
+          
+          setTimeout(() => {
+            highlightActiveRightToc();
+          }, 500);
+        }
+      });
+    });
+    
+    highlightActiveRightToc();
+  }
+  
+  function highlightActiveRightToc() {
+    const activeSection = getCurrentSection();
+    if (!activeSection) return;
+    
+    const headings = Array.from(activeSection.querySelectorAll('h2, h3, h4'));
+    const rightTocLinks = document.querySelectorAll('#right-toc-list a');
+    
+    if (headings.length === 0 || rightTocLinks.length === 0) return;
+    
+    let activeIndex = -1;
+    let minDistance = Infinity;
+    const threshold = 150;
+    
+    headings.forEach((heading, index) => {
+      const rect = heading.getBoundingClientRect();
+      const distance = Math.abs(rect.top);
+      
+      if (rect.top <= threshold && distance < minDistance) {
+        minDistance = distance;
+        activeIndex = index;
+      }
+    });
+    
+    rightTocLinks.forEach((link, index) => {
+      if (index === activeIndex) {
+        link.classList.add('active-section');
+      } else {
+        link.classList.remove('active-section');
+      }
+    });
+  }
+  
+  function highlightActiveTocSection() {
+    const tocContainer = document.getElementById('TOC');
+    if (!tocContainer) return;
+    
+    const tocLinks = tocContainer.querySelectorAll('a[href^="#"]');
+    const activeSection = getCurrentSection();
+    
+    if (!activeSection) return;
+    
+    const activeId = activeSection.id;
+    let activeLinkElement = null;
+    
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      
+      const href = link.getAttribute('href');
+      if (href) {
+        const linkId = href.replace('#', '');
+        if (linkId === activeId) {
+          link.classList.add('active');
+          activeLinkElement = link;
+        }
+      }
+    });
+    
+    if (activeLinkElement && tocContainer) {
+      requestAnimationFrame(() => {
+        const linkTop = activeLinkElement.offsetTop;
+        const tocScrollTop = tocContainer.scrollTop;
+        const tocHeight = tocContainer.clientHeight;
+        const headerHeight = 100;
+        const linkRelativeTop = linkTop - tocScrollTop;
+        const visibleTop = headerHeight;
+        const visibleBottom = tocHeight - 50;
+        
+        if (linkRelativeTop < visibleTop) {
+          tocContainer.scrollTo({
+            top: linkTop - headerHeight - 20,
+            behavior: 'smooth'
+          });
+        } else if (linkRelativeTop > visibleBottom) {
+          tocContainer.scrollTo({
+            top: linkTop - tocHeight + 100,
+            behavior: 'smooth'
+          });
+        }
+      });
+    }
+  }
+  
+  // Event Listeners
+  let scrollTimeout;
+  let lastScrollTop = 0;
+  
+  window.addEventListener('scroll', function() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (Math.abs(scrollTop - lastScrollTop) > 10) {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function() {
+        updateRightToc();
+        highlightActiveTocSection();
+        highlightActiveRightToc();
+        lastScrollTop = scrollTop;
+      }, 50);
+    }
+  }, { passive: true });
+  
+  setTimeout(function() {
+    updateRightToc();
+    highlightActiveTocSection();
+    highlightActiveRightToc();
+  }, 600);
+  
+  document.querySelectorAll('#TOC a').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href');
+      if (!targetId || targetId === '#') return;
+      
+      e.preventDefault();
+      const target = document.querySelector(targetId);
+      
+      if (target) {
+        const offsetTop = target.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+        
+        setTimeout(function() {
+          updateRightToc();
+          highlightActiveTocSection();
+          highlightActiveRightToc();
+        }, 500);
+      }
+    });
+  });
+});
+</script>
+```
+
+# Configuración global
+
+```{r setup}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.width = 10,
+  fig.height = 6,
+  cache = FALSE
+)
+```
+
+# Cargar librerías
+
+```{r libraries}
+library(tidyverse)
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(gridExtra)
+library(knitr)
+library(kableExtra)
+library(plotly)
+library(lubridate)
+```
+
+# Tema personalizado Vision UI
+
+```{r theme-vision}
+theme_vision <- function() {
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "#0F1535", color = NA),
+    panel.background = element_rect(fill = "#1a1f37", color = NA),
+    panel.grid.major = element_line(color = "#2a3152", size = 0.3),
+    panel.grid.minor = element_line(color = "#1f2540", size = 0.2),
+    text = element_text(color = "#e0e6ed", family = "sans"),
+    axis.text = element_text(color = "#A0AEC0"),
+    axis.title = element_text(color = "#4FD1C5", face = "bold", size = 12),
+    plot.title = element_text(color = "#4FD1C5", face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(color = "#e0e6ed", size = 11, hjust = 0.5),
+    legend.background = element_rect(fill = "#1a1f37", color = "#4FD1C5"),
+    legend.text = element_text(color = "#e0e6ed"),
+    legend.title = element_text(color = "#4FD1C5", face = "bold")
+  )
+}
+
+theme_set(theme_vision())
+```
+
+# Introducción
+
+<div class="alert alert-info">
+📊 **Contexto del Análisis**
+
+En esta sección se presenta la relevancia global de los datos seleccionados y la importancia del análisis de series temporales en la toma de decisiones estratégicas.
+</div>
+
+## Relevancia de los Datos
+
+[Aquí debes explicar la relevancia de la serie temporal que seleccionaste del OECD Data Explorer]
+
+Aspectos a considerar:
+
+- Importancia económica/social del indicador seleccionado
+- Impacto en políticas públicas o decisiones empresariales
+- Contexto histórico y tendencias recientes
+- Relevancia para Colombia o región específica
+
+## Importancia del Análisis de Series Temporales
+
+El análisis de series temporales permite:
+
+- Identificar patrones históricos en los datos
+- Detectar tendencias de largo plazo
+- Modelar estacionalidad cuando existe
+- Realizar pronósticos informados para planificación
+- Apoyar decisiones basadas en evidencia cuantitativa
+
+```{r load-data-comment, eval=FALSE}
+# Ejemplo: Cargar datos del OECD
+# (Reemplaza con tu serie real)
+# library(OECD)
+# datos <- get_dataset("dataset_code")
+```
+
+# Metodología
+
+## Concepto de Serie de Tiempo
+
+Una serie de tiempo es una secuencia de observaciones de una variable medidas en intervalos de tiempo regulares y sucesivos.
+
+Componentes de una serie temporal:
+
+$$Y_t = T_t + S_t + C_t + I_t$$
+
+Donde:
+
+- $Y_t$: Valor observado en el tiempo $t$
+- $T_t$: Componente de tendencia
+- $S_t$: Componente estacional
+- $C_t$: Componente cíclico
+- $I_t$: Componente irregular (ruido)
+
+## Modelo ARIMA
+
+ARIMA significa AutoRegressive Integrated Moving Average (Modelo Autorregresivo Integrado de Media Móvil).
+
+### Estructura del Modelo
+
+El modelo ARIMA(p, d, q) combina tres componentes:
+
+**AR(p) - Autorregresivo de orden $p$:**
+$$Y_t = c + \phi_1 Y_{t-1} + \phi_2 Y_{t-2} + \cdots + \phi_p Y_{t-p} + \epsilon_t$$
+
+**I(d) - Integrado de orden $d$:**
+
+Número de diferencias necesarias para hacer la serie estacionaria
+
+**MA(q) - Media Móvil de orden $q$:**
+$$Y_t = c + \epsilon_t + \theta_1 \epsilon_{t-1} + \theta_2 \epsilon_{t-2} + \cdots + \theta_q \epsilon_{t-q}$$
+
+### Importancia del Modelo ARIMA
+
+<div class="alert alert-success">
+✅ **Ventajas del modelo ARIMA:**
+
+- Captura patrones complejos en series temporales
+- Flexible y versátil para diferentes tipos de datos
+- Ampliamente validado y utilizado en economía y finanzas
+- Permite pronósticos de corto y mediano plazo
+- Fundamentado en teoría estadística robusta
+</div>
+
+```{r stationarity-comment, eval=FALSE}
+# Ejemplo: Verificar estacionariedad
+# library(tseries)
+# adf.test(serie_temporal)
+# kpss.test(serie_temporal)
+```
+
+# Descripción de la Serie Temporal
+
+## Contexto Histórico
+
+[Describe el contexto histórico de tu serie temporal]
+
+Aspectos a incluir:
+
+- Período de tiempo cubierto
+- Eventos históricos relevantes
+- Cambios estructurales importantes
+- Fuente de los datos (OECD Data Explorer)
+
+## Carga y Preparación de Datos
+
+```{r data-preparation}
+# REEMPLAZA ESTO CON TUS DATOS REALES
+
+# Opción 1: Cargar desde CSV descargado de OECD
+# datos <- read.csv("tu_serie_oecd.csv", header = TRUE)
+
+# Opción 2: Usar paquete OECD
+# library(OECD)
+# datos <- get_dataset("TU_CODIGO_DATASET")
+
+# Crear objeto de serie temporal
+# serie_ts <- ts(datos$valor, 
+#                start = c(año_inicio, periodo_inicio),
+#                frequency = 12)  # 12 para mensual, 4 para trimestral
+
+# Ejemplo con datos simulados (ELIMINA ESTO cuando uses tus datos reales)
+set.seed(123)
+n <- 120  # 10 años de datos mensuales
+tendencia <- seq(100, 200, length.out = n)
+estacionalidad <- 10 * sin(2 * pi * (1:n) / 12)
+ruido <- rnorm(n, 0, 5)
+serie_ts <- ts(tendencia + estacionalidad + ruido, 
+               start = c(2014, 1), 
+               frequency = 12)
+```
+
+## Visualización Inicial
+
+```{r visualization-initial}
+autoplot(serie_ts) +
+  labs(
+    title = "Serie Temporal Seleccionada del OECD",
+    subtitle = "Período: [Especifica tu período]",
+    x = "Tiempo",
+    y = "[Tu variable]"
+  ) +
+  theme_vision() +
+  geom_line(color = "#4FD1C5", size = 1.2)
+```
+
+## Estadísticas Descriptivas
+
+```{r descriptive-stats}
+estadisticas <- data.frame(
+  Métrica = c("Media", "Mediana", "Desviación Estándar", 
+              "Mínimo", "Máximo", "Rango", "CV (%)"),
+  Valor = c(
+    mean(serie_ts),
+    median(serie_ts),
+    sd(serie_ts),
+    min(serie_ts),
+    max(serie_ts),
+    diff(range(serie_ts)),
+    (sd(serie_ts) / mean(serie_ts)) * 100
+  )
+)
+
+kable(estadisticas, 
+      digits = 2,
+      caption = "Estadísticas Descriptivas de la Serie Temporal",
+      align = 'lr') %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Descomposición de la Serie
+
+```{r decomposition}
+decomp <- stl(serie_ts, s.window = "periodic")
+
+autoplot(decomp) +
+  labs(title = "Descomposición STL de la Serie Temporal") +
+  theme_vision()
+```
+
+## Análisis de Componentes
+
+```{r components-analysis}
+tendencia_comp <- decomp$time.series[, "trend"]
+estacional_comp <- decomp$time.series[, "seasonal"]
+residuos_comp <- decomp$time.series[, "remainder"]
+
+cat("Fuerza de la Estacionalidad:\n")
+fuerza_estacional <- 1 - var(residuos_comp) / var(estacional_comp + residuos_comp)
+cat(sprintf("F_S = %.4f\n", fuerza_estacional))
+
+cat("\nFuerza de la Tendencia:\n")
+fuerza_tendencia <- 1 - var(residuos_comp) / var(tendencia_comp + residuos_comp)
+cat(sprintf("F_T = %.4f\n", fuerza_tendencia))
+```
+
+# Resultados del Modelo ARIMA
+
+## Verificación de Estacionariedad
+
+```{r stationarity-tests}
+adf_result <- adf.test(serie_ts)
+cat("Test ADF (Augmented Dickey-Fuller):\n")
+cat(sprintf("Estadístico: %.4f\n", adf_result$statistic))
+cat(sprintf("p-valor: %.4f\n", adf_result$p.value))
+
+kpss_result <- kpss.test(serie_ts)
+cat("\nTest KPSS:\n")
+cat(sprintf("Estadístico: %.4f\n", kpss_result$statistic))
+cat(sprintf("p-valor: %.4f\n", kpss_result$p.value))
+```
+
+```{r acf-pacf}
+par(mfrow = c(1, 2), bg = "#0F1535", col.main = "#4FD1C5", 
+    col.lab = "#e0e6ed", col.axis = "#A0AEC0")
+acf(serie_ts, main = "Función de Autocorrelación (ACF)", col = "#4FD1C5")
+pacf(serie_ts, main = "Función de Autocorrelación Parcial (PACF)", col = "#805AD5")
+par(mfrow = c(1, 1))
+```
+
+## Selección del Modelo ARIMA
+
+### Método Automático
+
+```{r auto-arima}
+modelo_auto <- auto.arima(serie_ts, 
+                          seasonal = TRUE,
+                          stepwise = FALSE,
+                          approximation = FALSE,
+                          trace = TRUE)
+
+summary(modelo_auto)
+```
+
+### Comparación de Modelos
+
+```{r model-comparison}
+modelos <- list(
+  ARIMA_auto = modelo_auto,
+  ARIMA_010 = arima(serie_ts, order = c(0, 1, 0)),
+  ARIMA_110 = arima(serie_ts, order = c(1, 1, 0)),
+  ARIMA_011 = arima(serie_ts, order = c(0, 1, 1)),
+  ARIMA_111 = arima(serie_ts, order = c(1, 1, 1))
+)
+
+comparacion <- data.frame(
+  Modelo = names(modelos),
+  AIC = sapply(modelos, AIC),
+  BIC = sapply(modelos, BIC),
+  AICc = sapply(modelos, function(x) {
+    n <- length(serie_ts)
+    k <- length(coef(x))
+    AIC(x) + (2 * k * (k + 1)) / (n - k - 1)
+  })
+)
+
+comparacion <- comparacion %>%
+  arrange(AICc) %>%
+  mutate(
+    Delta_AICc = AICc - min(AICc),
+    Mejor = ifelse(Delta_AICc == 0, "✓", "")
+  )
+
+kable(comparacion, 
+      digits = 2,
+      caption = "Comparación de Modelos ARIMA",
+      align = 'lrrrrl') %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  row_spec(which(comparacion$Mejor == "✓"), 
+           bold = TRUE, 
+           color = "#4FD1C5")
+```
+
+<div class="alert alert-info">
+📌 **Criterios de Selección:**
+
+- **AIC** (Akaike Information Criterion): Menor es mejor
+- **BIC** (Bayesian Information Criterion): Penaliza más la complejidad
+- **AICc** (AIC corregido): Recomendado para muestras pequeñas
+- **Delta AICc < 2**: Modelos competitivos
+</div>
+
+## Modelo Final Seleccionado
+
+```{r final-model}
+mejor_modelo <- modelos[[comparacion$Modelo[1]]]
+
+cat("Modelo Final Seleccionado:\n")
+cat("============================\n\n")
+
+summary(mejor_modelo)
+
+cat("\nCoeficientes del Modelo:\n")
+print(coef(mejor_modelo))
+```
+
+## Diagnóstico de Residuos
+
+```{r residuals-diagnostics}
+checkresiduals(mejor_modelo)
+
+lb_test <- Box.test(residuals(mejor_modelo), 
+                    lag = 20, 
+                    type = "Ljung-Box")
+
+cat("\nTest de Ljung-Box:\n")
+cat(sprintf("Estadístico: %.4f\n", lb_test$statistic))
+cat(sprintf("p-valor: %.4f\n", lb_test$p.value))
+
+if(lb_test$p.value > 0.05) {
+  cat("\n✅ Los residuos son ruido blanco (no hay autocorrelación)\n")
+} else {
+  cat("\n⚠️ Posible autocorrelación en los residuos\n")
+}
+```
+
+# Pronósticos
+
+## Visualización de Pronósticos
+
+
+## Tabla de Pronósticos
+
+
+## Precisión del Modelo
+
+
+# Conclusiones
+
+## Hallazgos Principales
+
+[Resume los hallazgos más importantes de tu análisis]
+
+Estructura sugerida:
+
+**Características de la serie:**
+- Tendencia identificada
+- Presencia/ausencia de estacionalidad
+- Volatilidad observada
+
+**Modelo ARIMA seleccionado:**
+- Justificación de los parámetros (p, d, q)
+- Calidad del ajuste
+- Validación de supuestos
+
+**Pronósticos:**
+- Tendencia esperada
+- Intervalos de confianza
+- Implicaciones prácticas
+
+## Implicaciones de los Pronósticos
+
+[Discute las implicaciones de tus pronósticos en el contexto real]
+
+Aspectos a considerar:
+
+- Impacto en políticas públicas
+- Decisiones empresariales
+- Planificación estratégica
+- Alertas tempranas
+
+## Limitaciones del Análisis
+
+<div class="alert alert-warning">
+⚠️ **Limitaciones Identificadas:**
+
+- Tamaño de muestra: [Comenta sobre la cantidad de datos]
+- Supuestos del modelo: [Discute si se cumplen todos los supuestos]
+- Cambios estructurales: [Eventos no capturados por el modelo]
+- Horizonte de pronóstico: [Confiabilidad disminuye con el tiempo]
+</div>
+
+## Posibles Mejoras
+
+Para futuros estudios:
+
+- Incorporar variables exógenas (modelo ARIMAX)
+- Explorar modelos de volatilidad (GARCH)
+- Usar técnicas de machine learning (LSTM, Prophet)
+- Análisis de intervención para eventos específicos
+- Validación cruzada con datos más recientes
+
+# Referencias
+
+<div class="alert alert-info">
+📚 **Fuentes Consultadas**
+
+- OECD Data Explorer: [URL de tu dataset]
+- Hyndman, R.J., & Athanasopoulos, G. (2021). Forecasting: principles and practice, 3rd edition, OTexts.
+- Box, G. E. P., Jenkins, G. M., & Reinsel, G. C. (2015). Time Series Analysis: Forecasting and Control, 5th edition.
+- Material del curso de Gestión de Datos - Universidad del Valle
+</div>
+
+# Anexos
+
+## Código Completo
+
+Todo el código usado en este análisis está disponible en los chunks de código a lo largo del documento. Para ver el código, haz clic en los botones "Code" o usa el botón global de control de código.
+
+## Datos Utilizados
+
+```{r data-structure}
+str(serie_ts)
+
+head(serie_ts, 20)
+
+tail(serie_ts, 20)
+```
+
+```{=html}
+<div class="footer">
+<strong>Universidad del Valle</strong> | <em>Facultad de Ingeniería</em> | Gestión de Datos<br>
+Profesor: Orlando Joaqui Barandica | Series de Tiempo y Pronósticos | 2024
+</div>
+```
