@@ -1,4 +1,4 @@
-
+#########MODELO 1########################
 library(quantmod)
 
 # Descargo la serie de interes desde yahoo
@@ -125,7 +125,7 @@ modelo1 %>%
   autoplot(include=80)   # Gráfico los últimos 80 valores + pronóstico (se puede cambiar el 80)
 
 
-
+############MODELO2#################
 
 
 
@@ -239,11 +239,6 @@ cbind(pronostico = forecast_5, real = real_5)
 
 
 
-ventana <- window(accion, end = "2024-01-01")
-ventana_test <- window(accion, start = "2024-01-01")
-modelo <- auto.arima(ventana)
-pron <- forecast(modelo, h = length(ventana_test))
-accuracy(pron, ventana_test)
 
 
 
@@ -255,7 +250,7 @@ accuracy(pron, ventana_test)
 
 
 
-##########################3
+##########################MODELO3
 
 # Tu ventana de datos (usando la ventana post-COVID sugerida)
 # Importante: Asegúrate que 'accion' esté cargada correctamente.
