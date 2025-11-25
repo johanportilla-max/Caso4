@@ -125,13 +125,6 @@ modelo1 %>%
   autoplot(include=80)   # Gráfico los últimos 80 valores + pronóstico (se puede cambiar el 80)
 
 
-# Con la función xts(serie, order=date) se cargan los datos
-
-
-## para cargar base de datos de excel, año,mes,dia <- R, en el prebui acomodar la fecha 
-##3333
-
-
 
 
 
