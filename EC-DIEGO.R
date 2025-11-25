@@ -1,4 +1,4 @@
-#########MODELO 1########################
+
 library(quantmod)
 
 # Descargo la serie de interes desde yahoo
@@ -116,7 +116,7 @@ modelo2 %>%
   forecast(h=5,level = 0.95) # 
 
 #Miro los valores verdaderos
-accion[0:20]
+accion[0:100]
 
 #  escenarios, contexto de las series 
 #Gráfico
@@ -125,7 +125,14 @@ modelo1 %>%
   autoplot(include=80)   # Gráfico los últimos 80 valores + pronóstico (se puede cambiar el 80)
 
 
-############MODELO2#################
+# Con la función xts(serie, order=date) se cargan los datos
+
+
+## para cargar base de datos de excel, año,mes,dia <- R, en el prebui acomodar la fecha 
+##3333
+
+
+
 
 
 
@@ -239,6 +246,11 @@ cbind(pronostico = forecast_5, real = real_5)
 
 
 
+ventana <- window(accion, end = "2024-01-01")
+ventana_test <- window(accion, start = "2024-01-01")
+modelo <- auto.arima(ventana)
+pron <- forecast(modelo, h = length(ventana_test))
+accuracy(pron, ventana_test)
 
 
 
@@ -250,7 +262,7 @@ cbind(pronostico = forecast_5, real = real_5)
 
 
 
-##########################MODELO3
+##########################3
 
 # Tu ventana de datos (usando la ventana post-COVID sugerida)
 # Importante: Asegúrate que 'accion' esté cargada correctamente.

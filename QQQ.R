@@ -81,7 +81,7 @@ accuracy(ModeloA)
 accuracy(modelo1)
 accuracy(modelo2)
 
-ModeloA %>% 
+modelo2 %>% 
   forecast(h=10) %>%  # (Realizo 5 pronósticos)
   autoplot(include=200) # ultimo n de precios 
-# NOo
+
