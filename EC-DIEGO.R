@@ -276,3 +276,105 @@ forecast_5 <- forecast(modelo1, h = 5)$mean
 real_5 <- ventana2[1:5]
 
 cbind(pronostico = forecast_5, real = real_5)
+
+
+
+ventana <- window(accion, end = "2024-01-01")
+ventana_test <- window(accion, start = "2024-01-01")
+modelo <- auto.arima(ventana)
+pron <- forecast(modelo, h = length(ventana_test))
+accuracy(pron, ventana_test)
+
+
+
+
+
+
+
+
+
+
+
+##########################3
+
+# Tu ventana de datos (usando la ventana post-COVID sugerida)
+# Importante: Asegúrate que 'accion' esté cargada correctamente.
+ventana <- window(accion, start = "2020-06-01", end = "2022-01-01") 
+
+# 1. Aplicar la transformación logarítmica
+log_ventana <- log(ventana)
+
+# 2. Diferenciar la serie logarítmica para obtener los rendimientos (miserie_log)
+miserie_log <- diff(log_ventana) %>% na.omit()
+# Verificar visualmente (debe verse más estable que la anterior 'miserie')
+autoplot(miserie_log)
+
+# Prueba ADF de Estacionariedad
+adf.test(miserie_log)
+
+# Gráficas ACF y PACF para identificar p y q
+library(gridExtra)
+grid.arrange(ggAcf(miserie_log),
+             ggPacf(miserie_log),
+             nrow=1)
+# Usamos log_ventana con d=1 (ya que aplicamos log, y luego diferenciamos)
+modelo_log <- auto.arima(log_ventana,
+                         max.p = 5,
+                         max.q = 5,
+                         stepwise = FALSE,
+                         approximation = FALSE,
+                         seasonal = FALSE)
+
+modelo_log
+checkresiduals(modelo_log)
+# Generar el pronóstico para 5 periodos (h=5)
+pronostico_log <- forecast(modelo_log, h=5, level = 0.95)
+
+# Revertir la transformación a la escala original (precios)
+pronostico_real <- data.frame(
+  Fecha = index(pronostico_log$mean),
+  Pronostico = exp(pronostico_log$mean),
+  Limite_Inferior = exp(pronostico_log$lower[, "95%"]), # Revertir banda inferior
+  Limite_Superior = exp(pronostico_log$upper[, "95%"])  # Revertir banda superior
+)
+
+print(pronostico_real)
+
+# Graficar el pronóstico en escala real
+autoplot(pronostico_log, include=80) + 
+  ylab("Precio (escala logarítmica)") 
+# Nota: autoplot() grafica en la escala del modelo (log). 
+# Para un gráfico en escala real, se necesita un código más elaborado usando ggplot.
+# Extraemos los siguientes 5 valores reales después de tu ventana de entrenamiento
+# Si tienes 'ventana2' (tu set de prueba):
+valores_reales <- head(ventana2, 5)
+
+# Si no tienes 'ventana2', y 'accion' es la serie completa:
+# (Asegúrate de saber en qué índice terminó 'ventana'. 
+# Si ventana tenía 402 datos, tomamos del 403 al 407)
+# valores_reales <- accion[403:407] 
+
+# Convertimos a numérico para facilitar la comparación
+valores_reales_num <- as.numeric(valores_reales)
+# Unimos tu tabla de pronostico con los valores reales
+comparativa <- cbind(pronostico_real, Real = valores_reales_num)
+
+# Calculamos la diferencia y el error porcentual
+comparativa$Diferencia <- comparativa$Real - comparativa$Pronostico
+comparativa$Error_Absoluto <- abs(comparativa$Diferencia)
+
+# Error Porcentual: ( |Real - Pronostico| / Real ) * 100
+comparativa$Error_Pct <- (comparativa$Error_Absoluto / comparativa$Real) * 100
+
+# Mostramos la tabla final
+print(comparativa)
+
+# --- Métricas Globales ---
+# RMSE (Error Cuadrático Medio - En unidades de precio)
+rmse <- sqrt(mean(comparativa$Diferencia^2))
+
+# MAPE (Error Porcentual Medio Absoluto - En porcentaje)
+mape <- mean(comparativa$Error_Pct)
+
+cat("\nEl modelo se equivocó, en promedio, un", round(mape, 2), "% por día.\n")
+cat("En dinero, el error promedio es de:", round(rmse, 2), "pesos/dólares.\n")
