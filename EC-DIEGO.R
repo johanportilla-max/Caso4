@@ -136,39 +136,6 @@ modelo1 %>%
 
 
 
-library(readxl)
-Data <- read_excel("Datos/BaseEjemplo.xlsx", col_types = c("date", 
-                                                           "numeric"))# carga la base 
-View(Data)
-
-
-Serie<-xts(Data$Y,order.by = Data$fecha)# pasa a series de tiempo 
-
-autoplot(Serie)
-# en el trabajo se puede hacer de yahoo finance, prediccionde 10 odservaciones, hablar de la historia de la serie 
-# 
-
-
-
-
-
-
-##### modelo QQQ
-
-library(quantmod)
-
-# Descargo la serie de interes desde yahoo
-
-serie <- getSymbols('QQQ',src='yahoo',auto.assign=FALSE,
-                    from="2017-01-01")
-
-View(serie)
-names(serie)
-
-plot(serie$`EC.Close`)
-
-
-
 # Actualmente se puede utilizar esta otra librerC-a
 library(yahoofinancer)
 
@@ -297,6 +264,8 @@ accuracy(pron, ventana_test)
 
 ##########################3
 
+# Tu ventana de datos (usando la ventana post-COVID sugerida)
+# Importante: Asegúrate que 'accion' esté cargada correctamente.
 ventana <- window(accion, start = "2020-06-01", end = "2022-01-01") 
 
 log_ventana <- log(ventana)
