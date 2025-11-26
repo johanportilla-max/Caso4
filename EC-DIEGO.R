@@ -49,8 +49,8 @@ accion<-serie$`EC.Close`
 
 length(accion)
 # Haciendo particion, para comprobar la prediccion
-ventana <- window(accion, start = "2019-01-01", end = "2022-01-01")
-ventana2 <- window(accion, start = "2022-01-02")
+ventana <- window(accion, start = "2019-01-01", end = "2024-12-31")
+ventana2 <- window(accion, start = "2025-01-01")
 
 # ventana de prueba
 
