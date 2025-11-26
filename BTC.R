@@ -1,7 +1,7 @@
 library(yahoofinancer)
 library(tseries)
 library(fpp2)
-library(tidy)
+library(tidyverse)
 library(quantmod)
 library(gridExtra)
 

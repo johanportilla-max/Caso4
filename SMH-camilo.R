@@ -2,6 +2,7 @@ library(quantmod)
 library(tseries)
 library(fpp2)
 library(tidyverse)
+library(gridExtra)
 
 SMH=getSymbols("SMH", src = "yahoo", auto.assign = FALSE, from="2018-01-01")
 
@@ -56,7 +57,7 @@ modeloAS %>% forecast(h=10) %>% autoplot(include=100)
 
 h_pronosticoS = length(PruebaS)
 
-pronostico_A = forecast(modeloAS, h = h_pronosticoS)
+pronostico_SA = forecast(modeloAS, h = h_pronosticoS)
 pronostico_1 = forecast(modeloS1, h = h_pronosticoS)
 pronostico_2 = forecast(modeloS2, h = h_pronosticoS)
 pronostico_3 = forecast(modeloS3, h = h_pronosticoS)
@@ -67,6 +68,9 @@ pronostico_7 = forecast(modeloS7, h = h_pronosticoS)
 pronostico_8 = forecast(modeloS8, h = h_pronosticoS)
 pronostico_9 = forecast(modeloS9, h = h_pronosticoS)
 
+modeloAS %>% 
+  forecast(h=10) %>% 
+  autoplot(include=100)
 
 fechas_pronosticoS = seq(as.Date("2025-05-01"), by = "day", length.out = h_pronosticoS)
 
@@ -78,7 +82,7 @@ ggplot() +
                               Precio = as.numeric(PruebaS)),
             aes(x = Fecha, y = Precio), color = '#E74C3C', linewidth = 1.2) +
   geom_line(data = data.frame(Fecha = fechas_pronosticoS,
-                              Precio = as.numeric(pronostico_A$mean)),
+                              Precio = as.numeric(pronostico_SA$mean)),
             aes(x = Fecha, y = Precio), color = '#3498DB', linewidth = 1) +
   labs(title = "SMH: Pronóstico vs Real",
        subtitle = "Negro=Entrenamiento | Rojo=Real | Azul=Pronóstico Auto Arima",

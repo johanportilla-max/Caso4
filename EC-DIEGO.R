@@ -139,7 +139,7 @@ modelo1 %>%
 # Actualmente se puede utilizar esta otra librerC-a
 library(yahoofinancer)
 
-maxDate = "2018-01-01"
+maxDate = "2025-11-15"
 
 #Serie a descargar
 tick<-"EC"
@@ -270,9 +270,11 @@ ventana <- window(accion, start = "2020-06-01", end = "2022-01-01")
 
 log_ventana <- log(ventana)
 
+autoplot(log_ventana)
+adf.test(log_ventana)
+
 miserie_log <- diff(log_ventana) %>% na.omit()
 autoplot(miserie_log)
-
 adf.test(miserie_log)
 
 library(gridExtra)
@@ -286,9 +288,15 @@ modelo_log <- auto.arima(log_ventana,
                          approximation = FALSE,
                          seasonal = FALSE)
 
+modeloLog=Arima(log_ventana, order = c(1,1,0))
+modeloLog
 modelo_log
+
 checkresiduals(modelo_log)
+checkresiduals(modeloLog)
+
 pronostico_log <- forecast(modelo_log, h=5, level = 0.95)
+pronosticoLog=forecast(modeloLog, h=10, level = 0.95)
 
 pronostico_real <- data.frame(
   Fecha = index(pronostico_log$mean),
@@ -298,6 +306,14 @@ pronostico_real <- data.frame(
 )
 
 print(pronostico_real)
+
+pronostico_realLog <- data.frame(
+  Fecha = index(pronosticoLog$mean),
+  Pronostico = exp(pronosticoLog$mean),
+  Limite_Inferior = exp(pronosticoLog$lower[, "95%"]), # Revertir banda inferior
+  Limite_Superior = exp(pronosticoLog$upper[, "95%"])  # Revertir banda superior
+)
+print(pronostico_realLog)
 
 autoplot(pronostico_log, include=80) + 
   ylab("Precio (escala logarítmica)") 

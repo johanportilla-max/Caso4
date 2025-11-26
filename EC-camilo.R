@@ -11,8 +11,8 @@ PreciosE=Ecopetrol$EC.Close
 
 plot(PreciosE)
 
-EntrenamientoE=window(PreciosE, start="2017-01-01",end = "2025-08-31")
-PruebaE=window(PreciosE, start = "2025-09-01")
+EntrenamientoE=window(PreciosE, start="2017-01-01",end = "2025-11-15")
+PruebaE=window(PreciosE, start = "2025-11-16")
 
 plot(EntrenamientoE)
 ggAcf(EntrenamientoE)
@@ -56,7 +56,7 @@ tabla=data_frame(
 
 tabla
 
-modeloE5 %>% forecast(h=10, level = 0.95) %>% autoplot(include=100)
+modeloE4 %>% forecast(h=10, level = 0.95) %>% autoplot(include=500)
 
 
 

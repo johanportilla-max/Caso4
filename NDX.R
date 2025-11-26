@@ -15,10 +15,10 @@ library(fpp2)
 #H1: la serie sí es estacionaria.
 library(tseries)
 
-serie_QQQ=getSymbols("QQQ", src="yahoo",
-                     auto.assign = FALSE, from="2025-01-01") # hasta la fecha si quiero un hasta alguno to=
+serie_NDX=getSymbols("NDX", src="yahoo",
+                     auto.assign = FALSE, from="2024-11-15") # hasta la fecha si quiero un hasta alguno to=
 
-plot(serie_QQQ$QQQ.Close)
+plot(serie_NDX$NDX.Close)
 
 ## solo cuando es necesario convertir la columna a serie de tiempo 
 # te ayuda a convertir a serie de tiempo 
@@ -188,4 +188,3 @@ ggplot() +
        subtitle = "Negro=Entrenamiento | Rojo=Real | Azul=Pronóstico ARIMA(2,1,2)",
        x = "Fecha", y = "Precio USD") +
   theme_minimal()
-
