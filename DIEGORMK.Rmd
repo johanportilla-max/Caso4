@@ -53,32 +53,28 @@ html, body {
   overflow-x: hidden !important;
 }
 
-/* ========== ESTRUCTURA PRINCIPAL ========== */
-.main-container {
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  padding-left: var(--sidebar-width) !important;
-  padding-right: var(--right-toc-width) !important;
-  background: transparent !important;
-  min-height: 100vh !important;
-}
 
-/* ========== TOC IZQUIERDO - STICKY CON GLOW VIBRANTE ========== */
+/* ========== TOC IZQUIERDO - SCROLL NATURAL CON GLOW VIBRANTE ========== */
 #TOC {
   background: linear-gradient(180deg, rgba(10, 14, 26, 0.95), rgba(5, 10, 21, 0.95)) !important;
   border-right: 2px solid rgba(124, 58, 237, 0.4) !important;
   padding: 40px 20px 100px 20px !important;
-  position: fixed !important;
+  position: absolute !important;
   left: 0 !important;
   top: 0 !important;
   width: var(--sidebar-width) !important;
-  height: 100vh !important;
+  height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   z-index: 1000 !important;
   box-shadow: 2px 0 40px rgba(124, 58, 237, 0.3) !important;
   backdrop-filter: blur(10px) !important;
+}
+
+/* Contenedor principal para el layout */
+.main-container {
+  position: relative !important;
+  min-height: 100vh !important;
 }
 
 /* Animación glow pulsante MORADO */
@@ -196,7 +192,7 @@ html, body {
 
 /* ========== BOTÓN CONTROL DE CÓDIGO GLOBAL ========== */
 #global-code-toggle {
-  position: fixed !important;
+  position: sticky !important;
   bottom: 40px !important;
   right: calc(var(--right-toc-width) + 40px) !important;
   z-index: 10000 !important;
@@ -224,7 +220,7 @@ html, body {
 
 /* ========== MINI-TOC DERECHO - DINÁMICO CON SUBSECCIONES ========== */
 #right-toc {
-  position: fixed !important;
+  position: sticky !important;
   right: 0 !important;
   top: 0 !important;
   width: var(--right-toc-width) !important;
@@ -337,14 +333,49 @@ html, body {
   box-shadow: 0 0 12px var(--accent-cyan) !important;
 }
 
-/* ========== CONTENIDO CENTRAL ========== */
+/* ========== CONTENIDO CENTRAL - CORRECCIÓN CLAVE ========== */
 .toc-content {
-  width: 100% !important;
+  /* Eliminar límites de ancho y padding del main-container */
   max-width: 100% !important;
   margin: 0 !important;
   padding: 50px 70px !important;
   background: transparent !important;
   min-height: 100vh !important;
+}
+
+/* Asegura que el contenedor principal respete los anchos de las barras laterales */
+.main-container {
+  max-width: 100% !important;
+  margin: 0 auto !important; /* Centrar, aunque con padding fijo puede no ser visible */
+  padding: 0 !important;
+  /* El padding-left y padding-right DEBEN estar aquí, pero pueden fallar */
+  padding-left: var(--sidebar-width) !important;
+  padding-right: var(--right-toc-width) !important;
+  background: transparent !important;
+  min-height: 100vh !important;
+}
+
+/* Fuerza el contenedor de contenido a ocupar el centro */
+div.container-fluid:first-of-type {
+  width: auto !important;
+  max-width: 100% !important;
+}
+
+/* Aumentar la compensación para el body en la vista no-responsive */
+@media (min-width: 1401px) {
+  body {
+    padding-left: var(--sidebar-width) !important;
+    padding-right: var(--right-toc-width) !important;
+  }
+  .main-container {
+     padding-left: 0 !important;
+     padding-right: 0 !important;
+  }
+}
+
+/* Mantenemos el comportamiento responsive */
+@media (max-width: 1400px) {
+  /* ... (deja esta sección como está) ... */
 }
 
 /* ========== SECCIONES ========== */
