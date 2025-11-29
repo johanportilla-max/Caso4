@@ -403,7 +403,139 @@ body div.container-fluid:first-of-type {
   <img id="uv-img" src="univalle.png" alt="Univalle">
 </div>
 
+```{=html}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const SCROLL_OFFSET = 100; // Ajusta este valor si el título queda tapado (100px es bueno)
+  
+  // 1. REFERENCIA AL CONTENEDOR DEL TOC
+  const toc = document.getElementById("custom-toc");
+  if (!toc) return; // Si no existe el div, no hace nada
 
+  // 2. CREAR TÍTULO Y LISTA
+  const title = document.createElement("h2");
+  title.textContent = "Contenido";
+  toc.appendChild(title);
+  
+  const list = document.createElement("ul");
+  toc.appendChild(list);
+
+  // 3. GENERAR ENLACES BASADOS EN H1 y H2
+  const headers = document.querySelectorAll("h1, h2");
+  
+  headers.forEach(header => {
+    // Si el header no tiene ID, creamos uno limpio
+    if (!header.id) {
+      header.id = header.textContent
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-") // Reemplaza caracteres raros por guiones
+        .replace(/^-+|-+$/g, '');    // Quita guiones al inicio o final
+    }
+
+    // Crear el elemento de lista
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    
+    a.href = `#${header.id}`; // Enlace interno al ID
+    a.textContent = header.textContent; // Texto del enlace
+    
+    // === AQUÍ ESTÁ LA MAGIA DEL CLIC ===
+    a.addEventListener('click', function(e) {
+      e.preventDefault(); // Evita el salto brusco predeterminado
+      
+      const targetId = this.getAttribute('href').substring(1); // Quita el #
+      const targetElement = document.getElementById(targetId);
+      
+      if (targetElement) {
+        // Scroll suave manual
+        window.scrollTo({
+          top: targetElement.offsetTop - SCROLL_OFFSET, 
+          behavior: 'smooth'
+        });
+        
+        // Actualizar URL sin saltar (opcional)
+        history.pushState(null, null, `#${targetId}`);
+      }
+    });
+
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+
+  // 4. RESALTAR ENLACE ACTIVO AL HACER SCROLL
+  function updateActiveTOCLink() {
+    const tocLinks = document.querySelectorAll('#custom-toc a');
+    let currentActiveId = '';
+    
+    headers.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      // Si la sección está cerca de la parte superior (con el offset)
+      if (rect.top <= SCROLL_OFFSET + 20) { 
+        currentActiveId = section.id;
+      }
+    });
+    
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${currentActiveId}`) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  // 5. EVENTOS GLOBALES
+  window.addEventListener('scroll', updateActiveTOCLink);
+  // Ejecutar una vez al inicio para marcar el primero
+  updateActiveTOCLink(); 
+
+  // --- EXTRAS (FECHA, BOTÓN, ETC) ---
+  
+  // Fecha
+  const fechaSpan = document.getElementById('fecha-entrega');
+  if(fechaSpan) {
+    fechaSpan.textContent = new Date().toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  // Botón Código
+  const btnToggle = document.createElement('button');
+  btnToggle.id = 'global-code-toggle';
+  btnToggle.textContent = '💻 Código Oculto';
+  document.body.appendChild(btnToggle);
+  let codeVisible = true;
+  btnToggle.addEventListener('click', function() {
+    const codes = document.querySelectorAll('pre');
+    codeVisible = !codeVisible;
+    codes.forEach(code => {
+      code.style.display = codeVisible ? 'block' : 'none';
+    });
+    btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
+  });
+
+  // Animación Logo Univalle
+  const logos = ["univalle.png", "ingenieria.png"];  
+  let index = 0;
+  const img = document.getElementById("uv-img");
+  const btn = document.getElementById("uv-button");
+  if (btn && img) {
+    setInterval(() => {
+      btn.classList.add("spin");
+      setTimeout(() => {
+        index = (index + 1) % logos.length;
+        img.style.opacity = 0;
+        setTimeout(() => {
+          img.src = logos[index];
+          img.style.opacity = 1;
+        }, 200);
+      }, 600);
+      setTimeout(() => btn.classList.remove("spin"), 1200);
+    }, 3500);
+  }
+});
+</script>
+
+```
 
 ---
 
@@ -579,119 +711,5 @@ autoplot(forecast_tesla)
 </div>
 ```
 
-```{=html}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const SCROLL_OFFSET = 100; // Offset para dejar espacio al encabezado al hacer scroll
-  
-  // 1. CREACIÓN DEL TOC "CONTENIDO" (#custom-toc)
-  const toc = document.getElementById("custom-toc");
-  const list = document.createElement("ul");
-  
-  // Crear Título
-  const title = document.createElement("h2");
-  title.textContent = "Contenido";
-  toc.appendChild(title);
-  toc.appendChild(list);
 
-  // Seleccionar encabezados principales (h1, h2)
-  document.querySelectorAll('h1, h2').forEach(header => {
-    // Paso Crítico 1: Asegurar que el header tiene un ID limpio
-    if (!header.id) {
-      header.id = header.textContent.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, '');
-    }
-
-    // Crear el enlace en la TOC
-    const li = document.createElement("li");
-    const a = document.createElement("a");
-    a.href = `#${header.id}`;
-    a.textContent = header.textContent;
-    li.appendChild(a);
-    list.appendChild(li);
-  });
-
- // 2. SCROLL SUAVE AL HACER CLIC (Se aplica a los enlaces que acabamos de crear)
-document.querySelectorAll('#custom-toc a[href^="#"]').forEach(anchor => {
- anchor.addEventListener('click', function (e) {
-  e.preventDefault();
-  const targetId = this.getAttribute('href');
-  const target = document.querySelector(targetId);
-  if (target) {
-  window.scrollTo({
-   top: target.offsetTop - SCROLL_OFFSET, // <-- Se desplaza 100px menos del target
-    behavior: 'smooth'
-   });
-  }
- });
-});
-  
-  // 3. MARCAR ENLACE ACTIVO AL HACER SCROLL (Para el resaltado)
-  function updateActiveTOCLink() {
-    const sections = document.querySelectorAll('h1, h2');
-    const tocLinks = document.querySelectorAll('#custom-toc a');
-    let currentActiveId = '';
-    
-    sections.forEach(section => {
-      const rect = section.getBoundingClientRect();
-      if (rect.top <= SCROLL_OFFSET + 1) { 
-        currentActiveId = section.id;
-      }
-    });
-    
-    tocLinks.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('href') === '#' + currentActiveId) {
-        link.classList.add('active');
-      }
-    });
-  }
-
-  // 4. OTROS ELEMENTOS Y EVENTOS
-  
-  // Botón de alternar código
-  const btnToggle = document.createElement('button');
-  btnToggle.id = 'global-code-toggle';
-  btnToggle.textContent = '💻 Código Oculto';
-  document.body.appendChild(btnToggle);
-  let codeVisible = true;
-  btnToggle.addEventListener('click', function() {
-    const codes = document.querySelectorAll('pre');
-    codeVisible = !codeVisible;
-    codes.forEach(code => {
-      code.style.display = codeVisible ? 'block' : 'none';
-    });
-    btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
-  });
-  
-  // Listeners de scroll y carga
-  window.addEventListener('scroll', updateActiveTOCLink);
-  window.addEventListener('load', updateActiveTOCLink);
-  
-  // Actualizar fecha de entrega
-  document.getElementById('fecha-entrega').textContent = new Date().toLocaleDateString('es-ES', {
-    year: 'numeric', month: 'long', day: 'numeric'
-  });
-  
-  // Lógica de rotación del botón de la universidad
-  const logos = ["univalle.png", "ingenieria.png"];  
-  let index = 0;
-  const img = document.getElementById("uv-img");
-  const btn = document.getElementById("uv-button");
-  if (btn && img) {
-    setInterval(() => {
-      btn.classList.add("spin");
-      setTimeout(() => {
-        index = (index + 1) % logos.length;
-        img.style.opacity = 0;
-        setTimeout(() => {
-          img.src = logos[index];
-          img.style.opacity = 1;
-        }, 200);
-      }, 600);
-      setTimeout(() => btn.classList.remove("spin"), 1200);
-    }, 3500);
-  }
-});
-</script>
-```
 
