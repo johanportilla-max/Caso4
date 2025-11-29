@@ -20,6 +20,17 @@ output:
 
 
 /* ========== PALETA DE COLORES CLARA - ESTÉTICA PROFESIONAL Y DINÁMICA ========== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap');
+
+html, body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3 {
+  font-family: 'Poppins', 'Inter', sans-serif !important;
+  letter-spacing: -0.02em;
+}
 :root {
   /* Colores Base */
   --bg-light: #ffffff;
@@ -79,19 +90,19 @@ div.container-fluid:first-of-type {
 #custom-toc h2 {
   position: sticky;
   top: 0;
-  background: var(--bg-lighter); /* Fondo sólido que tapa texto detrás */
-  z-index: 1000;
-  padding: 12px 0 14px 0; /* Más espacio para evitar que las letras se monten */
+  background: var(--bg-lighter);
+  z-index: 1;
+  padding: 18px 12px 20px 12px;  /* más alto */
   margin: 0;
-  border-bottom: 2px solid rgba(0, 184, 148, 0.3); /* Separa visualmente */
+  border-bottom: 2px solid rgba(0, 184, 148, 0.3);
 }
 
-
-/* Lista del TOC */
+/* dar espacio después del título */
 #custom-toc ul {
   list-style: none !important;
   padding-left: 0 !important;
   margin: 0 !important;
+  padding-top: 10px;              /* <- nuevo */
 }
 
 #custom-toc li {
@@ -158,13 +169,26 @@ div.container-fluid:first-of-type {
 }
 
 /* TÍTULOS */
+/* ---- Header / título principal más elegante ---- */
+.page-title {
+  display: block;
+  margin: 8px 0 18px 0;
+}
 h1 {
-  font-size: 3em !important;
-  margin: 20px 0 20px 0 !important;
-  padding-bottom: 15px !important;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.08) !important;
+  font-size: 3.2rem !important;
+  line-height: 1.05 !important;
   color: var(--text-dark) !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+.subtitle {
+  display: block;
+  color: var(--accent-secondary);
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+  padding-left: 8px;
+  border-left: 4px solid rgba(6,182,212,0.12);
 }
 
 h2 {
@@ -233,6 +257,17 @@ tbody tr:hover {
   transition: background-color 0.2s ease !important;
 }
 
+.section.level1 {
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,251,252,1) 100%);
+  border-top: 6px solid var(--accent-primary);
+  padding: 36px !important;
+  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+}
+.section.level1:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 60px rgba(16,24,40,0.08);
+}
+
 /* ========== CÓDIGO ========== */
 pre {
   background: var(--bg-lighter) !important;
@@ -275,8 +310,99 @@ body div.container-fluid:first-of-type {
     padding: 20px !important;
   }
 }
+/* ===================== BOTÓN FLOTANTE UNIVERSIDAD ===================== */
+#uv-button {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;   /* cámbialo a left:25px si lo quieres a la izquierda */
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 9999;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+#uv-button:hover {
+  transform: scale(1.1);
+}
+
+/* Imagen interna */
+#uv-button img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  transition: opacity .4s ease;
+}
+
+/* Animación de rotación */
+@keyframes spin-logo {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#uv-button.spin {
+  animation: spin-logo 1.2s linear;
+}
+#uv-button img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  display: block;
+  margin: auto;        
+  position: absolute;  
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+/* ===== TOOLTIP PERSONALIZADO PARA EL BOTÓN ===== */
+#uv-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+
+  top: 50%;          /* centrado verticalmente */
+  left: -12px;       /* lo acerca al borde izquierdo del botón */
+  transform: translate(-100%, -50%); /* lo mueve a la izquierda del botón */
+
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.85em;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+#uv-button:hover::after {
+  opacity: 1;
+}
+
+#uv-button {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+#custom-toc, #right-toc {
+  z-index: 5000 !important;
+}
+#uv-button {
+  overflow: visible !important;
+}
+
 </style>
 ```
+<div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
+  <img id="uv-img" src="univalle.png" alt="Univalle">
+</div>
+
 
 ```{=html}
 <script>
@@ -730,7 +856,33 @@ document.addEventListener('DOMContentLoaded', function() {
     day: 'numeric'
   });
 });
+document.addEventListener("DOMContentLoaded", function () {
+  
+  const logos = ["univalle.png", "ingenieria.png"];  
+  let index = 0;
+  const img = document.getElementById("uv-img");
+  const btn = document.getElementById("uv-button");
 
+  setInterval(() => {
+    // activar rotación
+    btn.classList.add("spin");
+
+    // esperar a medio giro para cambiar la imagen
+    setTimeout(() => {
+      index = (index + 1) % logos.length;
+      img.style.opacity = 0;
+      setTimeout(() => {
+        img.src = logos[index];
+        img.style.opacity = 1;
+      }, 200);
+    }, 600);
+
+    // quitar la clase después de la animación
+    setTimeout(() => btn.classList.remove("spin"), 1200);
+
+  }, 3500); // cada 3.5 segundos cambia
+
+});
 </script>
 ```
 
