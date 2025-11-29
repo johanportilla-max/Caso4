@@ -396,7 +396,29 @@ body div.container-fluid:first-of-type {
 #uv-button {
   overflow: visible !important;
 }
+/* ========== BOTÓN DE OCULTAR/MOSTRAR CÓDIGO ========== */
+#global-code-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
 
+#global-code-toggle:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
 </style>
 ```
 <div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
