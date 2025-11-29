@@ -576,7 +576,69 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 ```
+```{r setup-theme, include=FALSE}
+library(ggplot2)
+library(forecast)
+library(tseries)
 
+# ==========================================
+# 1. DEFINICIÓN DE LA PALETA (COINCIDE CON TU CSS)
+# ==========================================
+tesla_pal <- list(
+  bg        = "#ffffff",    # Tu --bg-light
+  text_main = "#1f2937",    # Tu --text-dark
+  text_gray = "#4b5563",    # Tu --text-medium
+  primary   = "#00b894",    # Tu --accent-primary (Verde/Cian principal)
+  secondary = "#06b6d4",    # Tu --accent-secondary (Cian claro)
+  positive  = "#84cc16",    # Tu --accent-positive
+  negative  = "#e17055",    # Tu --accent-negative
+  grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
+)
+
+# ==========================================
+# 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
+# ==========================================
+theme_tesla <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      # Fondo transparente para fundirse con el HTML
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      
+      # Textos
+      text = element_text(color = tesla_pal$text_main, family = "sans"),
+      plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, margin = margin(b = 10)),
+      plot.subtitle = element_text(size = 12, color = tesla_pal$secondary, margin = margin(b = 10)),
+      plot.caption = element_text(size = 9, color = tesla_pal$text_gray, margin = margin(t = 10)),
+      
+      # Ejes
+      axis.title = element_text(face = "bold", size = 11, color = tesla_pal$text_gray),
+      axis.text = element_text(size = 10, color = tesla_pal$text_gray),
+      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), # Línea de eje en tu color secundario
+      
+      # Rejilla (Grid)
+      panel.grid.major = element_line(color = tesla_pal$grid, linetype = "dashed"),
+      panel.grid.minor = element_blank(), # Limpiamos el ruido visual
+      
+      # Leyenda
+      legend.position = "bottom",
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.key = element_rect(fill = "transparent", color = NA)
+    )
+}
+
+# ==========================================
+# 3. ESTABLECER COMO PREDETERMINADO
+# ==========================================
+# Esto hace que TODOS tus gráficos usen este estilo automáticamente
+theme_set(theme_tesla())
+
+# Actualizar colores por defecto de las geometrías para que coincidan
+update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
+update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
+update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
+
+```
 ---
 
 # Análisis de Series de Tiempo y Pronósticos ARIMA
@@ -602,6 +664,73 @@ Los modelos ARIMA combinan componentes autorregresivos, de integración y de med
 ---
 
 # 2. Descripción de la Serie Temporal
+```{r serie, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyquant)
+library(tidyverse)
+library(ggplot2)
+library(zoo)
+library(plotly)
+
+# 1. Obtención de datos
+serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
+precios <- serie$QQQ.Close
+datos_qqq <- data.frame(
+  Fecha = index(precios),
+  Precio = as.numeric(precios)
+)
+
+# 2. Crear datos acumulativos (Optimizado por Trimestre)
+datos_qqq <- datos_qqq %>%
+  mutate(Corte = as.yearqtr(Fecha)) 
+
+# Creamos la lista de frames acumulados
+lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
+  dt <- datos_qqq[datos_qqq$Corte <= c, ]
+  dt$Frame <- as.character(c) 
+  return(dt)
+})
+
+datos_animados <- dplyr::bind_rows(lista_frames)
+
+# 3. Crear el gráfico ggplot base
+p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
+  
+  # === CORRECCIÓN CLAVE AQUÍ ===
+  # Agregamos position = "identity" para evitar que geom_area intente apilar y falle
+  geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
+  
+  # Agregamos group = 1 en geom_line para asegurar continuidad
+  geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
+  
+  labs(
+    title = "Evolución Dinámica del QQQ",
+    subtitle = "Crecimiento histórico acumulado",
+    x = "", 
+    y = "Precio (USD)"
+  ) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme_tesla() +
+  theme(plot.title = element_text(size = 14))
+
+# 4. Convertir a Animación Interactiva
+plotly::ggplotly(p, tooltip = c("x", "y")) %>%
+  plotly::layout(
+    paper_bgcolor = 'rgba(0,0,0,0)',
+    plot_bgcolor = 'rgba(0,0,0,0)',
+    font = list(family = "Inter, sans-serif", color = tesla_pal$text_gray),
+    hovermode = "x unified"
+  ) %>%
+  plotly::animation_opts(
+    frame = 100,       
+    transition = 0,    
+    redraw = FALSE     
+  ) %>%
+  plotly::animation_slider(
+    currentvalue = list(prefix = "Periodo: ") 
+  ) %>%
+  plotly::config(displayModeBar = FALSE)
+```
+
 
 ## 2.1 Contexto Histórico
 
