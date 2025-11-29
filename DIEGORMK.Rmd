@@ -71,14 +71,19 @@ div.container-fluid:first-of-type {
 }
 
 /* ========== TOC PERSONALIZADO "CONTENIDO" ========== */
+/* ========== TOC PERSONALIZADO "CONTENIDO" ========== */
 #custom-toc {
   position: fixed;
   top: 60px;
   left: 0;
   width: 260px;
   height: 80vh;
-  overflow-y: auto;
-  padding: 15px 10px;
+  /* CAMBIOS IMPORTANTES AQUÍ: */
+  display: flex;              /* Usar flexbox para organizar hijos */
+  flex-direction: column;     /* Uno debajo del otro */
+  overflow: hidden;           /* El contenedor NO scrollea, solo sus hijos */
+  /* Fin de cambios */
+  padding: 0;                 /* Quitamos padding general para manejarlo dentro */
   background: var(--bg-lighter);
   border-right: 2px solid var(--accent-secondary);
   border-radius: 0 10px 10px 0;
@@ -88,21 +93,34 @@ div.container-fluid:first-of-type {
 
 /* Título del TOC */
 #custom-toc h2 {
-  position: sticky;
-  top: 0;
+  position: relative;
+  flex-shrink: 0;
   background: var(--bg-lighter);
-  z-index: 1;
-  padding: 18px 12px 20px 12px;  /* más alto */
+  z-index: 10;
+  /* CAMBIO AQUÍ: Reduje el padding superior de 20px a 10px */
+  padding: 10px 15px 15px 15px; 
   margin: 0;
   border-bottom: 2px solid rgba(0, 184, 148, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); /* Sombra sutil para separar */
 }
 
 /* dar espacio después del título */
+/* Lista de enlaces (Aquí ocurre el scroll) */
 #custom-toc ul {
   list-style: none !important;
-  padding-left: 0 !important;
+  /* CAMBIO AQUÍ: El primer valor (arriba) ahora es 0px */
+  padding: 0px 10px 20px 10px !important; 
   margin: 0 !important;
-  padding-top: 10px;              /* <- nuevo */
+  flex-grow: 1;               
+  overflow-y: auto;           
+  
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-secondary) transparent;
+}
+
+/* CAMBIO EXTRA: Asegura que el primer ítem suba al máximo */
+#custom-toc li:first-child {
+  margin-top: 2px !important; /* Muy pegado arriba */
 }
 
 #custom-toc li {
