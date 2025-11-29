@@ -9,8 +9,6 @@ library(packcircles)
 library(zoo)          
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
 precios <- serie$QQQ.Close
-# 2. ANÁLISIS DE LA SERIE ORIGINAL (PRECIOS)
-# Gráfico de la Serie de Tiempo
 plot(precios, main = "Evolución del Precio de Cierre QQQ")
 
 #  Estadísticas Descriptivas Básicas

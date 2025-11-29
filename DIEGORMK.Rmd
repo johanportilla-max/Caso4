@@ -671,19 +671,14 @@ library(ggplot2)
 library(zoo)
 library(plotly)
 
-# 1. Obtención de datos
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
 precios <- serie$QQQ.Close
 datos_qqq <- data.frame(
   Fecha = index(precios),
   Precio = as.numeric(precios)
 )
-
-# 2. Crear datos acumulativos (Optimizado por Trimestre)
 datos_qqq <- datos_qqq %>%
   mutate(Corte = as.yearqtr(Fecha)) 
-
-# Creamos la lista de frames acumulados
 lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
   dt <- datos_qqq[datos_qqq$Corte <= c, ]
   dt$Frame <- as.character(c) 
@@ -691,15 +686,10 @@ lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
 })
 
 datos_animados <- dplyr::bind_rows(lista_frames)
-
-# 3. Crear el gráfico ggplot base
 p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
   
-  # === CORRECCIÓN CLAVE AQUÍ ===
-  # Agregamos position = "identity" para evitar que geom_area intente apilar y falle
   geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
   
-  # Agregamos group = 1 en geom_line para asegurar continuidad
   geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
   
   labs(
@@ -712,7 +702,6 @@ p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
   theme_tesla() +
   theme(plot.title = element_text(size = 14))
 
-# 4. Convertir a Animación Interactiva
 plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::layout(
     paper_bgcolor = 'rgba(0,0,0,0)',
