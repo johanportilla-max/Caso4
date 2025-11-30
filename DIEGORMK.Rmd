@@ -581,59 +581,40 @@ library(ggplot2)
 library(forecast)
 library(tseries)
 
-# ==========================================
-# 1. DEFINICIÓN DE LA PALETA (COINCIDE CON TU CSS)
-# ==========================================
 tesla_pal <- list(
-  bg        = "#ffffff",    # Tu --bg-light
-  text_main = "#1f2937",    # Tu --text-dark
-  text_gray = "#4b5563",    # Tu --text-medium
-  primary   = "#00b894",    # Tu --accent-primary (Verde/Cian principal)
-  secondary = "#06b6d4",    # Tu --accent-secondary (Cian claro)
-  positive  = "#84cc16",    # Tu --accent-positive
-  negative  = "#e17055",    # Tu --accent-negative
-  grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
+  bg        = "#ffffff",    
+  text_main = "#1f2937",    
+  text_gray = "#4b5563",    
+  primary   = "#00b894",    
+  secondary = "#06b6d4",    
+  positive  = "#84cc16",   
+  negative  = "#e17055",    
+  grid      = "#f3f4f6"     
 )
 
-# ==========================================
-# 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
-# ==========================================
 theme_tesla <- function() {
   theme_minimal(base_size = 14) +
     theme(
-      # Fondo transparente para fundirse con el HTML
       plot.background = element_rect(fill = "transparent", color = NA),
       panel.background = element_rect(fill = "transparent", color = NA),
-      
-      # Textos
-      text = element_text(color = tesla_pal$text_main, family = "sans"),
+            text = element_text(color = tesla_pal$text_main, family = "sans"),
       plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, margin = margin(b = 10)),
       plot.subtitle = element_text(size = 12, color = tesla_pal$secondary, margin = margin(b = 10)),
       plot.caption = element_text(size = 9, color = tesla_pal$text_gray, margin = margin(t = 10)),
       
-      # Ejes
       axis.title = element_text(face = "bold", size = 11, color = tesla_pal$text_gray),
       axis.text = element_text(size = 10, color = tesla_pal$text_gray),
-      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), # Línea de eje en tu color secundario
-      
-      # Rejilla (Grid)
+      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), 
       panel.grid.major = element_line(color = tesla_pal$grid, linetype = "dashed"),
-      panel.grid.minor = element_blank(), # Limpiamos el ruido visual
-      
-      # Leyenda
+      panel.grid.minor = element_blank(), 
       legend.position = "bottom",
       legend.background = element_rect(fill = "transparent", color = NA),
       legend.key = element_rect(fill = "transparent", color = NA)
     )
 }
 
-# ==========================================
-# 3. ESTABLECER COMO PREDETERMINADO
-# ==========================================
-# Esto hace que TODOS tus gráficos usen este estilo automáticamente
 theme_set(theme_tesla())
 
-# Actualizar colores por defecto de las geometrías para que coincidan
 update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
 update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
 update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
@@ -721,6 +702,57 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 ```
 
 
+
+```{r tortA, echo=FALSE, warning=FALSE, message=FALSE}
+library(plotly)
+sectores <- data.frame(
+  Sector = c("Tecnología", "Consumo Discrecional", "Servicios de Comunicación", 
+             "Consumo Básico", "Industriales", "Salud", "Otros", 
+             "Servicios Públicos", "Materiales", "Energía"),
+  Peso = c(53.60, 13.04, 12.61, 4.99, 4.58, 4.28, 3.22, 1.38, 1.25, 0.47)
+)
+
+colores_sector <- c(
+  "#2b5c8a",
+  "#5d5b94", 
+  "#8e6fa3",
+  "#c46d9e",
+  "#e67586", 
+  "#f38972", 
+  "#f8a262",
+  "#fbc058", 
+  "#fce05d", 
+  "#34495e"  
+)
+fig_pie <- plot_ly(sectores, labels = ~Sector, values = ~Peso, type = 'pie',
+        textposition = 'outside',      
+        textinfo = 'label+percent',    
+        hoverinfo = 'label+value+percent',
+        marker = list(
+          colors = colores_sector, 
+          line = list(color = '#ffffff', width = 1.5) 
+        ),
+        sort = FALSE, 
+        automargin = TRUE
+)
+
+fig_pie <- fig_pie %>% layout(
+  title = list(
+    text = "<b>Asignación Sectorial</b>",
+    font = list(size = 22, family = "Poppins, sans-serif", color = tesla_pal$text_main),
+    x = 0.05, 
+    y = 0.95
+  ),
+  showlegend = FALSE, 
+  margin = list(t = 80, b = 40, l = 80, r = 80), 
+  paper_bgcolor = 'rgba(0,0,0,0)',
+  plot_bgcolor = 'rgba(0,0,0,0)',
+  font = list(family = "Inter, sans-serif", size = 12, color = tesla_pal$text_gray)
+)
+
+fig_pie
+
+```
 ## 2.1 Contexto Histórico
 
 [**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
