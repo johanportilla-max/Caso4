@@ -68,7 +68,7 @@ accuracy(modeloBTCA)
 accuracy(modeloBTC1)
 
 
-modelo5 %>% 
+modeloBTC5 %>% 
   forecast(h=5,level = 0.95)  # (Realizo 5 pronósticos), con el modelo 1 mo trae info, coge la ultima odservacion 
 
 modeloBTC1 %>% 
