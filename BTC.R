@@ -5,10 +5,10 @@ library(tidyverse)
 library(quantmod)
 library(gridExtra)
 
-SerieBTC=getSymbols("BTC", src = "yahoo", auto.assign = FALSE, from="2018-01-01")
+SerieBTC=getSymbols("BTC", src = "yahoo", auto.assign = FALSE, from="2024-01-01")
 
 BTC=SerieBTC$`BTC.Close`
-View(BTC)
+
 autoplot(BTC)
 
 length(BTC)
@@ -68,7 +68,7 @@ accuracy(modeloBTCA)
 accuracy(modeloBTC1)
 
 
-modelo1 %>% 
+modelo5 %>% 
   forecast(h=5,level = 0.95)  # (Realizo 5 pronósticos), con el modelo 1 mo trae info, coge la ultima odservacion 
 
 modeloBTC1 %>% 
@@ -78,7 +78,7 @@ BTC[48:50]
 
 #  escenarios, contexto de las series 
 #Gráfico
-modeloBTCA %>% 
+modeloBTC5 %>% 
   forecast(h=10) %>%  # (Realizo 5 pronósticos)
   autoplot(include=200)   # Gráfico los últimos 80 valores + pronóstico (se puede cambiar el 80)
 

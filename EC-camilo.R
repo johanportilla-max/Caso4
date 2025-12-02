@@ -59,4 +59,5 @@ tabla
 modeloE4 %>% forecast(h=10, level = 0.95) %>% autoplot(include=500)
 
 
-
+## Torneo de modelos, la serie d, prueba de esta, acf y pacf, cantidad de modelos, indicadores de cada modelo
+# Pronosticos del modelo elegido, por que no es facil hacerlo, discucion de los
