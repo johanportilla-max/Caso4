@@ -721,58 +721,412 @@ kable(comparacion_accuracy,
 
 
 checkresiduals(ModeloQA) 
-checkresiduals(modeloQ1) 
-checkresiduals(modeloQ2) 
-checkresiduals(modeloQ3) 
-checkresiduals(modeloQ4) 
-checkresiduals(modeloQ5) 
 
-ModeloQA %>% 
-  forecast(h=10, level = 0.95) %>% 
-  autoplot(include=400)
+# GRÁFICOS DE DIAGNÓSTICO PERSONALIZADOS
 
-ModeloQA
 
-h_pronosticoQ = length(Prueba)
+residuos <- residuals(ModeloQA)
 
-pronostico_QA = forecast(ModeloQA, h = h_pronosticoQ)
-pronostico_Q1 = forecast(modeloQ1, h = h_pronosticoQ)
-pronostico_Q2 = forecast(modeloQ2, h = h_pronosticoQ)
-pronostico_Q3 = forecast(modeloQ3, h = h_pronosticoQ)
-pronostico_Q4 = forecast(modeloQ4, h = h_pronosticoQ)
-pronostico_Q5 = forecast(modeloQ5, h = h_pronosticoQ)
-pronostico_Q6 = forecast(modeloQ6, h = h_pronosticoQ)
-pronostico_Q7 = forecast(modeloQ7, h = h_pronosticoQ)
-
-tabla_con_errores = data.frame(
-  Día = 1:10,
-  Fecha = format(index(Prueba)[1:10], "%Y-%m-%d"),
-  Real = round(as.numeric(Prueba)[1:10], 2),
-  Pronóstico = round(as.numeric(pronostico_QA$mean)[1:10], 2),
-  Error_USD = round(as.numeric(Prueba)[1:10] - 
-                      as.numeric(pronostico_QA$mean)[1:10], 2),
-  Error_Pct = round(((as.numeric(Prueba)[1:10] - 
-                        as.numeric(pronostico_QA$mean)[1:10]) / 
-                       as.numeric(Prueba)[1:10]) * 100, 3)
+df_residuos <- data.frame(
+  Fecha = index(residuos),
+  Residuo = as.numeric(residuos)
 )
 
-print(tabla_con_errores)
+# --- Gráfico 1: Residuos en el tiempo ---
+p1 <- ggplot(df_residuos, aes(x = Fecha, y = Residuo)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = c(-2*sd(df_residuos$Residuo), 2*sd(df_residuos$Residuo)), 
+             linetype = "dotted", color = qqq_pal$negative, linewidth = 0.5) +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  labs(
+    title = "Residuos del Modelo en el Tiempo",
+    subtitle = "Verificación de media cero y varianza constante",
+    x = NULL,
+    y = "Residuo"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 12, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 9, color = qqq_pal$secondary),
+    axis.title = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 8, color = qqq_pal$text_gray),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+p1
+
+# ACF de Residuos
+acf_resid <- acf(residuos, lag.max = 25, plot = FALSE)
+df_acf_resid <- data.frame(
+  Lag = as.numeric(acf_resid$lag[-1]),
+  ACF = as.numeric(acf_resid$acf[-1])
+)
+
+n_resid <- length(residuos)
+limite_resid <- qnorm(0.975) / sqrt(n_resid)
+
+p2 <- ggplot(df_acf_resid, aes(x = Lag, y = ACF)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite_resid, limite_resid), linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite_resid, ymax = limite_resid,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$secondary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 25, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.15)) +
+  labs(
+    title = "ACF de Residuos",
+    subtitle = "Verificación de independencia",
+    x = "Rezago (Lag)",
+    y = "ACF"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 12, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 9, color = qqq_pal$secondary),
+    axis.title = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 8, color = qqq_pal$text_gray),
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+p2
+
+# Histograma de Residuos
+p3 <- ggplot(df_residuos, aes(x = Residuo)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 bins = 35, fill = qqq_pal$primary, 
+                 color = "white", alpha = 0.7) +
+  geom_density(color = qqq_pal$secondary, linewidth = 1) +
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(df_residuos$Residuo), 
+                            sd = sd(df_residuos$Residuo)),
+                color = qqq_pal$negative, linewidth = 1, linetype = "dashed") +
+  labs(
+    title = "Distribución de Residuos",
+    subtitle = "Verificación de normalidad",
+    x = "Residuo",
+    y = "Densidad",
+    caption = "Línea roja punteada: distribución normal teórica"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 12, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 9, color = qqq_pal$secondary),
+    plot.caption = element_text(size = 8, color = qqq_pal$text_gray, hjust = 0),
+    axis.title = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 8, color = qqq_pal$text_gray),
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+p3
+
+# GENERAR PRONÓSTICOS CON EL MODELO SELECCIONADO
+
+pronostico=forecast(ModeloQA, h = 10, level = 95)
+
+ultima_fecha=as.Date(index(Entrenamiento)[length(Entrenamiento)])
+ultima_fecha
+
+library(bizdays)
+fechas_pronostico <- c()
+fecha_actual <- ultima_fecha
+dias_agregados <- 0
+
+while(dias_agregados < 10) {
+  fecha_actual <- fecha_actual + 1
+  if (!(weekdays(fecha_actual) %in% c("sábado", "domingo", "Saturday", "Sunday"))) {
+    fechas_pronostico <- c(fechas_pronostico, fecha_actual)
+    dias_agregados <- dias_agregados + 1
+  }
+}
+
+fechas_pronostico <- as.Date(fechas_pronostico, origin = "1970-01-01")
+fechas_pronostico
+
+# TABLA: PRONÓSTICOS CON FECHAS CORRECTAS
+
+tabla_pronostico <- data.frame(
+  Día = 1:10,
+  Fecha = as.character(fechas_pronostico),
+  Pronóstico = round(as.numeric(pronostico$mean), 2),
+  `Límite Inferior` = round(as.numeric(pronostico$lower), 2),
+  `Límite Superior` = round(as.numeric(pronostico$upper), 2),
+  `Amplitud IC` = round(as.numeric(pronostico$upper) - as.numeric(pronostico$lower), 2)
+)
+
+kable(tabla_pronostico,
+      caption = "Pronósticos del Modelo ARIMA(1,1,1) con Drift - Intervalo de Confianza al 95%",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Pronóstico (USD)", "Lím. Inferior", "Lím. Superior", "Amplitud IC")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(4, color = qqq_pal$negative) %>%
+  column_spec(5, color = qqq_pal$positive) %>%
+  footnote(general = "IC = Intervalo de Confianza. La amplitud del intervalo aumenta con el horizonte de pronóstico.",
+           general_title = "Nota: ")
 
 
-fechas_pronosticoQ = seq(as.Date("2025-10-01"), by = "day", length.out = h_pronosticoQ)
+
+
+# GRÁFICO SERIE + PRONÓSTICO
+
+n_historico <- 100
+
+datos_hist <- tail(Entrenamiento, n_historico)
+
+df_historico <- data.frame(
+  Fecha = as.Date(index(datos_hist)),
+  Precio = as.numeric(datos_hist),
+  Tipo = "Histórico"
+)
+
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
+
+fechas_forecast <- ultima_fecha + 1:10
+
+df_pronostico <- data.frame(
+  Fecha = fechas_forecast,
+  Precio = as.numeric(pronostico$mean),
+  Lower = as.numeric(pronostico$lower),
+  Upper = as.numeric(pronostico$upper)
+)
+
+punto_conexion <- data.frame(
+  Fecha = ultima_fecha,
+  Precio = as.numeric(tail(datos_hist, 1)),
+  Lower = as.numeric(tail(datos_hist, 1)),
+  Upper = as.numeric(tail(datos_hist, 1))
+)
+
+df_pronostico_completo <- bind_rows(punto_conexion, df_pronostico)
 
 ggplot() +
-  geom_line(data = data.frame(Fecha = index(Entrenamiento), 
-                              Precio = as.numeric(Entrenamiento)),
-            aes(x = Fecha, y = Precio), color = 'black', alpha = 0.6) +
-  geom_line(data = data.frame(Fecha = index(Prueba), 
-                              Precio = as.numeric(Prueba)),
-            aes(x = Fecha, y = Precio), color = '#E74C3C', linewidth = 1.2) +
-  geom_line(data = data.frame(Fecha = fechas_pronosticoQ,
-                              Precio = as.numeric(pronostico_QA$mean)),
-            aes(x = Fecha, y = Precio), color = '#3498DB', linewidth = 1) +
-  labs(title = "QQQ: Pronóstico vs Real",
-       subtitle = "Negro=Entrenamiento | Rojo=Real | Azul=Pronóstico ARIMA(2,1,2)",
-       x = "Fecha", y = "Precio USD") +
-  theme_minimal()
+  geom_ribbon(data = df_pronostico_completo,
+              aes(x = Fecha, ymin = Lower, ymax = Upper),
+              fill = qqq_pal$secondary, alpha = 0.2) +
+  geom_line(data = df_historico,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$primary, linewidth = 0.7) +
+  geom_line(data = df_pronostico_completo,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(data = df_pronostico %>% filter(Fecha == max(Fecha)),
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$secondary, size = 2.5) +
+  geom_point(data = punto_conexion,
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$primary, size = 2.5) +
+  geom_vline(xintercept = ultima_fecha, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.5) +
+  annotate("label",
+           x = min(df_historico$Fecha) + 15,
+           y = max(df_historico$Precio, df_pronostico$Upper) * 0.99,
+           label = "Entrenamiento",
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  annotate("label",
+           x = max(df_pronostico$Fecha) - 3,
+           y = max(df_pronostico$Upper) * 1.01,
+           label = "Pronóstico",
+           fill = qqq_pal$secondary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  scale_x_date(
+    date_breaks = "3 weeks",
+    date_labels = "%d %b",
+    expand = expansion(mult = c(0.02, 0.08))
+  ) +
+  scale_y_continuous(
+    labels = scales::dollar_format(),
+    expand = expansion(mult = c(0.02, 0.05))
+  ) +
+  labs(
+    title = "Pronóstico ARIMA(1,1,1) con Drift",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Últimos 100 días + 10 días de pronóstico | IC 95%",
+    x = NULL,
+    y = "Precio de Cierre (USD)",
+    caption = "Línea verde: Datos históricos | Línea cian: Pronóstico | Área sombreada: Intervalo de confianza 95%"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    
+    plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark,
+                              margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$secondary,
+                                 margin = margin(b = 15)),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray,
+                                margin = margin(t = 15), hjust = 0),
+    
+    axis.title.y = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    
+    plot.margin = margin(20, 30, 15, 15)
+  )
 
+
+# PREPARAR DATOS: PREDICHO VS REAL
+
+reales <- head(as.numeric(Prueba), 10)
+predichos <- as.numeric(pronostico$mean)
+fechas_prueba <- head(as.Date(index(Prueba)), 10)
+
+df_evaluacion <- data.frame(
+  Dia = 1:10,
+  Fecha = fechas_prueba,
+  Real = reales,
+  Predicho = round(predichos, 2),
+  Error = round(reales - predichos, 2),
+  Error_Abs = round(abs(reales - predichos), 2),
+  Error_Pct = round((reales - predichos) / reales * 100, 2)
+)
+
+# ============================================================
+# GRÁFICO: PREDICHO VS REAL
+# ============================================================
+
+# Preparar datos en formato largo para ggplot
+df_largo <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho) %>%
+  pivot_longer(cols = c(Real, Predicho),
+               names_to = "Tipo",
+               values_to = "Precio")
+
+ggplot(df_largo, aes(x = Dia, y = Precio, color = Tipo, shape = Tipo)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) +
+  geom_ribbon(data = df_evaluacion,
+              aes(x = Dia, y = Predicho,
+                  ymin = as.numeric(pronostico$lower),
+                  ymax = as.numeric(pronostico$upper)),
+              fill = qqq_pal$secondary, alpha = 0.15,
+              inherit.aes = FALSE) +
+  scale_color_manual(values = c("Real" = qqq_pal$primary, 
+                                "Predicho" = qqq_pal$secondary),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_shape_manual(values = c("Real" = 16, "Predicho" = 17),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_x_continuous(breaks = 1:10, labels = paste0("t+", 1:10)) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(
+    title = "Evaluación del Pronóstico: Valores Reales vs Predichos",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Primeros 10 días del conjunto de prueba",
+    x = "Horizonte de Pronóstico",
+    y = "Precio de Cierre (USD)",
+    color = NULL,
+    shape = NULL,
+    caption = "Área sombreada: Intervalo de confianza 95%"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    
+    plot.title = element_text(face = "bold", size = 14, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 10, color = qqq_pal$secondary),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray, hjust = 0),
+    
+    axis.title = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    
+    legend.position = "top",
+    legend.text = element_text(size = 10)
+  )
+
+
+# TABLA ERRORES 
+
+tabla_errores <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho, Error, Error_Pct) %>%
+  mutate(
+    Fecha = as.character(Fecha),
+    Real = paste0("$", round(Real, 2)),
+    Predicho = paste0("$", round(Predicho, 2)),
+    Error = round(Error, 2),
+    Error_Pct = paste0(round(Error_Pct, 2), "%")
+  )
+
+kable(tabla_errores,
+      caption = "Evaluación del Pronóstico: Errores por Observación",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Valor Real", "Pronóstico", "Error (USD)", "Error (%)")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(3, color = qqq_pal$primary, bold = TRUE) %>%
+  column_spec(4, color = qqq_pal$secondary, bold = TRUE) %>%
+  column_spec(5, color = ifelse(df_evaluacion$Error > 0, qqq_pal$positive, qqq_pal$negative)) %>%
+  column_spec(6, color = ifelse(df_evaluacion$Error > 0, qqq_pal$positive, qqq_pal$negative)) %>%
+  footnote(general = "Error positivo: el modelo subestimó (valor real > pronóstico). Error negativo: el modelo sobreestimó.",
+           general_title = "Nota: ")
+
+
+# ============================================================
+# MÉTRICAS FINALES DE EVALUACIÓN
+# ============================================================
+
+# Calcular métricas
+MAE <- mean(abs(df_evaluacion$Error))
+RMSE <- sqrt(mean(df_evaluacion$Error^2))
+MAPE <- mean(abs(df_evaluacion$Error_Pct))
+ME <- mean(df_evaluacion$Error)
+
+# Proporción dentro del IC
+dentro_IC <- sum(reales >= as.numeric(pronostico$lower) & 
+                   reales <= as.numeric(pronostico$upper))
+pct_dentro_IC <- dentro_IC / 10 * 100
+
+# Tabla de métricas
+tabla_metricas <- data.frame(
+  Métrica = c("Error Medio (ME)",
+              "Error Absoluto Medio (MAE)",
+              "Raíz del Error Cuadrático Medio (RMSE)",
+              "Error Porcentual Absoluto Medio (MAPE)",
+              "Observaciones dentro del IC 95%"),
+  Valor = c(paste0("$", round(ME, 2)),
+            paste0("$", round(MAE, 2)),
+            paste0("$", round(RMSE, 2)),
+            paste0(round(MAPE, 2), "%"),
+            paste0(dentro_IC, " de 10 (", pct_dentro_IC, "%)")),
+  Interpretación = c(
+    ifelse(abs(ME) < 1, "Sin sesgo sistemático ✓", 
+           ifelse(ME > 0, "Modelo subestima", "Modelo sobreestima")),
+    "Error promedio en USD",
+    "Penaliza errores grandes",
+    "Error relativo al precio",
+    ifelse(pct_dentro_IC >= 80, "Intervalos bien calibrados ✓", 
+           "Intervalos pueden estar mal calibrados")
+  )
+)
+
+kable(tabla_metricas,
+      caption = "Métricas de Evaluación del Pronóstico - Datos de Prueba",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, bold = TRUE) %>%
+  row_spec(5, background = "#e8f5e9")
