@@ -1,0 +1,1055 @@
+---
+title: "Análisis de Series de Tiempo y Pronóstósticos ARIMA"
+subtitle: "Estudio Empírico sobre el Precio de Acciones del QQQ"
+author: "Camilo"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output:
+  html_document:
+    theme: darkly
+    toc: false         
+    toc_float: false   
+---
+
+
+
+<div id="custom-toc"></div>
+
+
+```{=html}
+<style type="text/css">
+
+
+/* ========== PALETA DE COLORES CLARA - ESTÉTICA PROFESIONAL Y DINÁMICA ========== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap');
+
+html, body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3 {
+  font-family: 'Poppins', 'Inter', sans-serif !important;
+  letter-spacing: -0.02em;
+}
+:root {
+  /* Colores Base */
+  --bg-light: #ffffff;
+  --bg-lighter: #f5f7fa;
+  --text-dark: #1f2937;
+  --text-medium: #4b5563;
+  --text-gray: #94a3b8;
+
+  /* Acentos QQQ: Cian/Verde */
+  --accent-primary: #00b894;
+  --accent-secondary: #06b6d4;
+  --accent-positive: #84cc16;
+  --accent-negative: #e17055;
+  --accent-soft: #3b82f6;
+}
+
+/* ========== RESET & ESTRUCTURA CLAVE ========== */
+* {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg-light) !important;
+  color: var(--text-dark) !important;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  line-height: 1.65 !important;
+  overflow-x: hidden !important;
+  min-height: 100vh !important;
+}
+
+/* Contenedor de contenido central */
+div.container-fluid:first-of-type {
+  width: auto !important;
+  max-width: 100% !important;
+  padding: 60px 80px !important;
+}
+
+/* ========== TOC PERSONALIZADO "CONTENIDO" ========== */
+/* ========== TOC PERSONALIZADO "CONTENIDO" ========== */
+#custom-toc {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 260px;
+  height: 80vh;
+  /* CAMBIOS IMPORTANTES AQUÍ: */
+  display: flex;              /* Usar flexbox para organizar hijos */
+  flex-direction: column;     /* Uno debajo del otro */
+  overflow: hidden;           /* El contenedor NO scrollea, solo sus hijos */
+  /* Fin de cambios */
+  padding: 0;                 /* Quitamos padding general para manejarlo dentro */
+  background: var(--bg-lighter);
+  border-right: 2px solid var(--accent-secondary);
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 999;
+}
+
+/* Título del TOC */
+#custom-toc h2 {
+  position: relative;
+  flex-shrink: 0;
+  background: var(--bg-lighter);
+  z-index: 10;
+  /* CAMBIO AQUÍ: Reduje el padding superior de 20px a 10px */
+  padding: 10px 15px 15px 15px; 
+  margin: 0;
+  border-bottom: 2px solid rgba(0, 184, 148, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); /* Sombra sutil para separar */
+}
+
+/* dar espacio después del título */
+/* Lista de enlaces (Aquí ocurre el scroll) */
+#custom-toc ul {
+  list-style: none !important;
+  /* CAMBIO AQUÍ: El primer valor (arriba) ahora es 0px */
+  padding: 0px 10px 20px 10px !important; 
+  margin: 0 !important;
+  flex-grow: 1;               
+  overflow-y: auto;           
+  
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-secondary) transparent;
+}
+
+/* CAMBIO EXTRA: Asegura que el primer ítem suba al máximo */
+#custom-toc li:first-child {
+  margin-top: 2px !important; /* Muy pegado arriba */
+}
+
+#custom-toc li {
+  margin: 8px 0 !important;
+}
+
+/* Estilo de enlaces del TOC */
+#custom-toc a {
+  display: block;
+  padding: 10px 14px;
+  color: var(--text-medium) !important;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all .2s ease;
+}
+
+#custom-toc a:hover {
+  background: rgba(0,184,148,0.15);
+  color: var(--accent-primary) !important;
+  transform: translateX(5px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+/* Enlace activo */
+#custom-toc a.active {
+  background: var(--bg-light);
+  color: var(--accent-primary) !important;
+  border-left: 5px solid var(--accent-secondary);
+  font-weight: 600;
+  transform: translateX(4px);
+}
+
+/* Scrollbar estético */
+#custom-toc::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+#custom-toc::-webkit-scrollbar-thumb {
+  background: var(--accent-secondary) !important;
+  border-radius: 10px !important;
+}
+
+/* Ocultar el TOC nativo de R Markdown */
+#TOC {
+  display: none !important;
+}
+
+/* ========== SECCIONES Y TIPOGRAFÍA ========== */
+.section.level1 {
+  margin-bottom: 80px !important;
+  padding: 50px !important;
+  background: var(--bg-light) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-top: 6px solid var(--accent-primary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.section.level1:hover {
+  border-top-color: var(--accent-secondary) !important;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-3px) !important;
+}
+
+/* TÍTULOS */
+/* ---- Header / título principal más elegante ---- */
+.page-title {
+  display: block;
+  margin: 8px 0 18px 0;
+}
+h1 {
+  font-size: 3.2rem !important;
+  line-height: 1.05 !important;
+  color: var(--text-dark) !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+.subtitle {
+  display: block;
+  color: var(--accent-secondary);
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+  padding-left: 8px;
+  border-left: 4px solid rgba(6,182,212,0.12);
+}
+
+h2 {
+  font-size: 2.2em !important;
+  color: var(--accent-primary) !important;
+  margin-top: 50px !important;
+  border-left: 8px solid var(--accent-secondary) !important;
+  padding-left: 20px !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+}
+
+h2:hover {
+  padding-left: 25px !important;
+  color: var(--accent-secondary) !important;
+}
+
+h3 {
+  font-size: 1.6em !important;
+  color: var(--accent-secondary) !important;
+  border-left: 5px solid var(--accent-positive) !important;
+  padding-left: 15px !important;
+  margin-top: 30px !important;
+  font-weight: 500 !important;
+}
+
+/* PÁRRAFOS */
+p {
+  color: var(--text-dark) !important;
+  font-size: 1.05em !important;
+  line-height: 1.8 !important;
+}
+
+/* ========== TABLAS ========== */
+table {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  background: var(--bg-light) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  margin: 25px 0 !important;
+}
+
+thead {
+  background: var(--accent-primary) !important;
+}
+
+th {
+  color: var(--bg-light) !important;
+  font-weight: 700 !important;
+  padding: 15px 20px !important;
+}
+
+td {
+  border-bottom: 1px solid var(--bg-lighter) !important;
+  color: var(--text-dark) !important;
+  padding: 12px 20px !important;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-lighter) !important;
+}
+
+tbody tr:hover {
+  background-color: rgba(6, 182, 212, 0.1) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.section.level1 {
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,251,252,1) 100%);
+  border-top: 6px solid var(--accent-primary);
+  padding: 36px !important;
+  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+}
+.section.level1:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 60px rgba(16,24,40,0.08);
+}
+
+/* ========== CÓDIGO ========== */
+pre {
+  background: var(--bg-lighter) !important;
+  border-left: 6px solid var(--accent-secondary) !important;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(6, 182, 212, 0.2) !important;
+  border-radius: 10px !important;
+  padding: 25px !important;
+}
+
+/* ========== FOOTER ========== */
+div[style*="margin-top: 80px;"] {
+  background: var(--bg-lighter) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-top: 6px solid var(--accent-primary) !important;
+  color: var(--text-dark) !important;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+/* ======= DESPLAZAR EL CONTENIDO PARA QUE NO CHOQUE CON EL TOC ======= */
+body .container-fluid,
+body .main-container,
+body div.container-fluid:first-of-type {
+  margin-left: 280px !important;   /* un poco más que el ancho del TOC */
+  max-width: calc(100% - 300px) !important;
+}
+
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  #custom-toc {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px !important;
+    margin-bottom: 30px !important;
+  }
+  
+  div.container-fluid:first-of-type {
+    padding: 20px !important;
+  }
+}
+/* ===================== BOTÓN FLOTANTE UNIVERSIDAD ===================== */
+#uv-button {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;   /* cámbialo a left:25px si lo quieres a la izquierda */
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 9999;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+#uv-button:hover {
+  transform: scale(1.1);
+}
+
+/* Imagen interna */
+#uv-button img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  transition: opacity .4s ease;
+}
+
+/* Animación de rotación */
+@keyframes spin-logo {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#uv-button.spin {
+  animation: spin-logo 1.2s linear;
+}
+#uv-button img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  display: block;
+  margin: auto;        
+  position: absolute;  
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+/* ===== TOOLTIP PERSONALIZADO PARA EL BOTÓN ===== */
+/* ===== TOOLTIP HACIA LA IZQUIERDA ===== */
+#uv-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: -10px;                /* empieza pegado al borde izquierdo */
+  top: 50%;                   /* centrado verticalmente */
+  transform: translate(-100%, -50%);  /* lo desplaza completamente a la izquierda */
+  
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.85em;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+#uv-button:hover::after {
+  opacity: 1;
+}
+
+#uv-button {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+#custom-toc, #right-toc {
+  z-index: 5000 !important;
+}
+#uv-button {
+  overflow: visible !important;
+}
+/* ========== BOTÓN DE OCULTAR/MOSTRAR CÓDIGO ========== */
+#global-code-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+#global-code-toggle:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+</style>
+```
+<div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
+  <img id="uv-img" src="univalle.png" alt="Univalle">
+</div>
+
+```{=html}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const SCROLL_OFFSET = 100; // Ajusta este valor si el título queda tapado (100px es bueno)
+  
+  // 1. REFERENCIA AL CONTENEDOR DEL TOC
+  const toc = document.getElementById("custom-toc");
+  if (!toc) return; // Si no existe el div, no hace nada
+
+  // 2. CREAR TÍTULO Y LISTA
+  const title = document.createElement("h2");
+  title.textContent = "Contenido";
+  toc.appendChild(title);
+  
+  const list = document.createElement("ul");
+  toc.appendChild(list);
+
+  // 3. GENERAR ENLACES BASADOS EN H1 y H2
+  const headers = document.querySelectorAll("h1, h2");
+  
+  headers.forEach(header => {
+    // Si el header no tiene ID, creamos uno limpio
+    if (!header.id) {
+      header.id = header.textContent
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-") // Reemplaza caracteres raros por guiones
+        .replace(/^-+|-+$/g, '');    // Quita guiones al inicio o final
+    }
+
+    // Crear el elemento de lista
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    
+    a.href = `#${header.id}`; // Enlace interno al ID
+    a.textContent = header.textContent; // Texto del enlace
+    
+    // === AQUÍ ESTÁ LA MAGIA DEL CLIC ===
+    a.addEventListener('click', function(e) {
+      e.preventDefault(); // Evita el salto brusco predeterminado
+      
+      const targetId = this.getAttribute('href').substring(1); // Quita el #
+      const targetElement = document.getElementById(targetId);
+      
+      if (targetElement) {
+        // Scroll suave manual
+        window.scrollTo({
+          top: targetElement.offsetTop - SCROLL_OFFSET, 
+          behavior: 'smooth'
+        });
+        
+        // Actualizar URL sin saltar (opcional)
+        history.pushState(null, null, `#${targetId}`);
+      }
+    });
+
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+
+  // 4. RESALTAR ENLACE ACTIVO AL HACER SCROLL
+  function updateActiveTOCLink() {
+    const tocLinks = document.querySelectorAll('#custom-toc a');
+    let currentActiveId = '';
+    
+    headers.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      // Si la sección está cerca de la parte superior (con el offset)
+      if (rect.top <= SCROLL_OFFSET + 20) { 
+        currentActiveId = section.id;
+      }
+    });
+    
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${currentActiveId}`) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  // 5. EVENTOS GLOBALES
+  window.addEventListener('scroll', updateActiveTOCLink);
+  // Ejecutar una vez al inicio para marcar el primero
+  updateActiveTOCLink(); 
+
+  // --- EXTRAS (FECHA, BOTÓN, ETC) ---
+  
+  // Fecha
+  const fechaSpan = document.getElementById('fecha-entrega');
+  if(fechaSpan) {
+    fechaSpan.textContent = new Date().toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  // Botón Código
+  const btnToggle = document.createElement('button');
+  btnToggle.id = 'global-code-toggle';
+  btnToggle.textContent = '💻 Código Oculto';
+  document.body.appendChild(btnToggle);
+  let codeVisible = true;
+  btnToggle.addEventListener('click', function() {
+    const codes = document.querySelectorAll('pre');
+    codeVisible = !codeVisible;
+    codes.forEach(code => {
+      code.style.display = codeVisible ? 'block' : 'none';
+    });
+    btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
+  });
+
+  // Animación Logo Univalle
+  const logos = ["univalle.png", "ingenieria.png"];  
+  let index = 0;
+  const img = document.getElementById("uv-img");
+  const btn = document.getElementById("uv-button");
+  if (btn && img) {
+    setInterval(() => {
+      btn.classList.add("spin");
+      setTimeout(() => {
+        index = (index + 1) % logos.length;
+        img.style.opacity = 0;
+        setTimeout(() => {
+          img.src = logos[index];
+          img.style.opacity = 1;
+        }, 200);
+      }, 600);
+      setTimeout(() => btn.classList.remove("spin"), 1200);
+    }, 3500);
+  }
+});
+</script>
+
+```
+```{r setup-theme, include=FALSE}
+library(ggplot2)
+library(forecast)
+library(tseries)
+
+tesla_pal <- list(
+  bg        = "#ffffff",    # Tu --bg-light
+  text_main = "#1f2937",    # Tu --text-dark
+  text_gray = "#4b5563",    # Tu --text-medium
+  primary   = "#00b894",    # Tu --accent-primary (Verde/Cian principal)
+  secondary = "#06b6d4",    # Tu --accent-secondary (Cian claro)
+  positive  = "#84cc16",    # Tu --accent-positive
+  negative  = "#e17055",    # Tu --accent-negative
+  grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
+)
+
+qqq_pal <- list(
+  bg        = "#ffffff",
+  text_dark = "#1f2937",
+  text_gray = "#4b5563",
+  primary   = "#00b894",
+  secondary = "#06b6d4",
+  positive  = "#84cc16",
+  negative  = "#e17055",
+  grid      = "#f3f4f6"
+)
+
+
+# ==========================================
+# 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
+# ==========================================
+theme_tesla <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      # Fondo transparente para fundirse con el HTML
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      
+      # Textos
+      text = element_text(color = tesla_pal$text_main, family = "sans"),
+      plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, margin = margin(b = 10)),
+      plot.subtitle = element_text(size = 12, color = tesla_pal$secondary, margin = margin(b = 10)),
+      plot.caption = element_text(size = 9, color = tesla_pal$text_gray, margin = margin(t = 10)),
+      
+      # Ejes
+      axis.title = element_text(face = "bold", size = 11, color = tesla_pal$text_gray),
+      axis.text = element_text(size = 10, color = tesla_pal$text_gray),
+      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), # Línea de eje en tu color secundario
+      
+      # Rejilla (Grid)
+      panel.grid.major = element_line(color = tesla_pal$grid, linetype = "dashed"),
+      panel.grid.minor = element_blank(), # Limpiamos el ruido visual
+      
+      # Leyenda
+      legend.position = "bottom",
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.key = element_rect(fill = "transparent", color = NA)
+    )
+}
+
+# ==========================================
+# 3. ESTABLECER COMO PREDETERMINADO
+# ==========================================
+# Esto hace que TODOS tus gráficos usen este estilo automáticamente
+theme_set(theme_tesla())
+
+# Actualizar colores por defecto de las geometrías para que coincidan
+update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
+update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
+update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
+
+```
+---
+
+# Análisis de Series de Tiempo y Pronósticos ARIMA
+
+Estudio Empírico sobre el Precio de Acciones de Tesla Inc.
+
+---
+
+# 1. Introducción
+
+## 1.1 Relevancia del Análisis
+
+[**PLACEHOLDER:** Explica la relevancia de Tesla, su importancia en el mercado global, volatilidad e impacto para inversionistas]
+
+El análisis de series de tiempo en los mercados financieros es fundamental para la toma de decisiones estratégicas. Las acciones de Tesla Inc. representan un caso de estudio particularmente interesante debido a su volatilidad inherente y su impacto significativo en los mercados globales.
+
+## 1.2 Metodología: Modelos ARIMA
+
+[**PLACEHOLDER:** Introduce los conceptos fundamentales de ARIMA, su importancia y utilidad en pronósticos de series temporales]
+
+Los modelos ARIMA combinan componentes autorregresivos, de integración y de media móvil para capturar dinámicas complejas en datos temporales.
+
+---
+
+# 2. Descripción de la Serie Temporal
+```{r serie, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyquant)
+library(tidyverse)
+library(ggplot2)
+library(zoo)
+library(plotly)
+library(quantmod)
+library(xts)
+library(fpp2)
+library(tseries)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
+
+serie_QQQ <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2022-10-07")
+Precio <- serie_QQQ$`QQQ.Close`
+datos_qqq <- data.frame(
+  Fecha = index(Precio),
+  Precio = as.numeric(Precio)
+)
+datos_qqq <- datos_qqq %>%
+  mutate(Corte = as.yearqtr(Fecha)) 
+lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
+  dt <- datos_qqq[datos_qqq$Corte <= c, ]
+  dt$Frame <- as.character(c) 
+  return(dt)
+})
+
+datos_animados <- dplyr::bind_rows(lista_frames)
+p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
+  geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
+  geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
+  labs(
+    title = "Evolución Dinámica del QQQ",
+    subtitle = "Crecimiento histórico acumulado",
+    x = "", 
+    y = "Precio (USD)"
+  ) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme_tesla() +
+  theme(plot.title = element_text(size = 14))
+
+plotly::ggplotly(p, tooltip = c("x", "y")) %>%
+  plotly::layout(
+    paper_bgcolor = 'rgba(0,0,0,0)',
+    plot_bgcolor = 'rgba(0,0,0,0)',
+    font = list(family = "Inter, sans-serif", color = tesla_pal$text_gray),
+    hovermode = "x unified"
+  ) %>%
+  plotly::animation_opts(
+    frame = 100,       
+    transition = 0,    
+    redraw = FALSE     
+  ) %>%
+  plotly::animation_slider(
+    currentvalue = list(prefix = "Periodo: ") 
+  ) %>%
+  plotly::config(displayModeBar = FALSE)
+```
+
+
+## 2.1 Contexto Histórico
+
+[**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
+
+## 2.2 Estadísticas Descriptivas
+
+[**PLACEHOLDER:** Carga tus datos y proporciona estadísticas completas de la serie]
+
+```{r datos, echo=TRUE, eval=FALSE}
+# Cargar datos de Tesla
+datos_tesla <- read.csv("tesla_data.csv")
+summary(datos_tesla$Close)
+sd(datos_tesla$Close)
+```
+
+| Estadístico | Valor |
+|:---|--:|
+| Media | [Inserta] |
+| Mediana | [Inserta] |
+| Desv. Est. | [Inserta] |
+| Mínimo | [Inserta] |
+| Máximo | [Inserta] |
+
+---
+
+# 4. Resultados del Modelo ARIMA {#resultados}
+
+## 4.1 Selección de la Ventana Temporal
+
+### 4.1.1 Partición de Datos
+
+Ventana de Entrenamiento (2022-10-07 → 2025-09-30)
+Ventana de Prueba (2025-10-01 → presente)
+Tabla resumen: observaciones por conjunto
+Gráfico: Serie con partición Train/Test
+
+
+```{r parti, eval=FALSE}
+Entrenamiento=window(Precio, end="2025-09-30")
+Prueba=window(Precio, start = "2025-10-01")
+```
+
+```{r graficoparti, echo=TRUE, eval=FALSE}
+df_train <- data.frame(
+  Fecha = index(Entrenamiento),
+  Precio = as.numeric(Entrenamiento),
+  Conjunto = "Entrenamiento"
+)
+
+df_test <- data.frame(
+  Fecha = index(Prueba),
+  Precio = as.numeric(Prueba),
+  Conjunto = "Prueba"
+)
+
+df_completo <- bind_rows(df_train, df_test)
+
+fecha_corte <- as.Date("2025-10-01")
+
+ggplot(df_completo, aes(x = Fecha, y = Precio)) +
+  geom_ribbon(data = df_train, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$primary, alpha = 0.08) +
+  geom_ribbon(data = df_test, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$secondary, alpha = 0.15) +
+  geom_line(data = df_train, color = qqq_pal$primary, linewidth = 0.9) +
+  geom_line(data = df_test, color = qqq_pal$secondary, linewidth = 1.1) +
+  geom_vline(xintercept = fecha_corte, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.8) +
+  annotate("text", x = fecha_corte, y = max(df_completo$Precio) * 1.02,
+           label = "Corte: 01-Oct-2025", hjust = -0.05, vjust = 0,
+           color = qqq_pal$negative, fontface = "bold", size = 3.5) +
+  annotate("label", 
+           x = as.Date("2024-01-01"), 
+           y = max(df_completo$Precio) * 0.85,
+           label = paste0("ENTRENAMIENTO\n", nrow(df_train), " observaciones"),
+           fill = qqq_pal$primary, color = "white", 
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  annotate("label", 
+           x = max(df_test$Fecha) - 10,
+           y = min(df_completo$Precio) * 1.15,
+           label = paste0("PRUEBA\n", nrow(df_test), " obs."),
+           fill = qqq_pal$secondary, color = "white", 
+           fontface = "bold", size = 3.2, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.05))) +
+  scale_y_continuous(labels = dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Partición de Datos: Entrenamiento vs Prueba",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Serie de precios de cierre diarios",
+    x = NULL,
+    y = "Precio de Cierre (USD)",
+    caption = paste0("Fuente: Yahoo Finance | Período: ", 
+                     min(df_completo$Fecha), " a ", max(df_completo$Fecha))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    
+    plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark,
+                              margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$secondary,
+                                 margin = margin(b = 15)),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray,
+                                margin = margin(t = 15), hjust = 0),
+    
+    axis.title.y = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    
+    plot.margin = margin(20, 25, 15, 15)
+  )
+
+```
+
+### 4.1.2 Justificación de la Partición
+
+Cumplimiento del requisito mínimo (60 períodos)
+Tamaño del test set para validar 10 pronósticos
+Proporción train/test (~95%/5%)
+
+## 4.2 Análisis de Estacionariedad {#estacionariedad}
+
+El primer paso en la metodología Box-Jenkins consiste en verificar si la serie 
+temporal es estacionaria, condición necesaria para la aplicación de modelos ARIMA.
+
+### 4.2.1 Serie en Niveles (Original)
+
+Se evaluó la estacionariedad de la serie de precios de cierre mediante dos 
+enfoques complementarios: análisis visual de la función de autocorrelación (ACF) 
+y la prueba formal de Dickey-Fuller Aumentada (ADF).
+
+**Análisis Visual: Función de Autocorrelación**
+
+```{r acf, echo=TRUE, eval=FALSE}
+
+```
+
+
+**Prueba Formal: Test de Dickey-Fuller Aumentado**
+
+[INSERTAR TABLA ADF]
+
+[INSERTAR CONCLUSIÓN: Serie NO estacionaria]
+
+---
+
+### 4.2.2 Aplicación de Diferenciación
+
+Dado que la serie en niveles no es estacionaria, se procede a aplicar 
+diferenciación de primer orden para estabilizar la media.
+
+[INSERTAR CÓDIGO Y GRÁFICO COMPARATIVO]
+
+---
+
+### 4.2.3 Verificación Post-Diferenciación
+
+[INSERTAR GRÁFICO ACF - Serie diferenciada]
+
+[INSERTAR TABLA ADF - Serie diferenciada]
+
+**Conclusión:** Con un p-valor < 0.05, se rechaza H₀ y se confirma que la serie 
+diferenciada ES estacionaria. Por tanto, el orden de integración es **d = 1**.
+
+---
+
+## 4.3 Identificación del Modelo {#identificacion}
+
+### 4.3.1 Análisis ACF/PACF
+
+Con la serie diferenciada estacionaria, se analizan los correlogramas ACF y PACF 
+para identificar los órdenes p (AR) y q (MA) del modelo.
+
+[INSERTAR GRÁFICO DUAL ACF/PACF]
+
+[INSERTAR TABLA DE PATRONES IDENTIFICADOS]
+
+---
+
+### 4.3.2 Modelos Candidatos
+
+Basándose en el análisis visual y la función `auto.arima()`, se proponen los 
+siguientes modelos candidatos:
+
+[INSERTAR TABLA DE MODELOS CANDIDATOS]
+
+---
+
+## 4.4 Estimación y Comparación de Modelos {#comparacion}
+
+### 4.4.1 Ajuste de Modelos
+
+[CÓDIGO Y RESUMEN DE CADA MODELO]
+
+---
+
+### 4.4.2 Criterios de Información
+
+[INSERTAR TABLA COMPARATIVA: AIC, AICc, BIC]
+
+---
+
+### 4.4.3 Métricas de Precisión
+
+[INSERTAR TABLA accuracy()]
+
+---
+
+## 4.5 Diagnóstico de Residuos {#diagnostico}
+
+### 4.5.1 Análisis Gráfico
+
+[INSERTAR checkresiduals() PERSONALIZADO]
+
+---
+
+### 4.5.2 Prueba de Ljung-Box
+
+[INSERTAR TABLA LJUNG-BOX]
+
+[CONCLUSIÓN: ¿Residuos son ruido blanco?]
+
+---
+
+## 4.6 Pronóstico y Evaluación {#pronostico}
+
+### 4.6.1 Generación de Pronósticos
+
+[INSERTAR TABLA DE PRONÓSTICOS]
+
+[INSERTAR GRÁFICO DE PRONÓSTICO]
+
+---
+
+### 4.6.2 Evaluación con Datos de Prueba
+
+[INSERTAR GRÁFICO PREDICHO VS REAL]
+
+[INSERTAR TABLA DE ERRORES]
+
+---
+
+## 4.7 Síntesis del Modelo {#sintesis}
+
+[TABLA RESUMEN FINAL]
+---
+
+# 5. Conclusiones
+
+## 5.1 Hallazgos Principales
+
+[**PLACEHOLDER:** Resumen de hallazgos principales del análisis ARIMA]
+
+## 5.2 Implicaciones Prácticas
+
+[**PLACEHOLDER:** Implicaciones de los pronósticos para inversionistas y analistas de mercado]
+
+## 5.3 Limitaciones del Análisis
+
+[**PLACEHOLDER:** Limitaciones del modelo y aspectos no capturados]
+
+## 5.4 Recomendaciones Futuras
+
+[**PLACEHOLDER:** Sugerencias para mejoras y extensiones del análisis]
+
+
+
+```{=html}
+
+<div style="
+  margin-top: 80px;
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.08));
+  border: 2px solid rgba(124, 58, 237, 0.4);
+  border-radius: 15px;
+  border-top: 3px solid rgba(132, 204, 22, 0.8);
+  text-align: center;
+  color: #e0e6ed;
+  font-size: 0.95em;
+  line-height: 1.8;
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.2);
+">
+  <div style="margin-bottom: 20px; background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 1.1em;">
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  </div>
+  
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ASIGNATURA:</strong> Gestión de Datos<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PROFESOR:</strong> Orlando Joaqui-Barandica<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">UNIVERSIDAD:</strong> Universidad del Valle<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">FACULTAD:</strong> Facultad de Ingeniería<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PROGRAMA:</strong> Ingeniería Industrial<br>
+  
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.3);">
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ESTUDIANTE:</strong> Camilo<br>
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">FECHA ENTREGA:</strong> <span id="fecha-entrega"></span><br>
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">VERSIÓN:</strong> 1.0<br>
+  </div>
+  
+  <div style="margin-top: 20px; color: #94a3b8; font-size: 0.9em;">
+    <em>Documento generado con R Markdown | Tema: Series de Tiempo y Pronósticos ARIMA</em>
+  </div>
+  
+  <div style="margin-top: 15px; background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  </div>
+</div>
+```
+
+
+

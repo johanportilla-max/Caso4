@@ -9,6 +9,8 @@ library(packcircles)
 library(zoo)          
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
 precios <- serie$QQQ.Close
+# 2. ANÁLISIS DE LA SERIE ORIGINAL (PRECIOS)
+# Gráfico de la Serie de Tiempo
 plot(precios, main = "Evolución del Precio de Cierre QQQ")
 
 #  Estadísticas Descriptivas Básicas
@@ -116,3 +118,4 @@ plot(rendimientos^2, main = "Rendimientos al Cuadrado (Clusters)", ylab = "Rendi
 #Autocorrelación de la Volatilidad 
 par(mfrow=c(1, 1))
 acf(rendimientos^2, main = "ACF de Rendimientos Cuadrados (Efectos ARCH)", ylab = "Autocorrelación")
+

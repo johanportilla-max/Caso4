@@ -1,4 +1,3 @@
-
 library(quantmod)
 
 # Descargo la serie de interes desde yahoo
@@ -260,6 +259,7 @@ accuracy(pron, ventana_test)
 
 
 
+.+
 
 
 ##########################3
