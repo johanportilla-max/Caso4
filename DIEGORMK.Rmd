@@ -581,9 +581,6 @@ library(ggplot2)
 library(forecast)
 library(tseries)
 
-# ==========================================
-# 1. DEFINICIÓN DE LA PALETA (COINCIDE CON TU CSS)
-# ==========================================
 tesla_pal <- list(
   bg        = "#ffffff",    # Tu --bg-light
   text_main = "#1f2937",    # Tu --text-dark
@@ -595,45 +592,28 @@ tesla_pal <- list(
   grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
 )
 
-# ==========================================
-# 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
-# ==========================================
 theme_tesla <- function() {
   theme_minimal(base_size = 14) +
     theme(
-      # Fondo transparente para fundirse con el HTML
       plot.background = element_rect(fill = "transparent", color = NA),
       panel.background = element_rect(fill = "transparent", color = NA),
-      
-      # Textos
       text = element_text(color = tesla_pal$text_main, family = "sans"),
       plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, margin = margin(b = 10)),
       plot.subtitle = element_text(size = 12, color = tesla_pal$secondary, margin = margin(b = 10)),
       plot.caption = element_text(size = 9, color = tesla_pal$text_gray, margin = margin(t = 10)),
-      
-      # Ejes
       axis.title = element_text(face = "bold", size = 11, color = tesla_pal$text_gray),
       axis.text = element_text(size = 10, color = tesla_pal$text_gray),
-      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), # Línea de eje en tu color secundario
-      
-      # Rejilla (Grid)
+      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), 
       panel.grid.major = element_line(color = tesla_pal$grid, linetype = "dashed"),
-      panel.grid.minor = element_blank(), # Limpiamos el ruido visual
-      
-      # Leyenda
+      panel.grid.minor = element_blank(),
       legend.position = "bottom",
       legend.background = element_rect(fill = "transparent", color = NA),
       legend.key = element_rect(fill = "transparent", color = NA)
     )
 }
 
-# ==========================================
-# 3. ESTABLECER COMO PREDETERMINADO
-# ==========================================
-# Esto hace que TODOS tus gráficos usen este estilo automáticamente
 theme_set(theme_tesla())
 
-# Actualizar colores por defecto de las geometrías para que coincidan
 update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
 update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
 update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
