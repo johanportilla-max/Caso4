@@ -581,9 +581,6 @@ library(ggplot2)
 library(forecast)
 library(tseries)
 
-# ==========================================
-# 1. DEFINICIÓN DE LA PALETA (COINCIDE CON TU CSS)
-# ==========================================
 tesla_pal <- list(
   bg        = "#ffffff",    # Tu --bg-light
   text_main = "#1f2937",    # Tu --text-dark
@@ -594,6 +591,18 @@ tesla_pal <- list(
   negative  = "#e17055",    # Tu --accent-negative
   grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
 )
+
+qqq_pal <- list(
+  bg        = "#ffffff",
+  text_dark = "#1f2937",
+  text_gray = "#4b5563",
+  primary   = "#00b894",
+  secondary = "#06b6d4",
+  positive  = "#84cc16",
+  negative  = "#e17055",
+  grid      = "#f3f4f6"
+)
+
 
 # ==========================================
 # 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
@@ -670,12 +679,21 @@ library(tidyverse)
 library(ggplot2)
 library(zoo)
 library(plotly)
+library(quantmod)
+library(xts)
+library(fpp2)
+library(tseries)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
 
-serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
-precios <- serie$QQQ.Close
+serie_QQQ <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2022-10-07")
+Precio <- serie_QQQ$`QQQ.Close`
 datos_qqq <- data.frame(
-  Fecha = index(precios),
-  Precio = as.numeric(precios)
+  Fecha = index(Precio),
+  Precio = as.numeric(Precio)
 )
 datos_qqq <- datos_qqq %>%
   mutate(Corte = as.yearqtr(Fecha)) 
@@ -687,11 +705,8 @@ lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
 
 datos_animados <- dplyr::bind_rows(lista_frames)
 p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
-  
   geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
-  
   geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
-  
   labs(
     title = "Evolución Dinámica del QQQ",
     subtitle = "Crecimiento histórico acumulado",
@@ -746,83 +761,250 @@ sd(datos_tesla$Close)
 
 ---
 
-# 3. Resultados del Modelo ARIMA
+# 4. Resultados del Modelo ARIMA {#resultados}
 
-## 3.1 Evaluación de Estacionariedad
+## 4.1 Selección de la Ventana Temporal
 
-[**PLACEHOLDER:** Documenta pruebas de estacionariedad KPSS y ADF. Interpreta resultados]
+### 4.1.1 Partición de Datos
 
-```{r estacionariedad, echo=TRUE, eval=FALSE}
-library(urca)
-library(tseries)
+Ventana de Entrenamiento (2022-10-07 → 2025-09-30)
+Ventana de Prueba (2025-10-01 → presente)
+Tabla resumen: observaciones por conjunto
+Gráfico: Serie con partición Train/Test
 
-summary(ur.kpss(datos_tesla$Close))
-adf.test(datos_tesla$Close)
+
+```{r parti, eval=FALSE}
+Entrenamiento=window(Precio, end="2025-09-30")
+Prueba=window(Precio, start = "2025-10-01")
 ```
 
-## 3.2 Análisis ACF y PACF
+```{r graficoparti, echo=TRUE, eval=FALSE}
+df_train <- data.frame(
+  Fecha = index(Entrenamiento),
+  Precio = as.numeric(Entrenamiento),
+  Conjunto = "Entrenamiento"
+)
 
-[**PLACEHOLDER:** Inserta gráficos ACF y PACF. Analiza patrones de autocorrelación]
+df_test <- data.frame(
+  Fecha = index(Prueba),
+  Precio = as.numeric(Prueba),
+  Conjunto = "Prueba"
+)
+
+df_completo <- bind_rows(df_train, df_test)
+
+fecha_corte <- as.Date("2025-10-01")
+
+ggplot(df_completo, aes(x = Fecha, y = Precio)) +
+  geom_ribbon(data = df_train, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$primary, alpha = 0.08) +
+  geom_ribbon(data = df_test, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$secondary, alpha = 0.15) +
+  geom_line(data = df_train, color = qqq_pal$primary, linewidth = 0.9) +
+  geom_line(data = df_test, color = qqq_pal$secondary, linewidth = 1.1) +
+  geom_vline(xintercept = fecha_corte, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.8) +
+  annotate("text", x = fecha_corte, y = max(df_completo$Precio) * 1.02,
+           label = "Corte: 01-Oct-2025", hjust = -0.05, vjust = 0,
+           color = qqq_pal$negative, fontface = "bold", size = 3.5) +
+  annotate("label", 
+           x = as.Date("2024-01-01"), 
+           y = max(df_completo$Precio) * 0.85,
+           label = paste0("ENTRENAMIENTO\n", nrow(df_train), " observaciones"),
+           fill = qqq_pal$primary, color = "white", 
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  annotate("label", 
+           x = max(df_test$Fecha) - 10,
+           y = min(df_completo$Precio) * 1.15,
+           label = paste0("PRUEBA\n", nrow(df_test), " obs."),
+           fill = qqq_pal$secondary, color = "white", 
+           fontface = "bold", size = 3.2, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.05))) +
+  scale_y_continuous(labels = dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Partición de Datos: Entrenamiento vs Prueba",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Serie de precios de cierre diarios",
+    x = NULL,
+    y = "Precio de Cierre (USD)",
+    caption = paste0("Fuente: Yahoo Finance | Período: ", 
+                     min(df_completo$Fecha), " a ", max(df_completo$Fecha))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    
+    plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark,
+                              margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$secondary,
+                                 margin = margin(b = 15)),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray,
+                                margin = margin(t = 15), hjust = 0),
+    
+    axis.title.y = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    
+    plot.margin = margin(20, 25, 15, 15)
+  )
+
+```
+
+### 4.1.2 Justificación de la Partición
+
+Cumplimiento del requisito mínimo (60 períodos)
+Tamaño del test set para validar 10 pronósticos
+Proporción train/test (~95%/5%)
+
+## 4.2 Análisis de Estacionariedad {#estacionariedad}
+
+El primer paso en la metodología Box-Jenkins consiste en verificar si la serie 
+temporal es estacionaria, condición necesaria para la aplicación de modelos ARIMA.
+
+### 4.2.1 Serie en Niveles (Original)
+
+Se evaluó la estacionariedad de la serie de precios de cierre mediante dos 
+enfoques complementarios: análisis visual de la función de autocorrelación (ACF) 
+y la prueba formal de Dickey-Fuller Aumentada (ADF).
+
+**Análisis Visual: Función de Autocorrelación**
 
 ```{r acf, echo=TRUE, eval=FALSE}
-library(ggplot2)
-ggtsdisplay(diff(datos_tesla$Close))
+
 ```
 
-## 3.3 Selección del Modelo
 
-[**PLACEHOLDER:** Documenta parámetros p, d, q seleccionados y justificación]
+**Prueba Formal: Test de Dickey-Fuller Aumentado**
 
-| Parámetro | Valor | Justificación |
-|:---|:--:|:---|
-| p | [ ] | [Basado en PACF] |
-| d | [ ] | [Basado en tests de estacionariedad] |
-| q | [ ] | [Basado en ACF] |
+[INSERTAR TABLA ADF]
 
-## 3.4 Ajuste del Modelo
-
-[**PLACEHOLDER:** Resumen del modelo ARIMA ajustado con coeficientes interpretados]
-
-```{r arima, echo=TRUE, eval=FALSE}
-library(forecast)
-fit <- auto.arima(datos_tesla$Close, seasonal=FALSE)
-summary(fit)
-```
-
-## 3.5 Diagnóstico de Residuos
-
-[**PLACEHOLDER:** Análisis de residuos: gráficos, pruebas de normalidad y autocorrelación]
-
-```{r residuos, echo=TRUE, eval=FALSE}
-checkresiduals(fit)
-```
-
-## 3.6 Pronósticos
-
-[**PLACEHOLDER:** Pronósticos para períodos futuros con intervalos de confianza]
-
-```{r forecast, echo=TRUE, eval=FALSE}
-forecast_tesla <- forecast(fit, h=10)
-autoplot(forecast_tesla)
-```
+[INSERTAR CONCLUSIÓN: Serie NO estacionaria]
 
 ---
 
-# 4. Conclusiones
+### 4.2.2 Aplicación de Diferenciación
 
-## 4.1 Hallazgos Principales
+Dado que la serie en niveles no es estacionaria, se procede a aplicar 
+diferenciación de primer orden para estabilizar la media.
+
+[INSERTAR CÓDIGO Y GRÁFICO COMPARATIVO]
+
+---
+
+### 4.2.3 Verificación Post-Diferenciación
+
+[INSERTAR GRÁFICO ACF - Serie diferenciada]
+
+[INSERTAR TABLA ADF - Serie diferenciada]
+
+**Conclusión:** Con un p-valor < 0.05, se rechaza H₀ y se confirma que la serie 
+diferenciada ES estacionaria. Por tanto, el orden de integración es **d = 1**.
+
+---
+
+## 4.3 Identificación del Modelo {#identificacion}
+
+### 4.3.1 Análisis ACF/PACF
+
+Con la serie diferenciada estacionaria, se analizan los correlogramas ACF y PACF 
+para identificar los órdenes p (AR) y q (MA) del modelo.
+
+[INSERTAR GRÁFICO DUAL ACF/PACF]
+
+[INSERTAR TABLA DE PATRONES IDENTIFICADOS]
+
+---
+
+### 4.3.2 Modelos Candidatos
+
+Basándose en el análisis visual y la función `auto.arima()`, se proponen los 
+siguientes modelos candidatos:
+
+[INSERTAR TABLA DE MODELOS CANDIDATOS]
+
+---
+
+## 4.4 Estimación y Comparación de Modelos {#comparacion}
+
+### 4.4.1 Ajuste de Modelos
+
+[CÓDIGO Y RESUMEN DE CADA MODELO]
+
+---
+
+### 4.4.2 Criterios de Información
+
+[INSERTAR TABLA COMPARATIVA: AIC, AICc, BIC]
+
+---
+
+### 4.4.3 Métricas de Precisión
+
+[INSERTAR TABLA accuracy()]
+
+---
+
+## 4.5 Diagnóstico de Residuos {#diagnostico}
+
+### 4.5.1 Análisis Gráfico
+
+[INSERTAR checkresiduals() PERSONALIZADO]
+
+---
+
+### 4.5.2 Prueba de Ljung-Box
+
+[INSERTAR TABLA LJUNG-BOX]
+
+[CONCLUSIÓN: ¿Residuos son ruido blanco?]
+
+---
+
+## 4.6 Pronóstico y Evaluación {#pronostico}
+
+### 4.6.1 Generación de Pronósticos
+
+[INSERTAR TABLA DE PRONÓSTICOS]
+
+[INSERTAR GRÁFICO DE PRONÓSTICO]
+
+---
+
+### 4.6.2 Evaluación con Datos de Prueba
+
+[INSERTAR GRÁFICO PREDICHO VS REAL]
+
+[INSERTAR TABLA DE ERRORES]
+
+---
+
+## 4.7 Síntesis del Modelo {#sintesis}
+
+[TABLA RESUMEN FINAL]
+---
+
+# 5. Conclusiones
+
+## 5.1 Hallazgos Principales
 
 [**PLACEHOLDER:** Resumen de hallazgos principales del análisis ARIMA]
 
-## 4.2 Implicaciones Prácticas
+## 5.2 Implicaciones Prácticas
 
 [**PLACEHOLDER:** Implicaciones de los pronósticos para inversionistas y analistas de mercado]
 
-## 4.3 Limitaciones del Análisis
+## 5.3 Limitaciones del Análisis
 
 [**PLACEHOLDER:** Limitaciones del modelo y aspectos no capturados]
 
-## 4.4 Recomendaciones Futuras
+## 5.4 Recomendaciones Futuras
 
 [**PLACEHOLDER:** Sugerencias para mejoras y extensiones del análisis]
 

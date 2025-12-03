@@ -6,6 +6,8 @@ library(tseries)
 library(scales)
 library(knitr)
 library(kableExtra)
+library(gridExtra)
+library(grid)
 
 qqq_pal <- list(
   bg        = "#ffffff",
@@ -211,13 +213,237 @@ kable(tabla_adf,
 dif_Entrenamiento=diff(Entrenamiento) %>% na.omit()
 autoplot(dif_Entrenamiento)
 
+
+df_diff <- data.frame(
+  Fecha = index(dif_Entrenamiento),
+  Valor = as.numeric(dif_Entrenamiento)
+)
+
+ggplot(df_diff, aes(x = Fecha, y = Valor)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  annotate("label", 
+           x = as.Date("2023-06-01"), 
+           y = max(df_diff$Valor) * 0.85,
+           label = paste0("Media ≈ ", round(mean(df_diff$Valor), 3)),
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.03))) +
+  scale_y_continuous(labels = scales::dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Serie Diferenciada de Primer Orden (d = 1)",
+    subtitle = "QQQ: Cambios diarios en precio de cierre | Datos de entrenamiento",
+    x = NULL,
+    y = "Cambio Diario (USD)",
+    caption = paste0("Observaciones: ", nrow(df_diff), 
+                     " | Período: ", min(df_diff$Fecha), " a ", max(df_diff$Fecha))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    
+    plot.title = element_text(face = "bold", size = 14, color = qqq_pal$text_dark,
+                              margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 10, color = qqq_pal$secondary,
+                                 margin = margin(b = 15)),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray,
+                                margin = margin(t = 15), hjust = 0),
+    axis.title.y = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(20, 25, 15, 15)
+  )
+
+
 adf.test(dif_Entrenamiento)
 ggAcf(dif_Entrenamiento)
 
-library(gridExtra)
+
+# GRÁFICO ACF - SERIE DIFERENCIADA
+
+acf_diff_data <- acf(dif_Entrenamiento, lag.max = 30, plot = FALSE)
+
+df_acf_diff <- data.frame(
+  Lag = acf_diff_data$lag[-1],
+  ACF = acf_diff_data$acf[-1]
+)
+
+n_diff <- length(dif_Entrenamiento)
+limite_sup_diff <- qnorm(0.975) / sqrt(n_diff)
+limite_inf_diff <- -limite_sup_diff
+
+ggplot(df_acf_diff, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$secondary, size = 2) +
+  geom_hline(yintercept = limite_sup_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf_diff, ymax = limite_sup_diff,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  annotate("label", x = 22, y = 0.12,
+           label = "Autocorrelaciones dentro\nde bandas → Estacionaria ✓",
+           fill = qqq_pal$positive, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.2), breaks = seq(-0.1, 0.2, 0.05)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie Diferenciada",
+    subtitle = "QQQ: Cambios diarios | Verificación de estacionariedad post-diferenciación",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas verdes: Límites de significancia al 95% | La mayoría de rezagos dentro de bandas"
+  ) +
+  
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 14, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 10, color = qqq_pal$secondary),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray, hjust = 0),
+    axis.title = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank()
+  )
+
+# TABLA ADF - SERIE DIFERENCIADA
+
+adf_diff_resultado <- adf.test(dif_Entrenamiento)
+
+tabla_adf_diff <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Nivel de Significancia (α)",
+              "Hipótesis Nula (H₀)",
+              "Decisión"),
+  Valor = c(round(adf_diff_resultado$statistic, 4),
+            adf_diff_resultado$parameter,
+            round(adf_diff_resultado$p.value, 4),
+            "0.05",
+            "Serie tiene raíz unitaria",
+            ifelse(adf_diff_resultado$p.value < 0.05, 
+                   "Rechazar H₀", "No rechazar H₀")),
+  Interpretación = c("Valor del estadístico de prueba",
+                     "Rezagos incluidos en el test",
+                     "Probabilidad bajo H₀",
+                     "Umbral de decisión",
+                     "La serie NO es estacionaria",
+                     ifelse(adf_diff_resultado$p.value < 0.05,
+                            "Serie ES estacionaria ✓",
+                            "Serie NO estacionaria"))
+)
+
+kable(tabla_adf_diff, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie Diferenciada (d=1)",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(6, bold = TRUE, background = "#d4edda")
+
+
+
 grid.arrange(ggAcf(dif_Entrenamiento),
              ggPacf(dif_Entrenamiento),
              nrow=1)
+
+# GRÁFICO DUAL: ACF Y PACF - SERIE DIFERENCIADA
+
+acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+pacf_data <- pacf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = as.numeric(acf_data$lag[-1]),
+  Valor = as.numeric(acf_data$acf[-1])
+)
+
+df_pacf <- data.frame(
+  Lag = as.numeric(pacf_data$lag),
+  Valor = as.numeric(pacf_data$acf)
+)
+
+n <- length(dif_Entrenamiento)
+limite <- qnorm(0.975) / sqrt(n)
+
+p_acf <- ggplot(df_acf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(
+    title = "ACF - Serie Diferenciada",
+    subtitle = "Identificación del orden q (MA)",
+    x = "Rezago (Lag)",
+    y = "ACF"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 12, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 9, color = qqq_pal$secondary),
+    axis.title = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 8, color = qqq_pal$text_gray),
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+p_pacf <- ggplot(df_pacf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(
+    title = "PACF - Serie Diferenciada",
+    subtitle = "Identificación del orden p (AR)",
+    x = "Rezago (Lag)",
+    y = "PACF"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    plot.title = element_text(face = "bold", size = 12, color = qqq_pal$text_dark),
+    plot.subtitle = element_text(size = 9, color = qqq_pal$secondary),
+    axis.title = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 8, color = qqq_pal$text_gray),
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+grid.arrange(
+  p_acf, p_pacf,
+  ncol = 2,
+  top = textGrob("Análisis de Correlogramas para Identificación de Parámetros ARIMA", 
+                 gp = gpar(fontsize = 13, fontface = "bold", col = qqq_pal$text_dark))
+)
+
+
+
 ModeloQA=auto.arima(Entrenamiento)
 
 modeloQ1 = Arima(Entrenamiento, order = c(3,1,3))
