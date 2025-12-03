@@ -447,12 +447,64 @@ grid.arrange(
 ModeloQA=auto.arima(Entrenamiento)
 
 modeloQ1 = Arima(Entrenamiento, order = c(3,1,3))
-modeloQ2 = Arima(Entrenamiento, order = c(6,1,6))
-modeloQ3 = Arima(Entrenamiento, order = c(1,1,1))
-modeloQ4 = Arima(Entrenamiento, order = c(2,1,1))
-modeloQ5 = Arima(Entrenamiento, order = c(1,1,2))
-modeloQ6 = Arima(Entrenamiento, order = c(2,1,2))
-modeloQ7 = Arima(Entrenamiento, order = c(3,1,1))
+modeloQ2 = Arima(Entrenamiento, order = c(0,1,0))
+modeloQ3 = Arima(Entrenamiento, order = c(2,1,1))
+modeloQ4 = Arima(Entrenamiento, order = c(1,1,2))
+modeloQ5 = Arima(Entrenamiento, order = c(2,1,2))
+
+
+tabla = data.frame(
+  Modelo = c('Auto-ARIMA', 'ARIMA(3,1,3)', 'ARIMA(0,1,0)', 'ARIMA(2,1,1)', 'ARIMA(1,1,2)', 'ARIMA(2,1,2)'),
+  AICc = round(c(ModeloQA$aicc, modeloQ1$aicc, modeloQ2$aicc, modeloQ3$aicc, modeloQ4$aicc, modeloQ5$aicc), 2)
+) %>% arrange(AICc)
+
+print(tabla)
+
+# MODELOS CANDIDATOS Y JUSTIFICACIÓN
+
+tabla_candidatos <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1)",
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Tipo = c("Random Walk",
+           "auto.arima()",
+           "Manual",
+           "Manual",
+           "Manual",
+           "Exploratorio"),
+  `Observación ACF/PACF` = c(
+    "Patrón general cercano a ruido blanco",
+    "Selección automática por AICc",
+    "Posible estructura en lags 1-2 del PACF",
+    "Posible estructura en lags 1-2 del ACF",
+    "Combinación de estructuras en ambos correlogramas",
+    "Pico marginal en lag 3 de ambos correlogramas"
+  ),
+  Justificación = c(
+    "Benchmark obligatorio: hipótesis de mercado eficiente",
+    "Referencia algorítmica para validar selección manual",
+    "Extensión AR(2) para capturar persistencia de corto plazo",
+    "Extensión MA(2) para capturar estructura de media móvil",
+    "Modelo simétrico que combina dinámicas AR y MA",
+    "Evaluar si rezagos marginales aportan capacidad predictiva"
+  )
+)
+
+kable(tabla_candidatos,
+      caption = "Modelos ARIMA Candidatos para Evaluación",
+      align = c("l", "c", "l", "l"),
+      col.names = c("Modelo", "Tipo", "Observación en ACF/PACF", "Justificación")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, color = qqq_pal$secondary) %>%
+  column_spec(3, width = "22em") %>%
+  column_spec(4, width = "25em") %>%
+  row_spec(2, background = "#e8f5e9")
 
 ModeloQA
 modeloQ1
@@ -460,16 +512,213 @@ modeloQ2
 modeloQ3
 modeloQ4
 modeloQ5
-modeloQ6 
-modeloQ7
+
+accuracy(ModeloQA)
+accuracy(modeloQ1)
+accuracy(modeloQ2)
+accuracy(modeloQ3)
+accuracy(modeloQ4)
+accuracy(modeloQ5)
+
+# TABLA: RESUMEN DE COEFICIENTES POR MODELO 
+
+extraer_coef <- function(modelo, nombre) {
+  coefs <- coef(modelo)
+  if (nombre %in% names(coefs)) {
+    return(round(coefs[nombre], 4))
+  } else {
+    return("—")
+  }
+}
+
+tabla_coeficientes <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  ar1 = c("—", 
+          extraer_coef(ModeloQA, "ar1"), 
+          extraer_coef(modeloQ3, "ar1"), 
+          extraer_coef(modeloQ4, "ar1"),
+          extraer_coef(modeloQ5, "ar1"),
+          extraer_coef(modeloQ1, "ar1")),
+  ar2 = c("—", 
+          extraer_coef(ModeloQA, "ar2"), 
+          extraer_coef(modeloQ3, "ar2"), 
+          extraer_coef(modeloQ4, "ar2"),
+          extraer_coef(modeloQ5, "ar2"),
+          extraer_coef(modeloQ1, "ar2")),
+  ar3 = c("—", 
+          extraer_coef(ModeloQA, "ar3"), 
+          extraer_coef(modeloQ3, "ar3"), 
+          extraer_coef(modeloQ4, "ar3"),
+          extraer_coef(modeloQ5, "ar3"),
+          extraer_coef(modeloQ1, "ar3")),
+  ma1 = c("—", 
+          extraer_coef(ModeloQA, "ma1"), 
+          extraer_coef(modeloQ3, "ma1"), 
+          extraer_coef(modeloQ4, "ma1"),
+          extraer_coef(modeloQ5, "ma1"),
+          extraer_coef(modeloQ1, "ma1")),
+  ma2 = c("—", 
+          extraer_coef(ModeloQA, "ma2"), 
+          extraer_coef(modeloQ3, "ma2"), 
+          extraer_coef(modeloQ4, "ma2"),
+          extraer_coef(modeloQ5, "ma2"),
+          extraer_coef(modeloQ1, "ma2")),
+  ma3 = c("—", 
+          extraer_coef(ModeloQA, "ma3"), 
+          extraer_coef(modeloQ3, "ma3"), 
+          extraer_coef(modeloQ4, "ma3"),
+          extraer_coef(modeloQ5, "ma3"),
+          extraer_coef(modeloQ1, "ma3")),
+  drift = c("—", 
+            extraer_coef(ModeloQA, "drift"), 
+            extraer_coef(modeloQ3, "drift"), 
+            extraer_coef(modeloQ4, "drift"),
+            extraer_coef(modeloQ5, "drift"),
+            extraer_coef(modeloQ1, "drift")),
+  sigma2 = c(round(modeloQ2$sigma2, 2),
+             round(ModeloQA$sigma2, 2),
+             round(modeloQ3$sigma2, 2),
+             round(modeloQ4$sigma2, 2),
+             round(modeloQ5$sigma2, 2),
+             round(modeloQ1$sigma2, 2))
+)
+
+kable(tabla_coeficientes,
+      caption = "Coeficientes Estimados por Modelo ARIMA",
+      align = c("l", rep("c", 8)),
+      col.names = c("Modelo", "AR(1)", "AR(2)", "AR(3)", "MA(1)", "MA(2)", "MA(3)", "Drift", "σ²")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  row_spec(2, background = "#e8f5e9") %>%
+  footnote(general = "σ² = Varianza de los residuos. El símbolo '—' indica que el parámetro no aplica al modelo.",
+           general_title = "Nota: ")
 
 
-tabla = data.frame(
-  Modelo = c('Auto-ARIMA', 'ARIMA(3,1,3)', 'ARIMA(6,1,6)', 'ARIMA(1,1,1)', 'ARIMA(2,1,1)', 'ARIMA(1,1,2)', "ARIMA(2,1,2)","ARIMA(3,1,1)"),
-  AICc = round(c(ModeloQA$aicc, modeloQ1$aicc, modeloQ2$aicc, modeloQ3$aicc, modeloQ4$aicc, modeloQ5$aicc, modeloQ6$aicc, modeloQ7$aicc), 2)
-) %>% arrange(AICc)
+# TABLA: CRITERIOS DE INFORMACIÓN 
 
-print(tabla)
+comparacion_IC <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Parametros = c(length(coef(modeloQ2)) + 1,  # +1 por sigma2
+                 length(coef(ModeloQA)) + 1,
+                 length(coef(modeloQ3)) + 1,
+                 length(coef(modeloQ4)) + 1,
+                 length(coef(modeloQ5)) + 1,
+                 length(coef(modeloQ1)) + 1),
+  AIC = round(c(AIC(modeloQ2), 
+                AIC(ModeloQA), 
+                AIC(modeloQ3), 
+                AIC(modeloQ4),
+                AIC(modeloQ5),
+                AIC(modeloQ1)), 2),
+  AICc = round(c(modeloQ2$aicc, 
+                 ModeloQA$aicc, 
+                 modeloQ3$aicc, 
+                 modeloQ4$aicc,
+                 modeloQ5$aicc,
+                 modeloQ1$aicc), 2),
+  BIC = round(c(BIC(modeloQ2), 
+                BIC(ModeloQA), 
+                BIC(modeloQ3), 
+                BIC(modeloQ4),
+                BIC(modeloQ5),
+                BIC(modeloQ1)), 2)
+)
+
+comparacion_IC <- comparacion_IC %>%
+  arrange(AICc) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, Parametros, AIC, AICc, BIC)
+
+kable(comparacion_IC,
+      caption = "Comparación de Modelos por Criterios de Información",
+      align = c("c", "l", "c", "c", "c", "c"),
+      col.names = c("Ranking", "Modelo", "# Parámetros", "AIC", "AICc", "BIC")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(5, bold = TRUE) %>%
+  row_spec(1, bold = TRUE, background = "#d4edda") %>%
+  footnote(general = "Ordenado por AICc (menor es mejor). AICc es el criterio preferido para muestras finitas.",
+           general_title = "Nota: ")
+
+# TABLA: MÉTRICAS DE PRECISIÓN (DINÁMICO)
+
+acc_QA <- accuracy(ModeloQA)
+acc_Q1 <- accuracy(modeloQ1)
+acc_Q2 <- accuracy(modeloQ2)
+acc_Q3 <- accuracy(modeloQ3)
+acc_Q4 <- accuracy(modeloQ4)
+acc_Q5 <- accuracy(modeloQ5)
+
+comparacion_accuracy <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  ME = round(c(acc_Q2["Training set", "ME"], 
+               acc_QA["Training set", "ME"], 
+               acc_Q3["Training set", "ME"], 
+               acc_Q4["Training set", "ME"],
+               acc_Q5["Training set", "ME"],
+               acc_Q1["Training set", "ME"]), 4),
+  RMSE = round(c(acc_Q2["Training set", "RMSE"], 
+                 acc_QA["Training set", "RMSE"], 
+                 acc_Q3["Training set", "RMSE"], 
+                 acc_Q4["Training set", "RMSE"],
+                 acc_Q5["Training set", "RMSE"],
+                 acc_Q1["Training set", "RMSE"]), 4),
+  MAE = round(c(acc_Q2["Training set", "MAE"], 
+                acc_QA["Training set", "MAE"], 
+                acc_Q3["Training set", "MAE"], 
+                acc_Q4["Training set", "MAE"],
+                acc_Q5["Training set", "MAE"],
+                acc_Q1["Training set", "MAE"]), 4),
+  MAPE = round(c(acc_Q2["Training set", "MAPE"], 
+                 acc_QA["Training set", "MAPE"], 
+                 acc_Q3["Training set", "MAPE"], 
+                 acc_Q4["Training set", "MAPE"],
+                 acc_Q5["Training set", "MAPE"],
+                 acc_Q1["Training set", "MAPE"]), 4),
+  MASE = round(c(acc_Q2["Training set", "MASE"], 
+                 acc_QA["Training set", "MASE"], 
+                 acc_Q3["Training set", "MASE"], 
+                 acc_Q4["Training set", "MASE"],
+                 acc_Q5["Training set", "MASE"],
+                 acc_Q1["Training set", "MASE"]), 4)
+)
+
+comparacion_accuracy <- comparacion_accuracy %>%
+  arrange(RMSE) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, ME, RMSE, MAE, MAPE, MASE)
+
+kable(comparacion_accuracy,
+      caption = "Métricas de Precisión sobre Datos de Entrenamiento",
+      align = c("c", "l", rep("c", 5))) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(4, bold = TRUE) %>%
+  row_spec(1, background = "#d4edda") %>%
+  footnote(general = "ME: Error Medio | RMSE: Raíz del Error Cuadrático Medio | MAE: Error Absoluto Medio | MAPE: Error Porcentual (%) | MASE: Error Escalado",
+           general_title = "Métricas: ")
+
 
 checkresiduals(ModeloQA) 
 checkresiduals(modeloQ1) 
@@ -477,15 +726,6 @@ checkresiduals(modeloQ2)
 checkresiduals(modeloQ3) 
 checkresiduals(modeloQ4) 
 checkresiduals(modeloQ5) 
-checkresiduals(modeloQ6) 
-checkresiduals(modeloQ7)
-
-accuracy(ModeloQA)
-accuracy(modeloQ1)
-accuracy(modeloQ2)
-accuracy(modeloQ6)
-
-
 
 ModeloQA %>% 
   forecast(h=10, level = 0.95) %>% 
