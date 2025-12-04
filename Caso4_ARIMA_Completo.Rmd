@@ -1338,6 +1338,113 @@ p3 <- ggplot(df_residuos, aes(x = Residuo)) +
 p3
 ```
 
+```{r residuos-qq, echo=TRUE, fig.height=12}
+residuos_std <- scale(residuals(ModeloQA))
+df_qq <- data.frame(
+  residuos = residuos_std,
+  id = 1:length(residuos_std)
+)
+
+p_qq <- ggplot(df_qq, aes(sample = residuos, text = paste0(
+  "Observación: ", id, "<br>",
+  "Residuo Std: ", round(residuos, 3), "<br>",
+  "Desv. del ajuste: ", round(residuos, 3)
+))) +
+  stat_qq(color = qqq_pal$primary, size = 2.8, alpha = 0.75) +
+  stat_qq_line(color = qqq_pal$negative, linewidth = 1.2) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf,
+           fill = NA, color = qqq_pal$secondary, linewidth = 0.3, alpha = 0.05) +
+  labs(title = "Q-Q Plot de Residuos Estandarizados",
+       subtitle = "Verificación de normalidad del modelo | Línea roja = distribución normal teórica",
+       x = "Cuantiles Teóricos (Distribución Normal Estándar)",
+       y = "Cuantiles Observados (Residuos Estandarizados)",
+       caption = "✓ Puntos alineados con la línea roja indican buenos residuos normales") +
+  theme_QQQ() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", color = qqq_pal$primary),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$text_gray, margin = margin(b = 8)),
+    plot.caption = element_text(size = 9, color = qqq_pal$secondary, face = "italic"),
+    panel.background = element_rect(fill = "#f8f9fa", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.line = element_line(color = qqq_pal$text_gray, linewidth = 0.5),
+    grid.major = element_line(color = "#e8eef5", linewidth = 0.3)
+  )
+
+plotly::ggplotly(p_qq, tooltip = "text") %>%
+  plotly::layout(
+    font = list(family = "Arial, sans-serif", size = 11, color = qqq_pal$text_dark),
+    title = list(font = list(size = 14, color = qqq_pal$primary)),
+    plot_bgcolor = "#f8f9fa",
+    paper_bgcolor = "white",
+    xaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    yaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    hovermode = "closest",
+    margin = list(l = 60, r = 30, t = 80, b = 60),
+    config = list(
+      displayModeBar = TRUE,
+      modeBarButtonsToRemove = c("lasso2d", "select2d"),
+      toImageButtonOptions = list(
+        format = "png",
+        filename = "qq_plot_residuos",
+        height = 600,
+        width = 900,
+        scale = 2
+      )
+    )
+  ) %>%
+  plotly::config(
+    displaylogo = FALSE,
+    collaborate = FALSE
+  )
+```
+
+```{r residuos-tabla, echo=TRUE, fig.height=12}
+lb_test <- Box.test(residuals(ModeloQA), lag = 10, type = "Ljung-Box")
+
+tabla_ljung <- data.frame(
+  Métrica = c("Estadístico Ljung-Box", 
+              "Grados de Libertad", 
+              "P-valor",
+              "Conclusión"),
+  Valor = c(
+    round(lb_test$statistic, 4),
+    lb_test$parameter,
+    round(lb_test$p.value, 4),
+    ifelse(lb_test$p.value > 0.05, 
+           "Residuos son ruido blanco ✓", 
+           "Posible autocorrelación residual")
+  )
+)
+
+kable(tabla_ljung, 
+      caption = "Test de Ljung-Box: Independencia de Residuos",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(4, bold = TRUE, 
+           background = ifelse(lb_test$p.value > 0.05, "#e8f5e9", "#ffe8e0"),
+           color = qqq_pal$text_dark)
+```
 ---
 
 # 8. Pronóstico y Evaluación
