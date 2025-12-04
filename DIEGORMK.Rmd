@@ -721,7 +721,7 @@ library(forecast)
 library(tseries)
 
 tesla_pal <- list(
-  bg        = "#ffffff",    # Tu --bg-light
+  bg        = "#ffffff",    # Tu --bg-li
   text_main = "#1f2937",    # Tu --text-dark
   text_gray = "#4b5563",    # Tu --text-medium
   primary   = "#00b894",    # Tu --accent-primary (Verde/Cian principal)
