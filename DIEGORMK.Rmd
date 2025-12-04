@@ -1290,6 +1290,95 @@ ggplot(data_cronologia, aes(x = Fecha, y = Categoria, color = Categoria)) +
   )
 ```
 
+```{r arima, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
+library(tidyquant)
+library(tidyverse)
+library(plotly)
+
+# Definimos la paleta por si no estaba cargada previamente
+tesla_pal <- list(
+  primary = "#cc0000",
+  secondary = "#000000",
+  text_main = "#333333",
+  text_gray = "#666666"
+)
+
+# Definición de tema personalizado (theme_tesla) por si falta
+theme_tesla <- function() {
+  theme_minimal(base_family = "Inter") +
+    theme(
+      plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main),
+      plot.subtitle = element_text(size = 11, color = tesla_pal$text_gray, margin = margin(b = 15)),
+      legend.position = "none",
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(color = "#e5e5e5", linetype = "dashed"),
+      axis.text = element_text(color = tesla_pal$text_gray),
+      axis.title = element_text(color = tesla_pal$text_gray, size = 10)
+    )
+}
+
+# --- INICIO DEL CÓDIGO DEL GRÁFICO ---
+
+tickers <- c("QQQ", "SPY", "DIA", "IWM")
+nombres_map <- c(
+  "QQQ" = "QQQ (Nasdaq-100)",
+  "SPY" = "SPY (S&P 500)",
+  "DIA" = "DIA (Dow Jones)",
+  "IWM" = "IWM (Small Caps)"
+)
+
+# Descarga de datos
+datos_comp <- tq_get(tickers, get = "stock.prices", from = "2010-01-01")
+
+# Normalización
+datos_norm <- datos_comp %>%
+  group_by(symbol) %>%
+  mutate(
+    Retorno_Acum = (adjusted / first(adjusted)) - 1,
+    Nombre = nombres_map[symbol]
+  ) %>%
+  ungroup()
+
+colores_comp <- c(
+  "QQQ" = tesla_pal$primary,   
+  "SPY" = "#2c3e50",           
+  "DIA" = "#7f8c8d",        
+  "IWM" = "#f39c12"            
+)
+
+p_comp <- ggplot(datos_norm, aes(x = date, y = Retorno_Acum, color = symbol)) +
+  geom_line(aes(size = symbol, alpha = symbol)) +
+  
+  scale_color_manual(values = colores_comp, labels = nombres_map) +
+  scale_size_manual(values = c("QQQ" = 1.2, "SPY" = 0.6, "DIA" = 0.6, "IWM" = 0.6), guide="none") +
+  scale_alpha_manual(values = c("QQQ" = 1, "SPY" = 0.7, "DIA" = 0.7, "IWM" = 0.6), guide="none") +
+  
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  
+  labs(
+    title = "QQQ vs El Mercado",
+    subtitle = "Rendimiento acumulado comparativo (2010 - Presente)",
+    x = "",
+    y = "Retorno Acumulado"
+  ) +
+  theme_tesla()
+
+plotly::ggplotly(p_comp, tooltip = c("x", "y", "colour")) %>%
+  layout(
+    legend = list(
+      orientation = "h", 
+      x = 0.5, 
+      xanchor = "center",
+      y = 1.05,
+      title = list(text = "")
+    ),
+    hovermode = "x unified"
+  ) %>%
+  config(displayModeBar = FALSE)
+```
+
+
 # 3. Resultados del Modelo ARIMA
 
 ## 3.1 Evaluación de Estacionariedad
@@ -1321,11 +1410,7 @@ ggtsdisplay(diff(datos_tesla$Close))
 
 [**PLACEHOLDER:** Resumen del modelo ARIMA ajustado con coeficientes interpretados]
 
-```{r arima, echo=TRUE, eval=FALSE}
-library(forecast)
-fit <- auto.arima(datos_tesla$Close, seasonal=FALSE)
-summary(fit)
-```
+
 
 ## 3.5 Diagnóstico de Residuos
 
