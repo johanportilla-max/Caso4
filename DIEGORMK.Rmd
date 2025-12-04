@@ -701,6 +701,150 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 ```
 
 
+
+```{r tortA, echo=FALSE, warning=FALSE, message=FALSE}
+library(plotly)
+sectores <- data.frame(
+  Sector = c("Tecnología", "Consumo Discrecional", "Servicios de Comunicación", 
+             "Consumo Básico", "Industriales", "Salud", "Otros", 
+             "Servicios Públicos", "Materiales", "Energía"),
+  Peso = c(53.60, 13.04, 12.61, 4.99, 4.58, 4.28, 3.22, 1.38, 1.25, 0.47)
+)
+
+colores_sector <- c(
+  "#2b5c8a",
+  "#5d5b94", 
+  "#8e6fa3",
+  "#c46d9e",
+  "#e67586", 
+  "#f38972", 
+  "#f8a262",
+  "#fbc058", 
+  "#fce05d", 
+  "#34495e"  
+)
+fig_pie <- plot_ly(sectores, labels = ~Sector, values = ~Peso, type = 'pie',
+        textposition = 'outside',      
+        textinfo = 'label+percent',    
+        hoverinfo = 'label+value+percent',
+        marker = list(
+          colors = colores_sector, 
+          line = list(color = '#ffffff', width = 1.5) 
+        ),
+        sort = FALSE, 
+        automargin = TRUE
+)
+
+fig_pie <- fig_pie %>% layout(
+  title = list(
+    text = "<b>Asignación Sectorial</b>",
+    font = list(size = 22, family = "Poppins, sans-serif", color = tesla_pal$text_main),
+    x = 0.05, 
+    y = 0.95
+  ),
+  showlegend = FALSE, 
+  margin = list(t = 80, b = 40, l = 80, r = 80), 
+  paper_bgcolor = 'rgba(0,0,0,0)',
+  plot_bgcolor = 'rgba(0,0,0,0)',
+  font = list(family = "Inter, sans-serif", size = 12, color = tesla_pal$text_gray)
+)
+
+fig_pie
+
+```
+
+```{r top10, echo=FALSE, warning=FALSE, message=FALSE}
+
+library(packcircles)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+top10 <- data.frame(
+  ticker = c("NVDA","AAPL","MSFT","AVGO","AMZN","GOOGL","GOOG","TSLA","META","NFLX"),
+  empresa = c("NVIDIA","Apple Inc.","Microsoft","Broadcom Inc.","Amazon.com, Inc.",
+              "Alphabet Class A","Alphabet Class C","Tesla, Inc.","Meta Plataformas, Inc.","Netflix, Inc."),
+  peso = c(9.33, 8.78, 7.69, 6.59, 5.21, 3.97, 3.71, 3.31, 2.93, 2.36),
+  sector = c("Tecnología","Tecnología","Tecnología","Tecnología",
+             "Consumo","Comunicación","Comunicación",
+             "Consumo","Comunicación","Consumo"),
+  stringsAsFactors = FALSE
+)
+
+otros_val <- round(100 - sum(top10$peso), 2)
+holdings <- bind_rows(top10,
+                      data.frame(ticker="OTROS", empresa="Resto del QQQ",
+                                 peso = otros_val, sector="Varios", stringsAsFactors = FALSE)) %>%
+  arrange(desc(peso))
+
+packing <- circleProgressiveLayout(holdings$peso, sizetype='area')
+holdings_pack <- cbind(holdings, packing)
+holdings_pack$id <- seq_len(nrow(holdings_pack))
+holdings_pack <- holdings_pack %>% rename(center_x = x, center_y = y)
+
+dat.gg <- circleLayoutVertices(packing, npoints = 100)
+dat.gg <- merge(dat.gg, holdings_pack, by = "id")
+
+holdings_pack <- holdings_pack %>%
+  mutate(
+    peso_label = gsub("\\.", ",", formatC(peso, digits = 2, format = "f")),
+    hover_text = paste0(
+      empresa, "\n",
+      "Ticker: ", ticker, "\n",
+      "Peso: ", peso_label, "%\n",
+      "Sector: ", sector
+    ),
+    label_text = ifelse(peso >= 2.3, paste0(ticker, "\n", peso_label, "%"), "")
+  )
+
+fill_map <- c(
+  "Tecnología"   = tesla_pal$primary,
+  "Consumo"      = tesla_pal$secondary,
+  "Comunicación" = "#3b82f6",
+  "Varios"       = tesla_pal$text_gray
+)
+
+p_bubble <- ggplot() +
+  geom_polygon(
+    data = dat.gg,
+    aes(x = x, y = y, group = id, fill = sector,
+        text = holdings_pack$hover_text[match(id, holdings_pack$id)]),
+    color = "white", size = 0.5, alpha = 0.95
+  ) +
+  geom_text(
+    data = holdings_pack,
+    aes(x = center_x, y = center_y, label = label_text, text = hover_text),
+    size = 3.8, color = "white", fontface = "bold", lineheight = 0.9
+  ) +
+  scale_fill_manual(values = fill_map) +
+  theme_void() +
+  coord_equal() +
+  labs(title = "Composición del Portafolio QQQ",
+       subtitle = "Top holdings según la imagen") +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, color = tesla_pal$text_gray, hjust = 0.5),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    plot.margin = margin(10,10,10,10)
+  )
+
+ggplotly(p_bubble, tooltip = "text") %>%
+  config(displayModeBar = FALSE) %>%
+  layout(
+    font = list(family = "Inter", color = tesla_pal$text_main),
+    plot_bgcolor  = "rgba(0,0,0,0)",
+    paper_bgcolor = "rgba(0,0,0,0)",
+    legend = list(orientation = "h", yanchor = "bottom", y = -0.12, xanchor = "center", x = 0.5),
+    hoverlabel = list(
+      bgcolor = "rgba(255,255,255,0.97)",
+      bordercolor = "rgba(0,0,0,0.08)",
+      font = list(family = "Inter", color = tesla_pal$text_main, size = 11)
+    )
+  )
+```
+
+
 ## 2.1 Contexto Histórico
 
 [**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
