@@ -730,6 +730,12 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 
 ### 4.1.1 Estrategia Train/Test
 
+La aplicación de modelos ARIMA para pronóstico de series temporales financieras requiere una estrategia de partición temporal que respete la naturaleza secuencial de los datos y simule condiciones reales de predicción. A diferencia de problemas de clasificación o regresión donde la validación cruzada aleatoria es apropiada, en series temporales es fundamental mantener el orden cronológico de las observaciones para evitar filtración de información (data leakage) y garantizar que los datos de prueba representen verdaderas predicciones "fuera de muestra" realizadas sobre períodos no observados durante la estimación del modelo (Hyndman & Athanasopoulos, 2021).
+
+La metodología adoptada en este análisis divide el conjunto completo de observaciones en dos subconjuntos temporales contiguos: un conjunto de entrenamiento (training set) utilizado para estimar los parámetros de los modelos ARIMA candidatos, y un conjunto de prueba (test set) destinado a evaluar la capacidad predictiva sin sesgo, utilizando únicamente el horizonte de pronóstico. Esta partición temporal es particularmente importante en contextos financieros donde los regímenes de mercado cambian, los patrones de volatilidad evolucionan, y la información más reciente tiende a ser más relevante para la predicción que observaciones antiguas (Tsay, 2010).
+
+El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en los calendarios financieros y evita arbitrariedades en la selección del período de corte. La estrategia asegura que aproximadamente el 95% de los datos históricos se destinen al entrenamiento, proporcionando una base robusta para la estimación de coeficientes ARIMA, mientras que el restante 5% permite validación con un horizonte de pronóstico de 10 días hábiles, consistente con los estándares de análisis de corto plazo en mercados financieros (Chatfield, 2000).
+
 ```{r particion-datos, echo=TRUE}
 Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
 Prueba <- window(Precio, start = "2025-10-01")
@@ -833,6 +839,8 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   theme_QQQ() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+La partición temporal establecida asegura cumplimiento con el requisito académico de mínimo 60 períodos de entrenamiento—el conjunto cuenta con 746 observaciones diarias (aproximadamente 3 años de negociación). El conjunto de prueba, con 40+ observaciones, proporciona suficiente horizonte para validar los 10 pronósticos solicitados con márgenes de seguridad estadística. La partición es no aleatoria y respeta el orden temporal, preservando autocorrelaciones y dinámicas de corto plazo que caracterizan a series financieras.
 
 ---
 
