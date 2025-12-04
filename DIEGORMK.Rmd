@@ -631,19 +631,17 @@ Estudio Empírico sobre el Precio de Acciones de Tesla Inc.
 
 ## 1.1 Relevancia del Análisis
 
-[**PLACEHOLDER:** Explica la relevancia de Tesla, su importancia en el mercado global, volatilidad e impacto para inversionistas]
 
-El análisis de series de tiempo en los mercados financieros es fundamental para la toma de decisiones estratégicas. Las acciones de Tesla Inc. representan un caso de estudio particularmente interesante debido a su volatilidad inherente y su impacto significativo en los mercados globales.
 
 ## 1.2 Metodología: Modelos ARIMA
 
-[**PLACEHOLDER:** Introduce los conceptos fundamentales de ARIMA, su importancia y utilidad en pronósticos de series temporales]
-
-Los modelos ARIMA combinan componentes autorregresivos, de integración y de media móvil para capturar dinámicas complejas en datos temporales.
 
 ---
 
 # 2. Descripción de la Serie Temporal
+
+## 2.1 serie QQQ historica 
+
 ```{r serie, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyquant)
 library(tidyverse)
@@ -700,6 +698,7 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
+## 2.2 División sectorial 
 
 
 ```{r tortA, echo=FALSE, warning=FALSE, message=FALSE}
@@ -752,6 +751,8 @@ fig_pie <- fig_pie %>% layout(
 fig_pie
 
 ```
+
+## 2.3 Mayores Holdings 
 
 ```{r top10, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -844,7 +845,253 @@ ggplotly(p_bubble, tooltip = "text") %>%
   )
 ```
 
+## 2.4 Análisis Estadístico
 
+
+```{r tabla, echo=FALSE, warning=FALSE, message=FALSE}
+library(moments)
+library(knitr)
+
+serie_vec <- as.numeric(serie)
+valores_calculados <- c(
+    length(serie_vec),
+    mean(serie_vec, na.rm = TRUE),
+    median(serie_vec, na.rm = TRUE),
+    min(serie_vec, na.rm = TRUE),
+    max(serie_vec, na.rm = TRUE),
+    max(serie_vec, na.rm = TRUE) - min(serie_vec, na.rm = TRUE),
+    var(serie_vec, na.rm = TRUE),
+    sd(serie_vec, na.rm = TRUE),
+    skewness(serie_vec, na.rm = TRUE),
+    kurtosis(serie_vec, na.rm = TRUE)
+)
+
+desc <- data.frame(
+  Métrica = c(
+    "Observaciones Totales",
+    "Media",
+    "Mediana",
+    "Mínimo",
+    "Máximo",
+    "Rango",
+    "Varianza",
+    "Desviación Estándar",
+    "Asimetría (Skewness)",
+    "Curtosis"
+  ),
+  Valor = format(valores_calculados, scientific = FALSE, big.mark = ",", digits = 2, nsmall = 2)
+)
+
+kable(
+  desc,
+  format = "html",
+  align = c('l', 'r'),
+  table.attr = "class='table' style='width:60%; margin:auto; font-size:18px;'"
+)
+
+```
+
+## 2.5 Rendimientos Diarios
+
+```{r tablarendimientos, echo=FALSE, warning=FALSE, message=FALSE}
+library(quantmod)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+
+# Precios ya cargados en tu objeto "serie"
+precios <- serie$QQQ.Close
+
+# Retornos
+ret_diario  <- dailyReturn(precios, type = "log")
+ret_mensual <- monthlyReturn(precios, type = "log")
+ret_anual   <- yearlyReturn(precios, type = "log")
+
+# Volatilidad anualizada
+vol_anual <- sd(ret_diario) * sqrt(252)
+
+```
+
+
+## 2.6 Retornos Diarios
+
+```{r tablaretrnosentos, echo=FALSE, warning=FALSE, message=FALSE}
+ret_df <- data.frame(Retorno = as.numeric(ret_diario))
+
+ggplot(ret_df, aes(x = Retorno)) +
+  geom_histogram(aes(y = ..density..), bins = 60, fill = tesla_pal$primary, alpha = 0.4) +
+  geom_density(color = tesla_pal$secondary, size = 1.2) +
+  labs(title = "Distribución de los Rendimientos Diarios del QQQ",
+       x = "Retorno Diario (log)", y = "Densidad") +
+  theme_tesla()
+
+```
+
+
+
+
+```{r boxpllot, echo=FALSE, warning=FALSE, message=FALSE}
+
+ret_anual_df <- data.frame(
+  Fecha = index(ret_diario),
+  Ret = as.numeric(ret_diario),
+  Año = format(index(ret_diario), "%Y")
+)
+
+ggplot(ret_anual_df, aes(x = Año, y = Ret, group = Año)) +
+  geom_boxplot(fill = tesla_pal$primary, alpha = 0.7) +
+  labs(title = "Distribución de los Retornos Diarios por Año (QQQ)",
+       x = "Año", y = "Retorno Diario") +
+  theme_tesla() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+
+```
+
+
+## 2.7 Rendimientos por año
+
+```{r rendimientosaño, echo=TRUE, eval=TRUE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+ret_anual_df <- data.frame(
+  Año = year(index(ret_anual)),
+  Retorno = round(100 * as.numeric(ret_anual), 2)
+)
+
+ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno)) +
+  geom_col(fill = tesla_pal$primary) +
+  geom_text(
+    aes(label = paste0(Retorno, "%")),
+    vjust = -0.5,
+    color = tesla_pal$text_main,  
+    size = 4
+  ) +
+  labs(title = "Retorno Anual del QQQ",
+       x = "Año", y = "Retorno (%)") +
+  theme_tesla()
+```
+
+## 2.8 Drawdown 
+
+
+```{r drawdown, echo=TRUE, eval=TRUE}
+library(PerformanceAnalytics)
+library(ggplot2)
+library(dplyr)
+ret_diario <- dailyReturn(precios, type = "log")
+
+dd <- PerformanceAnalytics::Drawdowns(ret_diario)
+dd_df <- data.frame(
+  Fecha = index(dd),
+  Drawdown = as.numeric(dd)
+)
+ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
+  geom_line(color = tesla_pal$primary, linewidth = 0.7) +
+  labs(title = "Drawdown Histórico del QQQ",
+       x = "", y = "Drawdown") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_tesla()
+```
+
+## 2.9 Métricas Financieras 
+
+```{r metrics_financieras, echo=FALSE}
+library(PerformanceAnalytics)
+library(xts)
+
+cagr <- Return.annualized(ret_diario, scale = 252)   +
+cumulative_return <- Return.cumulative(ret_diario)
+
+sharpe_annual <- (mean(ret_diario, na.rm=TRUE) / sd(ret_diario, na.rm=TRUE)) * sqrt(252)
+sortino <- SortinoRatio(ret_diario, MAR = 0)        
+max_dd <- maxDrawdown(ret_diario)
+
+calmar <- (as.numeric(cagr)) / abs(as.numeric(max_dd))  
+
+metrics <- data.frame(
+  Métrica = c("CAGR (anual)", "Retorno acumulado", "Sharpe (aprx anual)", 
+              "Sortino", "Max Drawdown", "Calmar"),
+  Valor = c(
+    scales::percent(as.numeric(cagr), accuracy = 0.01),
+    scales::percent(as.numeric(cumulative_return), accuracy = 0.01),
+    round(as.numeric(sharpe_annual), 3),
+    round(as.numeric(sortino), 3),
+    scales::percent(as.numeric(max_dd), accuracy = 0.1),
+    round(as.numeric(calmar), 3)
+  ),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(metrics, format = "html", table.attr = "class='table' style='width:60%; margin:auto;'")
+```
+
+```{r rolling_vol, echo=FALSE}
+library(zoo)
+
+rollsd30  <- rollapply(as.numeric(ret_diario), width = 30, FUN = sd, fill = NA, align = "right")
+rollsd90  <- rollapply(as.numeric(ret_diario), width = 90, FUN = sd, fill = NA, align = "right")
+rollsd252 <- rollapply(as.numeric(ret_diario), width = 252, FUN = sd, fill = NA, align = "right")
+
+df_roll <- data.frame(
+  Fecha = index(ret_diario),
+  vol30 = rollsd30 * sqrt(252),
+  vol90 = rollsd90 * sqrt(252),
+  vol252 = rollsd252 * sqrt(252)
+)
+
+library(reshape2)
+dfm <- melt(df_roll, id.vars = "Fecha", variable.name = "Window", value.name = "VolAnual")
+
+ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
+  geom_line(size = 0.8) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
+  labs(title = "Volatilidad Rolling (annualizada)", y = "Vol Annualizada", x = "") +
+  scale_color_manual(values = c("vol30" = tesla_pal$primary, "vol90" = tesla_pal$secondary, "vol252" = tesla_pal$text_gray)) +
+  theme_tesla()
+```
+
+## 3 Estacionalidad Mensual del QQQ (2010–2025)
+
+```{r heatmap_estacional_mejor, echo=FALSE}
+library(ggplot2)
+library(viridis)
+
+df_m <- data.frame(Fecha = index(ret_mensual), Ret = as.numeric(ret_mensual))
+df_m <- df_m %>% mutate(Año = lubridate::year(Fecha), Mes = lubridate::month(Fecha, label = TRUE, abbr = TRUE), RetP = Ret*100)
+tabla_m <- df_m %>% group_by(Año, Mes) %>% summarise(RetP = mean(RetP, na.rm = TRUE))
+ggplot(tabla_m, aes(x = Mes, y = factor(Año), fill = RetP)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "C", direction = 1, name = "Ret (%)") +
+  labs(title = "Heatmap Estacional Mensual (QQQ)") +
+  theme_tesla()
+```
+
+## 3.1 Resumen anual
+
+```{r resumen_anual_tabla, echo=FALSE}
+library(dplyr)
+library(tidyr)
+
+df_ann <- data.frame(Fecha = index(ret_anual), Ret = as.numeric(ret_anual))
+df_ann <- df_ann %>% mutate(Año = lubridate::year(Fecha), RetPct = Ret * 100)
+
+# Vol y maxDD por año
+vol_year <- ret_diario %>% 
+  data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
+  mutate(Año = lubridate::year(Fecha)) %>%
+  group_by(Año) %>%
+  summarise(Vol = sd(Ret, na.rm=TRUE)*sqrt(252)*100, Ret = sum(Ret)*100)
+
+# Max drawdown por año (aprox: max drawdown dentro del año)
+dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario))
+dd_df <- dd_df %>% mutate(Año = lubridate::year(Fecha))
+maxdd_yr <- dd_df %>% group_by(Año) %>%
+  summarise(MaxDD = min( cumprod(1+Ret) / cummax(cumprod(1+Ret)) - 1 ) * 100)
+
+res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
+knitr::kable(res_yr, format = "html")
+```
 ## 2.1 Contexto Histórico
 
 [**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
