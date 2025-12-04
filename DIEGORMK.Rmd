@@ -437,6 +437,42 @@ body div.container-fluid:first-of-type {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
+/* ========== NUEVO: ESTILO PARA EL BOTÓN INDIVIDUAL DE CADA CHUNK ========== */
+.chunk-code-toggle {
+  background-color: transparent;
+  color: var(--accent-primary); /* Color verde/cian */
+  border: 1px solid var(--accent-primary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 5px; /* Espacio entre botón y código */
+  margin-top: 15px;   /* Espacio respecto al elemento anterior */
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chunk-code-toggle:hover {
+  background-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 184, 148, 0.2);
+}
+
+.chunk-code-toggle.active {
+  background-color: var(--bg-lighter);
+  color: var(--text-gray);
+  border-color: var(--text-gray);
+}
+
+/* Ajuste para que el bloque de código (pre) aparezca pegado al botón */
+pre {
+  margin-top: 0 !important;
+  transition: all 0.3s ease;
+}
 </style>
 ```
 <div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
@@ -573,6 +609,131 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3500);
   }
 });
+document.addEventListener('DOMContentLoaded', function() {
+  const SCROLL_OFFSET = 100;
+
+  // --- 1. LÓGICA DEL TOC (Igual que antes) ---
+  const toc = document.getElementById("custom-toc");
+  if (toc) {
+    const title = document.createElement("h2");
+    title.textContent = "Contenido";
+    toc.appendChild(title);
+    const list = document.createElement("ul");
+    toc.appendChild(list);
+
+    const headers = document.querySelectorAll("h1, h2");
+    headers.forEach(header => {
+      if (!header.id) {
+        header.id = header.textContent.toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, '');
+      }
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = `#${header.id}`;
+      a.textContent = header.textContent;
+      
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - SCROLL_OFFSET, 
+            behavior: 'smooth'
+          });
+          history.pushState(null, null, `#${targetId}`);
+        }
+      });
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    function updateActiveTOCLink() {
+      const tocLinks = document.querySelectorAll('#custom-toc a');
+      let currentActiveId = '';
+      headers.forEach(section => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= SCROLL_OFFSET + 20) { 
+          currentActiveId = section.id;
+        }
+      });
+      tocLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${currentActiveId}`) {
+          link.classList.add('active');
+        }
+      });
+    }
+    window.addEventListener('scroll', updateActiveTOCLink);
+    updateActiveTOCLink(); 
+  }
+
+  // --- 2. NUEVA LÓGICA: BOTONES INDIVIDUALES PARA CADA CÓDIGO ---
+  
+  // Seleccionamos todos los bloques de código generados por R
+  // R Markdown suele ponerlos en 'pre.r' o dentro de div.sourceCode
+  const codeBlocks = document.querySelectorAll('pre.r, pre.sourceCode, .sourceCode pre');
+
+  codeBlocks.forEach(block => {
+    // 1. Ocultar el código por defecto
+    block.style.display = 'none';
+
+    // 2. Crear el botón
+    const btn = document.createElement('button');
+    btn.className = 'chunk-code-toggle';
+    btn.innerHTML = '<span>&#9654;</span> Ver Código'; // Icono de play
+    
+    // 3. Insertar el botón ANTES del bloque de código
+    // Buscamos el padre para insertar antes del <pre>
+    block.parentNode.insertBefore(btn, block);
+
+    // 4. Agregar evento click
+    btn.addEventListener('click', function() {
+      if (block.style.display === 'none') {
+        // Mostrar
+        block.style.display = 'block';
+        btn.innerHTML = '<span>&#9660;</span> Ocultar Código';
+        btn.classList.add('active');
+      } else {
+        // Ocultar
+        block.style.display = 'none';
+        btn.innerHTML = '<span>&#9654;</span> Ver Código';
+        btn.classList.remove('active');
+      }
+    });
+  });
+
+  // --- 3. EXTRAS (FECHA, LOGOS) ---
+  const fechaSpan = document.getElementById('fecha-entrega');
+  if(fechaSpan) {
+    fechaSpan.textContent = new Date().toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  // Eliminé el botón global anterior para que no tengas conflicto, 
+  // ya que ahora tienes botones individuales.
+
+  // Animación Logo Univalle
+  const logos = ["univalle.png", "ingenieria.png"];  
+  let index = 0;
+  const img = document.getElementById("uv-img");
+  const btn = document.getElementById("uv-button");
+  if (btn && img) {
+    setInterval(() => {
+      btn.classList.add("spin");
+      setTimeout(() => {
+        index = (index + 1) % logos.length;
+        img.style.opacity = 0;
+        setTimeout(() => {
+          img.src = logos[index];
+          img.style.opacity = 1;
+        }, 200);
+      }, 600);
+      setTimeout(() => btn.classList.remove("spin"), 1200);
+    }, 3500);
+  }
+});
 </script>
 
 ```
@@ -642,7 +803,7 @@ Estudio Empírico sobre el Precio de Acciones de Tesla Inc.
 
 ## 2.1 serie QQQ historica 
 
-```{r serie, echo=FALSE, warning=FALSE, message=FALSE}
+```{r serie, echo=TRUE, warning=FALSE, message=FALSE}
 library(tidyquant)
 library(tidyverse)
 library(ggplot2)
@@ -701,7 +862,7 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 ## 2.2 División sectorial 
 
 
-```{r tortA, echo=FALSE, warning=FALSE, message=FALSE}
+```{r tortA, echo=TRUE, warning=FALSE, message=FALSE}
 library(plotly)
 sectores <- data.frame(
   Sector = c("Tecnología", "Consumo Discrecional", "Servicios de Comunicación", 
@@ -754,7 +915,7 @@ fig_pie
 
 ## 2.3 Mayores Holdings 
 
-```{r top10, echo=FALSE, warning=FALSE, message=FALSE}
+```{r top10, echo=TRUE, warning=FALSE, message=FALSE}
 
 library(packcircles)
 library(dplyr)
@@ -848,7 +1009,7 @@ ggplotly(p_bubble, tooltip = "text") %>%
 ## 2.4 Análisis Estadístico
 
 
-```{r tabla, echo=FALSE, warning=FALSE, message=FALSE}
+```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(moments)
 library(knitr)
 
@@ -893,7 +1054,7 @@ kable(
 
 ## 2.5 Rendimientos Diarios
 
-```{r tablarendimientos, echo=FALSE, warning=FALSE, message=FALSE}
+```{r tablarendimientos, echo=TRUE, warning=FALSE, message=FALSE}
 library(quantmod)
 library(dplyr)
 library(ggplot2)
@@ -915,7 +1076,7 @@ vol_anual <- sd(ret_diario) * sqrt(252)
 
 ## 2.6 Retornos Diarios
 
-```{r tablaretrnosentos, echo=FALSE, warning=FALSE, message=FALSE}
+```{r tablaretrnosentos, echo=TRUE, warning=FALSE, message=FALSE}
 ret_df <- data.frame(Retorno = as.numeric(ret_diario))
 
 ggplot(ret_df, aes(x = Retorno)) +
@@ -930,7 +1091,7 @@ ggplot(ret_df, aes(x = Retorno)) +
 
 
 
-```{r boxpllot, echo=FALSE, warning=FALSE, message=FALSE}
+```{r boxpllot, echo=TRUE, warning=FALSE, message=FALSE}
 
 ret_anual_df <- data.frame(
   Fecha = index(ret_diario),
@@ -950,7 +1111,7 @@ ggplot(ret_anual_df, aes(x = Año, y = Ret, group = Año)) +
 
 ## 2.7 Rendimientos por año
 
-```{r rendimientosaño, echo=TRUE, eval=TRUE}
+```{r rendimientosaño, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(ggplot2)
 library(lubridate)
@@ -975,7 +1136,7 @@ ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno)) +
 ## 2.8 Drawdown 
 
 
-```{r drawdown, echo=TRUE, eval=TRUE}
+```{r drawdown, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 library(PerformanceAnalytics)
 library(ggplot2)
 library(dplyr)
@@ -996,19 +1157,21 @@ ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
 
 ## 2.9 Métricas Financieras 
 
-```{r metrics_financieras, echo=FALSE}
+```{r metrics_financieras, echo=TRUE, warning=FALSE, message=FALSE}
 library(PerformanceAnalytics)
 library(xts)
 
-cagr <- Return.annualized(ret_diario, scale = 252)   +
+# Cálculo de métricas
+cagr <- Return.annualized(ret_diario, scale = 252)
 cumulative_return <- Return.cumulative(ret_diario)
 
 sharpe_annual <- (mean(ret_diario, na.rm=TRUE) / sd(ret_diario, na.rm=TRUE)) * sqrt(252)
-sortino <- SortinoRatio(ret_diario, MAR = 0)        
+sortino <- SortinoRatio(ret_diario, MAR = 0)
 max_dd <- maxDrawdown(ret_diario)
 
-calmar <- (as.numeric(cagr)) / abs(as.numeric(max_dd))  
+calmar <- as.numeric(cagr) / abs(as.numeric(max_dd))
 
+# Tabla con métricas
 metrics <- data.frame(
   Métrica = c("CAGR (anual)", "Retorno acumulado", "Sharpe (aprx anual)", 
               "Sortino", "Max Drawdown", "Calmar"),
@@ -1026,7 +1189,7 @@ metrics <- data.frame(
 knitr::kable(metrics, format = "html", table.attr = "class='table' style='width:60%; margin:auto;'")
 ```
 
-```{r rolling_vol, echo=FALSE}
+```{r rolling_vol, echo=TRUE, warning=FALSE, message=FALSE}
 library(zoo)
 
 rollsd30  <- rollapply(as.numeric(ret_diario), width = 30, FUN = sd, fill = NA, align = "right")
@@ -1053,7 +1216,7 @@ ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
 
 ## 3 Estacionalidad Mensual del QQQ (2010–2025)
 
-```{r heatmap_estacional_mejor, echo=FALSE}
+```{r heatmap_estacional_mejor, echo=TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(viridis)
 
@@ -1069,21 +1232,17 @@ ggplot(tabla_m, aes(x = Mes, y = factor(Año), fill = RetP)) +
 
 ## 3.1 Resumen anual
 
-```{r resumen_anual_tabla, echo=FALSE}
+```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
 
 df_ann <- data.frame(Fecha = index(ret_anual), Ret = as.numeric(ret_anual))
 df_ann <- df_ann %>% mutate(Año = lubridate::year(Fecha), RetPct = Ret * 100)
-
-# Vol y maxDD por año
 vol_year <- ret_diario %>% 
   data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
   mutate(Año = lubridate::year(Fecha)) %>%
   group_by(Año) %>%
   summarise(Vol = sd(Ret, na.rm=TRUE)*sqrt(252)*100, Ret = sum(Ret)*100)
-
-# Max drawdown por año (aprox: max drawdown dentro del año)
 dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario))
 dd_df <- dd_df %>% mutate(Año = lubridate::year(Fecha))
 maxdd_yr <- dd_df %>% group_by(Año) %>%
@@ -1092,30 +1251,14 @@ maxdd_yr <- dd_df %>% group_by(Año) %>%
 res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
 knitr::kable(res_yr, format = "html")
 ```
+
+
 ## 2.1 Contexto Histórico
 
 [**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
 
-## 2.2 Estadísticas Descriptivas
 
-[**PLACEHOLDER:** Carga tus datos y proporciona estadísticas completas de la serie]
 
-```{r datos, echo=TRUE, eval=FALSE}
-# Cargar datos de Tesla
-datos_tesla <- read.csv("tesla_data.csv")
-summary(datos_tesla$Close)
-sd(datos_tesla$Close)
-```
-
-| Estadístico | Valor |
-|:---|--:|
-| Media | [Inserta] |
-| Mediana | [Inserta] |
-| Desv. Est. | [Inserta] |
-| Mínimo | [Inserta] |
-| Máximo | [Inserta] |
-
----
 
 # 3. Resultados del Modelo ARIMA
 
