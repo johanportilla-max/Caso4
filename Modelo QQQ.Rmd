@@ -437,6 +437,63 @@ body div.container-fluid:first-of-type {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
+
+/* ========== BOTONES DE CHUNK - ESTILO BARRA COMPLETA ========== */
+.code-chunk-toggle {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.95em;
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.code-chunk-toggle:hover {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  box-shadow: 0 6px 16px rgba(0, 184, 148, 0.3);
+}
+
+.code-chunk-toggle::after {
+  content: "▼";
+  font-size: 1em;
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.code-chunk-toggle.collapsed::after {
+  transform: rotate(-180deg);
+}
+
+pre {
+  margin-top: 0 !important;
+  margin-bottom: 25px !important;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  border-radius: 0 0 10px 10px;
+}
+
+pre.collapsed {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+  opacity: 0;
+}
+
+pre.expanded {
+  max-height: 5000px !important;
+  opacity: 1;
+}
 </style>
 ```
 <div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
@@ -546,12 +603,51 @@ document.addEventListener('DOMContentLoaded', function() {
   let codeVisible = true;
   btnToggle.addEventListener('click', function() {
     const codes = document.querySelectorAll('pre');
+    const toggleBtns = document.querySelectorAll('.code-chunk-toggle');
     codeVisible = !codeVisible;
     codes.forEach(code => {
       code.style.display = codeVisible ? 'block' : 'none';
     });
+    toggleBtns.forEach(btn => {
+      if (codeVisible) {
+        btn.style.display = 'flex';
+      } else {
+        btn.style.display = 'none';
+      }
+    });
     btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
   });
+
+  // ========== BOTONES INDIVIDUALES POR CHUNK ==========
+  setTimeout(() => {
+    const preElements = document.querySelectorAll('pre');
+    let chunkIndex = 0;
+    
+    preElements.forEach((pre) => {
+      chunkIndex++;
+      
+      // Crear botón
+      const btn = document.createElement('button');
+      btn.className = 'code-chunk-toggle';
+      btn.innerHTML = `<span>💻 Código - Chunk ${chunkIndex}</span>`;
+      btn.setAttribute('data-chunk', chunkIndex);
+      
+      // Estado inicial: mostrado
+      pre.classList.add('expanded');
+      btn.classList.remove('collapsed');
+      
+      // Insertar botón antes del <pre>
+      pre.parentNode.insertBefore(btn, pre);
+      
+      // Evento de click
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        pre.classList.toggle('collapsed');
+        pre.classList.toggle('expanded');
+        btn.classList.toggle('collapsed');
+      });
+    });
+  }, 500);
 
   // Animación Logo Univalle
   const logos = ["univalle.png", "ingenieria.png"];  
@@ -1050,6 +1146,3 @@ siguientes modelos candidatos:
   </div>
 </div>
 ```
-
-
-
