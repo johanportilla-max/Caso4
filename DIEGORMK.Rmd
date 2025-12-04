@@ -1141,7 +1141,7 @@ ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
 library(PerformanceAnalytics)
 library(xts)
 
-# Cálculo de métricas
+# Cálculo de métrias
 cagr <- Return.annualized(ret_diario, scale = 252)
 cumulative_return <- Return.cumulative(ret_diario)
 
