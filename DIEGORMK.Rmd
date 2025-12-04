@@ -474,7 +474,7 @@ display: block;
  margin: 0 auto !important;
  max-width: 900px; /* O el ancho máximo que desees */
 }
-/* 4. Centra tablas (kable / kableExtra) igual que plotly */
+/* 4. Centra tblas (kable / kableExtra) igual que plotly */
 table, .table, table.kable_wrapper {
     margin-left: auto !important;
     margin-right: auto !important;
