@@ -414,29 +414,7 @@ body div.container-fluid:first-of-type {
 #uv-button {
   overflow: visible !important;
 }
-/* ========== BOTÓN DE OCULTAR/MOSTRAR CÓDIGO ========== */
-#global-code-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 10000;
-  background: var(--accent-primary);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
-}
 
-#global-code-toggle:hover {
-  background: var(--accent-secondary);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-}
 /* ========== NUEVO: ESTILO PARA EL BOTÓN INDIVIDUAL DE CADA CHUNK ========== */
 .chunk-code-toggle {
   background-color: transparent;
@@ -1059,17 +1037,19 @@ library(quantmod)
 library(dplyr)
 library(ggplot2)
 library(tidyverse)
-
-# Precios ya cargados en tu objeto "serie"
+library(knitr)
 precios <- serie$QQQ.Close
-
-# Retornos
 ret_diario  <- dailyReturn(precios, type = "log")
 ret_mensual <- monthlyReturn(precios, type = "log")
 ret_anual   <- yearlyReturn(precios, type = "log")
-
-# Volatilidad anualizada
 vol_anual <- sd(ret_diario) * sqrt(252)
+resumen <- data.frame(
+  Concepto = "Volatilidad Anualizada (Riesgo)",
+  Valor = scales::percent(vol_anual, accuracy = 0.01)
+)
+kable(resumen, 
+      format = "html", 
+      table.attr = "class='table' style='width:50%; margin:auto;'")
 
 ```
 
@@ -1251,11 +1231,6 @@ maxdd_yr <- dd_df %>% group_by(Año) %>%
 res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
 knitr::kable(res_yr, format = "html")
 ```
-
-
-## 2.1 Contexto Histórico
-
-[**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
 
 
 
