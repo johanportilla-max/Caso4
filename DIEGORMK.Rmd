@@ -474,6 +474,14 @@ display: block;
  margin: 0 auto !important;
  max-width: 900px; /* O el ancho máximo que desees */
 }
+/* 4. Centra tablas (kable / kableExtra) igual que plotly */
+table, .table, table.kable_wrapper {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    max-width: 900px; /* Mismo ancho máximo que tus gráficos */
+    width: auto !important; /* Evita que la tabla se estire al 100% si es pequeña */
+    border-collapse: collapse; /* Opcional: para que se vea limpia */
+}
 </style>
 ```
 <div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
@@ -808,6 +816,28 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
     currentvalue = list(prefix = "Periodo: ") 
   ) %>%
   plotly::config(displayModeBar = FALSE)
+```
+
+## 3.1 Resumen anual
+
+```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+
+df_ann <- data.frame(Fecha = index(ret_anual), Ret = as.numeric(ret_anual))
+df_ann <- df_ann %>% mutate(Año = lubridate::year(Fecha), RetPct = Ret * 100)
+vol_year <- ret_diario %>% 
+  data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
+  mutate(Año = lubridate::year(Fecha)) %>%
+  group_by(Año) %>%
+  summarise(Vol = sd(Ret, na.rm=TRUE)*sqrt(252)*100, Ret = sum(Ret)*100)
+dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario))
+dd_df <- dd_df %>% mutate(Año = lubridate::year(Fecha))
+maxdd_yr <- dd_df %>% group_by(Año) %>%
+  summarise(MaxDD = min( cumprod(1+Ret) / cummax(cumprod(1+Ret)) - 1 ) * 100)
+
+res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
+knitr::kable(res_yr, format = "html")
 ```
 
 La evolución histórica del QQQ muestra una tendencia alcista secular con crecimiento claramente exponencial: el precio ha pasado de niveles inferiores a los 100 USD en el año 2000 a superar los 600 USD en 2025, revelando una dinámica de crecimiento compuesto que justifica el uso de rendimientos logarítmicos para evitar distorsiones visuales y estadísticas en series con fuerte convexidad (Tsay, 2010). A lo largo de esta trayectoria se observan episodios de estrés que estructuran la narrativa de riesgo: el colapso de la Burbuja Dot-Com (2000–2002), cuyo drawdown tardó más de una década en recuperarse, constituye un ejemplo prototípico de riesgo de cola y rupturas prolongadas de tendencia (Malkiel, 2003); la Crisis Financiera de 2008 introduce un segundo punto de inflexión, seguido años después por la corrección de 2022 asociada al ciclo de aumentos de tasas de la Reserva Federal. Estos episodios confirman que la volatilidad no es constante, sino que se concentra en periodos específicos, tal como lo sugiere la literatura clásica sobre colas pesadas y agrupamiento de volatilidad (Mandelbrot, 1963), lo que respalda el uso de densidades de retornos, métricas de drawdown y boxplots anuales como parte del análisis descriptivo. En el extremo derecho del gráfico —el periodo 2023-2025— aparece una aceleración sin precedentes atribuible al auge de la inteligencia artificial generativa, fenómeno coherente con la “cronología de hitos tecnológicos” mencionada en el análisis y con la marcada concentración del QQQ en mega-caps como NVIDIA, Microsoft y Apple, cuya participación desproporcionada impulsa el índice (Invesco, 2024). En conjunto, la trayectoria refleja una combinación de convexidad positiva de largo plazo, episodios de estrés profundos y una creciente concentración tecnológica, elementos que explican simultáneamente su alto retorno histórico y su exposición a volatilidad extrema.
@@ -1271,27 +1301,14 @@ ggplot(tabla_m, aes(x = Mes, y = factor(Año), fill = RetP)) +
   theme_tesla()
 ```
 
-## 3.1 Resumen anual
+El mapa de calor estacional ofrece una deconstrucción granular de la dinámica temporal del QQQ, permitiendo identificar patrones de estacionalidad, inercia (momentum) y cambios de régimen que quedan ocultos en las métricas anualizadas. La visualización confirma que la trayectoria del activo no es aleatoria, sino que exhibe una marcada dependencia serial: los retornos positivos (tonos naranjas y amarillos) y negativos (tonos morados y azules) tienden a agruparse en bloques temporales definidos, validando visualmente la presencia de regímenes de mercado persistentes (Jegadeesh & Titman, 1993).
 
-```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
-library(dplyr)
-library(tidyr)
+El análisis cronológico del gráfico corrobora la severidad de los eventos de cola discutidos previamente. El periodo 2000-2002 aparece dominado por una densa concentración de celdas en tonos morados oscuros y azules profundos, representando caídas mensuales que frecuentemente excedieron el -10% o -20%. Esta "mancha térmica" visualiza la destrucción de valor sistemática durante el estallido de la burbuja Dot-Com, donde la ausencia de meses de recuperación sostenida ilustra la capitulación total del sentimiento inversor. Similarmente, el año 2008 exhibe un deterioro progresivo que culmina en un cuarto trimestre teñido de violeta intenso, coincidiendo con el clímax de la Crisis Financiera y el pico de volatilidad detectado en el gráfico de rolling volatility.
 
-df_ann <- data.frame(Fecha = index(ret_anual), Ret = as.numeric(ret_anual))
-df_ann <- df_ann %>% mutate(Año = lubridate::year(Fecha), RetPct = Ret * 100)
-vol_year <- ret_diario %>% 
-  data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
-  mutate(Año = lubridate::year(Fecha)) %>%
-  group_by(Año) %>%
-  summarise(Vol = sd(Ret, na.rm=TRUE)*sqrt(252)*100, Ret = sum(Ret)*100)
-dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario))
-dd_df <- dd_df %>% mutate(Año = lubridate::year(Fecha))
-maxdd_yr <- dd_df %>% group_by(Año) %>%
-  summarise(MaxDD = min( cumprod(1+Ret) / cummax(cumprod(1+Ret)) - 1 ) * 100)
+En contraste, la década de 2010-2019 se manifiesta como un bloque predominantemente cálido (naranja), caracterizado por una notable consistencia en los retornos positivos mensuales. Esta fase visualiza la "década dorada" tecnológica impulsada por la política monetaria acomodaticia y la expansión de las plataformas digitales. Sin embargo, el heatmap revela anomalías estacionales importantes, destacando el "Efecto Septiembre": al observar la columna del noveno mes, se aprecia una recurrencia de tonos oscuros (años 2000, 2001, 2008, 2020, 2021, 2022). Este patrón sugiere una debilidad estacional estructural en el sector tecnológico al cierre del tercer trimestre, consistente con la literatura sobre anomalías de calendario y rebalanceo de portafolios institucionales (Thaler, 1987).
 
-res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
-knitr::kable(res_yr, format = "html")
-```
+Finalmente, la dinámica reciente (2020-2025) muestra una alternancia violenta de regímenes. El año 2020 inicia con el shock del COVID (morado en marzo) seguido de una recuperación verde/amarilla agresiva; mientras que 2022 se presenta como un "tablero de ajedrez" dominado por la corrección de tasas, con meses de pérdidas severas (abril, junio, septiembre). La recuperación de 2023 y 2024, visible en las franjas superiores naranjas, confirma la resiliencia del índice y su capacidad para retomar el momentum alcista tras periodos de ajuste, impulsado nuevamente por la concentración en mega-caps de inteligencia artificial. En conjunto, el heatmap demuestra que el riesgo del QQQ no se distribuye uniformemente a lo largo del año, sino que se concentra en ventanas específicas de estrés y estacionalidad negativa.
+
 
 
 ```{r comparacion, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
