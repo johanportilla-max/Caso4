@@ -818,29 +818,61 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
-## 3.1 Resumen anual
+
+La evolución histórica del QQQ muestra una tendencia alcista secular con crecimiento claramente exponencial: el precio ha pasado de niveles inferiores a los 100 USD en el año 2000 a superar los 600 USD en 2025, revelando una dinámica de crecimiento compuesto que justifica el uso de rendimientos logarítmicos para evitar distorsiones visuales y estadísticas en series con fuerte convexidad (Tsay, 2010). A lo largo de esta trayectoria se observan episodios de estrés que estructuran la narrativa de riesgo: el colapso de la Burbuja Dot-Com (2000–2002), cuyo drawdown tardó más de una década en recuperarse, constituye un ejemplo prototípico de riesgo de cola y rupturas prolongadas de tendencia (Malkiel, 2003); la Crisis Financiera de 2008 introduce un segundo punto de inflexión, seguido años después por la corrección de 2022 asociada al ciclo de aumentos de tasas de la Reserva Federal. Estos episodios confirman que la volatilidad no es constante, sino que se concentra en periodos específicos, tal como lo sugiere la literatura clásica sobre colas pesadas y agrupamiento de volatilidad (Mandelbrot, 1963), lo que respalda el uso de densidades de retornos, métricas de drawdown y boxplots anuales como parte del análisis descriptivo. En el extremo derecho del gráfico —el periodo 2023-2025— aparece una aceleración sin precedentes atribuible al auge de la inteligencia artificial generativa, fenómeno coherente con la “cronología de hitos tecnológicos” mencionada en el análisis y con la marcada concentración del QQQ en mega-caps como NVIDIA, Microsoft y Apple, cuya participación desproporcionada impulsa el índice (Invesco, 2024). En conjunto, la trayectoria refleja una combinación de convexidad positiva de largo plazo, episodios de estrés profundos y una creciente concentración tecnológica, elementos que explican simultáneamente su alto retorno histórico y su exposición a volatilidad extrema.
+
+## 3.1 Resumen anual retornos
 
 ```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
+library(quantmod)
+library(lubridate)
+library(knitr)
 
+if (!exists("precios")) {
+  precios <- serie[,6]   
+}
+ret_diario <- dailyReturn(precios, type = "log")
+ret_anual  <- yearlyReturn(precios, type = "log")
 df_ann <- data.frame(Fecha = index(ret_anual), Ret = as.numeric(ret_anual))
-df_ann <- df_ann %>% mutate(Año = lubridate::year(Fecha), RetPct = Ret * 100)
-vol_year <- ret_diario %>% 
+df_ann <- df_ann %>% mutate(Año = year(Fecha), RetPct = Ret * 100)
+vol_year <- ret_diario %>%
   data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
-  mutate(Año = lubridate::year(Fecha)) %>%
+  mutate(Año = year(Fecha)) %>%
   group_by(Año) %>%
-  summarise(Vol = sd(Ret, na.rm=TRUE)*sqrt(252)*100, Ret = sum(Ret)*100)
-dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario))
-dd_df <- dd_df %>% mutate(Año = lubridate::year(Fecha))
-maxdd_yr <- dd_df %>% group_by(Año) %>%
-  summarise(MaxDD = min( cumprod(1+Ret) / cummax(cumprod(1+Ret)) - 1 ) * 100)
+  summarise(
+    Volatilidad = sd(Ret, na.rm = TRUE) * sqrt(252) * 100,
+    RetornoTotal = sum(Ret) * 100
+  )
+dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
+  mutate(Año = year(Fecha))
 
+maxdd_yr <- dd_df %>% group_by(Año) %>%
+  summarise(
+    MaxDrawdown = min(cumprod(1 + Ret) / cummax(cumprod(1 + Ret)) - 1) * 100
+  )
 res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
-knitr::kable(res_yr, format = "html")
+kable(
+  res_yr,
+  format = "html",
+  digits = 2,
+  align = c("l", "r", "r", "r"),
+  col.names = c("Año", "Volatilidad (%)", "Retorno Total (%)", "Max Drawdown (%)"),
+  table.attr = "class='table' style='width:60%; margin:auto; font-size:18px;'"
+)
+
 ```
 
-La evolución histórica del QQQ muestra una tendencia alcista secular con crecimiento claramente exponencial: el precio ha pasado de niveles inferiores a los 100 USD en el año 2000 a superar los 600 USD en 2025, revelando una dinámica de crecimiento compuesto que justifica el uso de rendimientos logarítmicos para evitar distorsiones visuales y estadísticas en series con fuerte convexidad (Tsay, 2010). A lo largo de esta trayectoria se observan episodios de estrés que estructuran la narrativa de riesgo: el colapso de la Burbuja Dot-Com (2000–2002), cuyo drawdown tardó más de una década en recuperarse, constituye un ejemplo prototípico de riesgo de cola y rupturas prolongadas de tendencia (Malkiel, 2003); la Crisis Financiera de 2008 introduce un segundo punto de inflexión, seguido años después por la corrección de 2022 asociada al ciclo de aumentos de tasas de la Reserva Federal. Estos episodios confirman que la volatilidad no es constante, sino que se concentra en periodos específicos, tal como lo sugiere la literatura clásica sobre colas pesadas y agrupamiento de volatilidad (Mandelbrot, 1963), lo que respalda el uso de densidades de retornos, métricas de drawdown y boxplots anuales como parte del análisis descriptivo. En el extremo derecho del gráfico —el periodo 2023-2025— aparece una aceleración sin precedentes atribuible al auge de la inteligencia artificial generativa, fenómeno coherente con la “cronología de hitos tecnológicos” mencionada en el análisis y con la marcada concentración del QQQ en mega-caps como NVIDIA, Microsoft y Apple, cuya participación desproporcionada impulsa el índice (Invesco, 2024). En conjunto, la trayectoria refleja una combinación de convexidad positiva de largo plazo, episodios de estrés profundos y una creciente concentración tecnológica, elementos que explican simultáneamente su alto retorno histórico y su exposición a volatilidad extrema.
+La tabla de métricas anualizadas proporciona una descomposición granular de la trayectoria del QQQ, permitiendo identificar distintos regímenes de mercado que validan la hipótesis de la no estacionariedad de la serie financiera. Los datos confirman que el retorno total no se distribuye uniformemente, sino que es el resultado de la alternancia entre periodos de expansión secular y shocks de volatilidad concentrada (Mandelbrot, 1963).
+
+El inicio de la serie documenta cuantitativamente la magnitud del colapso de la Burbuja Dot-Com (2000–2002), un evento de riesgo de cola sin paralelo en la historia reciente del índice. Durante este trienio, la volatilidad se mantuvo sistemáticamente en niveles extremos (57.71%, 54.55% y 41.56%), acompañando una destrucción de capital consecutiva con retornos del –44.81%, –40.56% y –46.79% respectivamente. Este comportamiento confirma la presencia de persistencia en la varianza y corrobora que las rupturas de burbujas especulativas no son eventos instantáneos, sino procesos de ajuste prolongado donde el drawdown profundiza su impacto por el efecto compuesto de las pérdidas (Shiller, 2000).
+
+Tras un periodo de recuperación y estabilidad relativa (2003–2007), el año 2008 introduce un cambio de régimen abrupto asociado a la Crisis Financiera Global. El retorno negativo del –54.36% y el Max Drawdown del –52.82% en un solo ejercicio subrayan la alta correlación del sector tecnológico con el riesgo sistémico de mercado durante eventos de liquidez, a pesar de la naturaleza idiosincrática de sus empresas subyacentes. Este episodio refuerza la observación de que la diversificación sectorial tiende a fallar precisamente cuando más se necesita, debido al aumento generalizado de las correlaciones en momentos de pánico (Acharya et al., 2010).
+
+La década posterior (2009–2019) ilustra la "Era Dorada" del crecimiento tecnológico, caracterizada por una compresión significativa de la volatilidad (con mínimos de 10.34% en 2017 y 12.26% en 2013) y retornos positivos consistentes. Esta fase refleja la maduración del Nasdaq-100 y el impacto de políticas monetarias acomodaticias que favorecieron la expansión de múltiplos en empresas de crecimiento. Sin embargo, la ruptura de esta tendencia en 2022, con una caída del –40.15% y un repunte de la volatilidad al 32.17%, valida empíricamente la sensibilidad del QQQ a la tasa de descuento: el ciclo de alzas de la Reserva Federal impactó desproporcionadamente a los activos de larga duración implícita, provocando una corrección de valoraciones coherente con los modelos fundamentales de precios (Bernanke & Kuttner, 2005).
+
+Finalmente, el periodo más reciente (2023–2025) evidencia una recuperación vigorosa y rápida, con retornos del 43.04% en 2023 y 22.18% en 2024, impulsados por el cambio de paradigma hacia la Inteligencia Artificial Generativa. Aunque la volatilidad se ha moderado respecto a 2022 (descendiendo al rango del 17-24%), se mantiene por encima de los mínimos de la década anterior, lo que sugiere que el mercado actual opera bajo una nueva estructura de riesgo, dependiente de la concentración en mega-caps y las expectativas de productividad futura de la IA. En conjunto, la tabla demuestra que la capacidad del QQQ para generar riqueza a largo plazo (CAGR positivo) está intrínsecamente ligada a la tolerancia del inversor para soportar periodos de volatilidad extrema y drawdowns profundos que actúan como el costo de entrada al crecimiento exponencial del sector.
 
 ## 2.1.2 División sectorial 
 
@@ -1002,7 +1034,7 @@ La distribución sectorial refuerza el sesgo hacia la innovación: las burbujas 
 Desde una perspectiva de gestión de riesgos, esta configuración explica la alta beta y la convexidad observada en la serie histórica: la correlación positiva entre estos pocos activos líderes amplifica tanto los rendimientos exponenciales en mercados alcistas como la severidad de los drawdowns en periodos de corrección, confirmando que la dinámica del QQQ está intrínsecamente ligada a la salud financiera y las expectativas de crecimiento de este selecto grupo de empresas (Sharpe, 1964).
 
 
-## 2.4 Análisis Estadístico
+## 2.4 Análisis Estadístico precios
 
 ```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(moments)
@@ -1056,6 +1088,13 @@ kable(
 
 ```
 
+El análisis de los momentos estadísticos de la serie de precios confirma la naturaleza no estacionaria y la fuerte tendencia secular del QQQ. A diferencia de los rendimientos (que oscilan en torno a cero), las estadísticas de nivel de precios revelan la magnitud de la apreciación del capital a largo plazo y la asimetría temporal de la generación de valor.
+
+La discrepancia sustancial entre la Media ($134.57) y la Mediana ($66.88) es el hallazgo estructural más revelador. Que el promedio sea más del doble que la mediana indica una Asimetría Positiva (Skewness de 1.54) muy marcada. Financieramente, esto se interpreta como el reflejo numérico de la "década perdida": el ETF pasó la mayor parte de su historia (representada por la mediana) cotizando en niveles bajos (inferiores a $70 USD) durante el largo proceso de recuperación post-Burbuja Dot-Com. Sin embargo, la aceleración exponencial de la última década ha arrastrado el promedio hacia arriba, confirmando que la mayor parte de la apreciación del valor se ha concentrado en el tramo final de la muestra (Tsay, 2010).
+
+El Rango de operación, que abarca desde un mínimo de $16.96 (el suelo tras el colapso del 2002) hasta un máximo histórico de $635.77 (el pico impulsado por la IA en 2025), cuantifica la convexidad del activo: una multiplicación del capital por más de 37 veces desde el valle hasta la cima. Esta dispersión masiva se captura en una Desviación Estándar de 141.17, una cifra que, en el contexto de niveles de precios, no debe leerse solo como riesgo, sino como una medida de la magnitud de la tendencia alcista (Trend Magnitude).
+
+Finalmente, la Curtosis de 4.42 (superior a 3, indicando una distribución leptocúrtica) en la serie de precios sugiere que el QQQ tiende a operar en los extremos de su rango más de lo que predeciría una distribución normal. En términos de mercado, esto valida la existencia de "colas gruesas" en la valoración: el índice pasa periodos prolongados deprimido (como en 2002-2012) o periodos de euforia extendida (2020-2025), sin revertir rápidamente a la media histórica, comportamiento típico de los activos impulsados por la innovación tecnológica y los ciclos de adopción (Malkiel, 2003).
 ## 2.5 Rendimientos Diarios
 
 ```{r tablarendimientos, echo=TRUE, warning=FALSE, message=FALSE}
@@ -1148,25 +1187,47 @@ En conjunto, el gráfico confirma que los retornos diarios del QQQ mantienen una
 library(dplyr)
 library(ggplot2)
 library(lubridate)
+library(scales) 
 ret_anual_df <- data.frame(
   Año = year(index(ret_anual)),
   Retorno = round(100 * as.numeric(ret_anual), 2)
-)
+) %>%
+  mutate(
+    Tipo = ifelse(Retorno >= 0, "Positivo", "Negativo"),
+  
+    Pos_Texto = ifelse(Retorno >= 0, -0.4, 1.2)
+  )
 
-ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno)) +
-  geom_col(fill = tesla_pal$primary) +
-  geom_text(
-    aes(label = paste0(Retorno, "%")),
-    vjust = -0.5,
-    color = tesla_pal$text_main,  
-    size = 4
+ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno, fill = Tipo)) +
+  
+  geom_col(show.legend = FALSE) + 
+    scale_fill_manual(values = c(
+    "Positivo" = tesla_pal$primary,   
+    "Negativo" = tesla_pal$negative   
+  )) +
+    geom_text(
+    aes(label = paste0(Retorno, "%"), vjust = Pos_Texto),
+    color = tesla_pal$text_main,
+    size = 3.2,          
+    fontface = "bold"     
   ) +
-  labs(title = "Retorno Anual del QQQ",
-       x = "Año", y = "Retorno (%)") +
-  theme_tesla()
+  
+  labs(
+    title = "Retorno Anual Histórico del QQQ",
+    subtitle = "Rendimiento logarítmico anualizado (1999-2025)",
+    x = "", 
+    y = "Retorno (%)"
+  ) +
+  
+  scale_y_continuous(expand = expansion(mult = 0.15)) +
+    theme_tesla() +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, size = 10),
+    panel.grid.major.x = element_blank() 
+  )
 ```
 
-El gráfico del retorno anual del QQQ permite observar con claridad cómo el desempeño del índice tecnológico ha estado marcado por ciclos de fuertes expansiones y contracciones, coherentes con los eventos identificados previamente en el análisis de retornos diarios. Los primeros años, entre 2000 y 2002, muestran caídas muy pronunciadas, superiores al –40%, que coinciden con el estallido de la burbuja punto-com, un fenómeno ampliamente documentado en la literatura financiera (Shiller, 2000). Este periodo se caracteriza por pérdidas consecutivas de magnitud excepcional, reflejando un mercado extremadamente volátil e incierto, como también se evidenció en la dispersión extrema del boxplot anual, consistente con la alta varianza de los retornos de activos tecnológicos señalada por French, Schwert y Stambaugh (1987).
+El retorno anual del QQQ permite observar con claridad cómo el desempeño del índice tecnológico ha estado marcado por ciclos de fuertes expansiones y contracciones, coherentes con los eventos identificados previamente en el análisis de retornos diarios. Los primeros años, entre 2000 y 2002, muestran caídas muy pronunciadas, superiores al –40%, que coinciden con el estallido de la burbuja punto-com, un fenómeno ampliamente documentado en la literatura financiera (Shiller, 2000). Este periodo se caracteriza por pérdidas consecutivas de magnitud excepcional, reflejando un mercado extremadamente volátil e incierto, como también se evidenció en la dispersión extrema del boxplot anual, consistente con la alta varianza de los retornos de activos tecnológicos señalada por French, Schwert y Stambaugh (1987).
 
 Tras esta etapa, el QQQ muestra episodios de recuperación significativos, como en 2003 (40.29%) y especialmente en 2009 (43.07%), año en el que el mercado rebota después de la crisis financiera global. No obstante, la caída abrupta de 2008 (–54.36%) resalta como uno de los peores años de toda la serie, reafirmando la alta sensibilidad del sector tecnológico a choques sistémicos, tal como ha sido analizado en estudios sobre riesgo sistémico y contagio financiero (Acharya et al., 2010). Estos resultados son coherentes con el patrón observado en los retornos diarios: periodos largos de estabilidad interrumpidos por shocks severos.
 
@@ -1199,7 +1260,7 @@ ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
   theme_tesla()
 ```
 
-El gráfico de drawdown histórico del QQQ revela de manera clara la profundidad y duración de las pérdidas relativas del índice respecto a sus máximos previos, lo que permite evaluar no solo la volatilidad, sino también la resiliencia del mercado tecnológico a lo largo del tiempo. El periodo más crítico se observa al inicio de la serie, entre 2000 y 2002, cuando el índice sufre un colapso superior al –80% tras el estallido de la burbuja punto-com. Esta caída extraordinaria es consistente con el comportamiento descrito anteriormente en los retornos anuales, donde se evidenciaron pérdidas consecutivas cercanas al –40%, un fenómeno ampliamente documentado en la literatura sobre burbujas especulativas (Shiller, 2000). Además, la prolongada permanencia del QQQ en drawdowns profundos durante casi una década subraya la fragilidad estructural del sector tecnológico en ese momento, caracterizado por valoraciones excesivas y escaso respaldo en flujos de caja reales.
+El gráfico revela de manera clara la profundidad y duración de las pérdidas relativas del índice respecto a sus máximos previos, lo que permite evaluar no solo la volatilidad, sino también la resiliencia del mercado tecnológico a lo largo del tiempo. El periodo más crítico se observa al inicio de la serie, entre 2000 y 2002, cuando el índice sufre un colapso superior al –80% tras el estallido de la burbuja punto-com. Esta caída extraordinaria es consistente con el comportamiento descrito anteriormente en los retornos anuales, donde se evidenciaron pérdidas consecutivas cercanas al –40%, un fenómeno ampliamente documentado en la literatura sobre burbujas especulativas (Shiller, 2000). Además, la prolongada permanencia del QQQ en drawdowns profundos durante casi una década subraya la fragilidad estructural del sector tecnológico en ese momento, caracterizado por valoraciones excesivas y escaso respaldo en flujos de caja reales.
 
 Posteriormente, a partir de 2009, se aprecia un proceso de recuperación sostenida que coincide con la salida de la crisis financiera global. Aunque 2008 marcó un drawdown cercano al –54%, el repunte inmediato del 2009, previamente resaltado en los retornos anuales, refleja el retorno gradual de la confianza en los mercados, fenómeno que la literatura asocia con políticas monetarias expansivas y medidas de estabilización financiera (Bernanke & Gertler, 2001). No obstante, el drawdown de este período también destaca que, aunque el mercado se recupera, la profundidad de la caída anterior prolonga el tiempo de retorno a un máximo histórico, reforzando la idea de que el drawdown no solo mide pérdidas, sino también la duración del proceso de recuperación (time to recovery).
 
@@ -1277,7 +1338,7 @@ ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
   theme_tesla()
 ```
 
-El gráfico de volatilidad rolling (móvil) desagrega temporalmente la cifra estática de riesgo (26.97%) analizada previamente, proporcionando la evidencia visual definitiva de la heterocedasticidad condicional inherente a la serie del QQQ. Al observar la evolución de la desviación estándar anualizada en distintas ventanas temporales, se confirma que el riesgo del activo no es constante, sino que exhibe un marcado comportamiento de agrupamiento de volatilidad (volatility clustering): grandes cambios en los precios tienden a ser seguidos por grandes cambios, y periodos de calma por calma, validando empíricamente los postulados de los modelos ARCH/GARCH sugeridos para la modelación de esta serie (Engle, 1982). La estructura del gráfico está dominada por tres “regímenes de alta volatilidad” que se corresponden simétricamente con los episodios de drawdown máximo identificados en el análisis histórico.
+El gráfico de volatilidad desagrega temporalmente la cifra estática de riesgo (26.97%) analizada previamente, proporcionando la evidencia visual definitiva de la heterocedasticidad condicional inherente a la serie del QQQ. Al observar la evolución de la desviación estándar anualizada en distintas ventanas temporales, se confirma que el riesgo del activo no es constante, sino que exhibe un marcado comportamiento de agrupamiento de volatilidad (volatility clustering): grandes cambios en los precios tienden a ser seguidos por grandes cambios, y periodos de calma por calma, validando empíricamente los postulados de los modelos ARCH/GARCH sugeridos para la modelación de esta serie (Engle, 1982). La estructura del gráfico está dominada por tres “regímenes de alta volatilidad” que se corresponden simétricamente con los episodios de drawdown máximo identificados en el análisis histórico.
 
 El primer régimen, correspondiente a la persistencia de la Burbuja (2000-2003), muestra el pico más ancho de la serie, donde la volatilidad anualizada supera el 75%. La línea de largo plazo (vol252) se mantiene en niveles extremos durante un periodo prolongado, lo que explica por qué los ratios de eficiencia (Sharpe y Calmar) son tan bajos: el riesgo no fue un evento transitorio, sino una condición estructural que erosionó los retornos ajustados durante años. Posteriormente, se observa el shock sistémico de 2008, con un segundo pico vertical que también rompe la barrera del 75%, indicando un contagio inmediato que afectó tanto la negociación táctica como la estratégica (Acharya et al., 2010). En contraste, el pico de 2020 (Pandemia) es extremadamente agudo pero de base estrecha, reflejando la naturaleza exógena del shock y una estabilización acelerada impulsada por la digitalización de la economía (Barrero, Bloom & Davis, 2021).
 
@@ -1390,6 +1451,15 @@ plotly::ggplotly(p_comp, tooltip = c("x", "y", "colour")) %>%
   config(displayModeBar = FALSE)
 ```
 
+
+La comparación normalizada del retorno acumulado entre el QQQ (Nasdaq-100) y los principales índices de referencia —SPY (S&P 500), DIA (Dow Jones Industrial Average) y IWM (Russell 2000 / Small Caps)— evidencia un desacople estructural en la generación de valor bursátil durante los últimos 25 años. Visualmente, la trayectoria del QQQ (línea roja prominente) se separa radicalmente del clúster de mercado general (líneas grises y amarillas) a partir de la década de 2010, confirmando que la exposición al factor tecnológico no ha funcionado meramente como un componente cíclico, sino como el motor primario de la apreciación de capital en la economía moderna.
+
+Sin embargo, el gráfico también documenta el costo de esta "prima de crecimiento". Durante el periodo 2000-2002, el QQQ no solo tuvo un desempeño inferior al DIA y al SPY, sino que experimentó una destrucción de riqueza significativamente mayor, cotizando por debajo de su valor base inicial durante un periodo más prolongado que sus pares. Este comportamiento ilustra la asimetría del riesgo tecnológico: mientras que índices como el DIA (compuesto por empresas industriales maduras y de valor) mostraron una mayor resistencia defensiva durante el estallido de la burbuja, el QQQ exhibió una beta (sensibilidad) mucho más alta a la baja, validando la teoría de que los activos de crecimiento (Growth) poseen una mayor duración y volatilidad implícita (Fama & French, 1993).
+
+La verdadera "bifurcación" o ruptura de tendencia se consolida post-2015 y se acelera verticalmente tras el shock pandémico de 2020. Mientras el IWM (Small Caps, línea amarilla) lucha por mantener el ritmo —penalizado recientemente por el entorno de altas tasas de interés que afecta desproporcionadamente a empresas de menor capitalización y mayor apalancamiento—, el QQQ aprovecha la robustez de los balances de sus mega-caps para dispararse. La brecha masiva al final de la serie, donde el retorno acumulado del QQQ supera el 1,000% frente a niveles cercanos al 500-600% para el resto del mercado, demuestra la eficiencia superior de la concentración tecnológica en periodos de expansión monetaria y revolución digital.
+
+En conclusión, el gráfico ratifica que el QQQ no es un sustituto del mercado general, sino un vehículo de alpha agresivo. Su desempeño superior a largo plazo frente al SPY (que incluye tecnología pero diluida) y al DIA (sesgado a economía tradicional) justifica su inclusión en portafolios que buscan maximización de capital, siempre que el inversor acepte que la desviación estándar de sus retornos (y por ende, el riesgo de drawdown) será sistemáticamente superior a la de un índice diversificado o de pequeña capitalización (Sharpe, 1964; Markowitz, 1952).
+
 ```{r partiion, echo=TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
@@ -1423,6 +1493,14 @@ ggplot(datos_plot, aes(x = Fecha, y = Precio)) +
   ) +
   theme_tesla()
 ```
+
+El gráfico visualiza el punto de inflexión más crítico en la historia reciente del QQQ, identificando el final de 2022 no solo como un mínimo cíclico, sino como el inicio de un cambio de régimen estructural en el mercado tecnológico. La línea vertical violeta marca la introducción pública de ChatGPT, un evento que coincide con precisión quirúrgica con el final de la tendencia bajista de 2022 y el comienzo de una recuperación en forma de "V" que ha llevado al índice a nuevos máximos históricos.
+
+Este comportamiento confirma la hipótesis de una ruptura estructural (structural break) en la serie de tiempo. Durante la mayor parte de 2022, el QQQ estuvo correlacionado negativamente con las tasas de interés y la inflación (como se discutió en el análisis de volatilidad). Sin embargo, la aparición de la Inteligencia Artificial Generativa actuó como un shock tecnológico exógeno que desacopló al índice de las presiones macroeconómicas tradicionales. La pendiente agresiva de la recuperación posterior a la línea punteada refleja un re-rating masivo de las valoraciones, impulsado por la expectativa de que la IA provocará un aumento en la productividad laboral y corporativa comparable a la revolución de internet (Eloundou et al., 2023).
+
+Esta narrativa fundamenta empíricamente la selección de 2022 como el punto pivote para la ventana de entrenamiento del modelo. Incluir datos anteriores sin ponderar este cambio de régimen podría introducir ruido, dado que la dinámica de precios pre-2022 respondía a factores de liquidez convencional, mientras que la dinámica post-2022 está dominada por factores de adopción tecnológica y concentración en hardware y software de IA (validando la hegemonía de NVIDIA y Microsoft observada en los diagramas de holdings).
+
+En consecuencia, el gráfico demuestra que el mercado ha transicionado de un esquema de "valoración por descuento de flujos" (sensible a tasas) a un esquema de "valoración por crecimiento exponencial" (sensible a la innovación en IA). Por tanto, cualquier estrategia de modelado predictivo (ARIMA/GARCH) debe tratar este periodo no como una simple continuación de la tendencia histórica, sino como una nueva fase estocástica caracterizada por un momentum idiosincrático derivado de la revolución de los Grandes Modelos de Lenguaje (LLMs) (Acemoglu & Johnson, 2023).
 
 ```{r ias, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE, fig.width=10, fig.height=6}
 library(ggplot2)
@@ -1505,6 +1583,11 @@ ggplot(data_cronologia, aes(x = Fecha, y = Categoria, color = Categoria)) +
   )
 ```
 
+El gráfico "Cronología del Boom de la IA Generativa" ilustra gráficamente cómo ChatGPT lo cambió todo: su lanzamiento en octubre de 2022 no fue un evento aislado, sino el detonante de una reacción en cadena que transformó radicalmente el mercado tecnológico en un lapso extremadamente corto. Como se observa en la línea de tiempo, desde este punto de inflexión nacieron y se desplegaron a una velocidad sin precedentes múltiples nuevas inteligencias artificiales que redefinieron sectores enteros. La rápida sucesión de hitos —que abarca desde la evolución de LLMs (GPT-4, Claude 3, Llama 3) y la generación de video (Sora), hasta la integración profunda en sistemas operativos y productividad (Copilot 365, Gemini Android)— demuestra una densidad de innovación que valida la tesis de un cambio de régimen acelerado.
+
+Esta proliferación tecnológica ha sostenido el momentum del precio, validando la concentración del portafolio en los proveedores de infraestructura de IA (como Microsoft y Google) observada en las secciones anteriores. A la luz de este hallazgo y del análisis descriptivo exhaustivo realizado, se derivan conclusiones estadísticas fundamentales que condicionan la estrategia de modelado econométrico. Primero, la serie histórica del QQQ exhibe una no estacionariedad marcada y una tendencia exponencial que exige el uso de rendimientos logarítmicos y diferenciación. Segundo, la presencia de una curtosis extrema y agrupamientos de volatilidad (volatility clustering) visibles en los gráficos de riesgo confirman que los modelos lineales simples subestimarán la probabilidad de eventos de cola, justificando la necesidad de complementar la estimación de la media con modelos de volatilidad condicional (GARCH).
+
+Finalmente, basándose en la evidencia visual y fundamental de la ruptura estructural provocada por la IA Generativa, se define el año 2022 como el punto de inicio para la ventana de entrenamiento del modelo predictivo. Incluir datos anteriores a esta fecha introduciría "ruido" en los parámetros del modelo, dado que la dinámica de precios de la década 2010-2020 respondía a un régimen de tasas cero y expansión móvil, estructuralmente distinto al actual entorno de tasas medias e inversión intensiva en IA. La literatura econométrica sobre cambios estructurales (Perron, 1989) sugiere que, tras un shock permanente de esta magnitud, los datos previos pierden capacidad predictiva. Por consiguiente, al restringir la muestra al periodo post-ChatGPT, el modelo capturará con mayor fidelidad la inercia (momentum) y la volatilidad específica del actual "superciclo de IA", optimizando la precisión de los pronósticos a corto plazo.
 
 
 
