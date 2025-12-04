@@ -1,5 +1,5 @@
 ---
-title: "Análisis de Series de Tiempo y Pronóstósticos ARIMA"
+title: "Análisis de Series de Tiempo y Pronósticos ARIMA"
 subtitle: "Estudio Empírico sobre el Precio de Acciones del QQQ"
 author: "Camilo"
 date: "`r format(Sys.Date(), '%d de %B de %Y')`"
@@ -10,14 +10,10 @@ output:
     toc_float: false   
 ---
 
-
-
 <div id="custom-toc"></div>
-
 
 ```{=html}
 <style type="text/css">
-
 
 /* ========== PALETA DE COLORES CLARA - ESTÉTICA PROFESIONAL Y DINÁMICA ========== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap');
@@ -32,14 +28,11 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
 }
 :root {
-  /* Colores Base */
   --bg-light: #ffffff;
   --bg-lighter: #f5f7fa;
   --text-dark: #1f2937;
   --text-medium: #4b5563;
   --text-gray: #94a3b8;
-
-  /* Acentos QQQ: Cian/Verde */
   --accent-primary: #00b894;
   --accent-secondary: #06b6d4;
   --accent-positive: #84cc16;
@@ -47,7 +40,6 @@ h1, h2, h3 {
   --accent-soft: #3b82f6;
 }
 
-/* ========== RESET & ESTRUCTURA CLAVE ========== */
 * {
   box-sizing: border-box !important;
   margin: 0;
@@ -63,27 +55,22 @@ html, body {
   min-height: 100vh !important;
 }
 
-/* Contenedor de contenido central */
 div.container-fluid:first-of-type {
   width: auto !important;
   max-width: 100% !important;
   padding: 60px 80px !important;
 }
 
-/* ========== TOC PERSONALIZADO "CONTENIDO" ========== */
-/* ========== TOC PERSONALIZADO "CONTENIDO" ========== */
 #custom-toc {
   position: fixed;
   top: 60px;
   left: 0;
   width: 260px;
   height: 80vh;
-  /* CAMBIOS IMPORTANTES AQUÍ: */
-  display: flex;              /* Usar flexbox para organizar hijos */
-  flex-direction: column;     /* Uno debajo del otro */
-  overflow: hidden;           /* El contenedor NO scrollea, solo sus hijos */
-  /* Fin de cambios */
-  padding: 0;                 /* Quitamos padding general para manejarlo dentro */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
   background: var(--bg-lighter);
   border-right: 2px solid var(--accent-secondary);
   border-radius: 0 10px 10px 0;
@@ -91,43 +78,35 @@ div.container-fluid:first-of-type {
   z-index: 999;
 }
 
-/* Título del TOC */
 #custom-toc h2 {
   position: relative;
   flex-shrink: 0;
   background: var(--bg-lighter);
   z-index: 10;
-  /* CAMBIO AQUÍ: Reduje el padding superior de 20px a 10px */
   padding: 10px 15px 15px 15px; 
   margin: 0;
   border-bottom: 2px solid rgba(0, 184, 148, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); /* Sombra sutil para separar */
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
-/* dar espacio después del título */
-/* Lista de enlaces (Aquí ocurre el scroll) */
 #custom-toc ul {
   list-style: none !important;
-  /* CAMBIO AQUÍ: El primer valor (arriba) ahora es 0px */
   padding: 0px 10px 20px 10px !important; 
   margin: 0 !important;
-  flex-grow: 1;               
-  overflow-y: auto;           
-  
+  flex-grow: 1;
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-secondary) transparent;
 }
 
-/* CAMBIO EXTRA: Asegura que el primer ítem suba al máximo */
 #custom-toc li:first-child {
-  margin-top: 2px !important; /* Muy pegado arriba */
+  margin-top: 2px !important;
 }
 
 #custom-toc li {
   margin: 8px 0 !important;
 }
 
-/* Estilo de enlaces del TOC */
 #custom-toc a {
   display: block;
   padding: 10px 14px;
@@ -144,7 +123,6 @@ div.container-fluid:first-of-type {
   box-shadow: 0 4px 14px rgba(0,0,0,0.12);
 }
 
-/* Enlace activo */
 #custom-toc a.active {
   background: var(--bg-light);
   color: var(--accent-primary) !important;
@@ -153,7 +131,6 @@ div.container-fluid:first-of-type {
   transform: translateX(4px);
 }
 
-/* Scrollbar estético */
 #custom-toc::-webkit-scrollbar {
   width: 6px !important;
 }
@@ -163,16 +140,14 @@ div.container-fluid:first-of-type {
   border-radius: 10px !important;
 }
 
-/* Ocultar el TOC nativo de R Markdown */
 #TOC {
   display: none !important;
 }
 
-/* ========== SECCIONES Y TIPOGRAFÍA ========== */
 .section.level1 {
   margin-bottom: 80px !important;
   padding: 50px !important;
-  background: var(--bg-light) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,251,252,1) 100%);
   border: 1px solid rgba(0, 0, 0, 0.05) !important;
   border-top: 6px solid var(--accent-primary) !important;
   border-radius: 12px !important;
@@ -186,12 +161,6 @@ div.container-fluid:first-of-type {
   transform: translateY(-3px) !important;
 }
 
-/* TÍTULOS */
-/* ---- Header / título principal más elegante ---- */
-.page-title {
-  display: block;
-  margin: 8px 0 18px 0;
-}
 h1 {
   font-size: 3.2rem !important;
   line-height: 1.05 !important;
@@ -199,6 +168,7 @@ h1 {
   font-weight: 700 !important;
   margin-bottom: 8px !important;
 }
+
 .subtitle {
   display: block;
   color: var(--accent-secondary);
@@ -233,14 +203,12 @@ h3 {
   font-weight: 500 !important;
 }
 
-/* PÁRRAFOS */
 p {
   color: var(--text-dark) !important;
   font-size: 1.05em !important;
   line-height: 1.8 !important;
 }
 
-/* ========== TABLAS ========== */
 table {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
   border: 1px solid rgba(0, 0, 0, 0.05) !important;
@@ -275,18 +243,6 @@ tbody tr:hover {
   transition: background-color 0.2s ease !important;
 }
 
-.section.level1 {
-  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,251,252,1) 100%);
-  border-top: 6px solid var(--accent-primary);
-  padding: 36px !important;
-  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
-}
-.section.level1:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 28px 60px rgba(16,24,40,0.08);
-}
-
-/* ========== CÓDIGO ========== */
 pre {
   background: var(--bg-lighter) !important;
   border-left: 6px solid var(--accent-secondary) !important;
@@ -296,25 +252,13 @@ pre {
   padding: 25px !important;
 }
 
-/* ========== FOOTER ========== */
-div[style*="margin-top: 80px;"] {
-  background: var(--bg-lighter) !important;
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
-  border-top: 6px solid var(--accent-primary) !important;
-  color: var(--text-dark) !important;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-}
-/* ======= DESPLAZAR EL CONTENIDO PARA QUE NO CHOQUE CON EL TOC ======= */
 body .container-fluid,
 body .main-container,
 body div.container-fluid:first-of-type {
-  margin-left: 280px !important;   /* un poco más que el ancho del TOC */
+  margin-left: 280px !important;
   max-width: calc(100% - 300px) !important;
 }
 
-
-/* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   #custom-toc {
     position: relative !important;
@@ -328,11 +272,11 @@ body div.container-fluid:first-of-type {
     padding: 20px !important;
   }
 }
-/* ===================== BOTÓN FLOTANTE UNIVERSIDAD ===================== */
+
 #uv-button {
   position: fixed;
   bottom: 25px;
-  right: 25px;   /* cámbialo a left:25px si lo quieres a la izquierda */
+  right: 25px;
   width: 70px;
   height: 70px;
   border-radius: 50%;
@@ -351,15 +295,19 @@ body div.container-fluid:first-of-type {
   transform: scale(1.1);
 }
 
-/* Imagen interna */
 #uv-button img {
   width: 80%;
   height: 80%;
   object-fit: contain;
   transition: opacity .4s ease;
+  display: block;
+  margin: auto;        
+  position: absolute;  
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-/* Animación de rotación */
 @keyframes spin-logo {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -368,26 +316,13 @@ body div.container-fluid:first-of-type {
 #uv-button.spin {
   animation: spin-logo 1.2s linear;
 }
-#uv-button img {
-  width: 80%;
-  height: 80%;
-  object-fit: contain;
-  display: block;
-  margin: auto;        
-  position: absolute;  
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-/* ===== TOOLTIP PERSONALIZADO PARA EL BOTÓN ===== */
-/* ===== TOOLTIP HACIA LA IZQUIERDA ===== */
+
 #uv-button::after {
   content: attr(data-tooltip);
   position: absolute;
-  left: -10px;                /* empieza pegado al borde izquierdo */
-  top: 50%;                   /* centrado verticalmente */
-  transform: translate(-100%, -50%);  /* lo desplaza completamente a la izquierda */
-  
+  left: -10px;
+  top: 50%;
+  transform: translate(-100%, -50%);
   background: rgba(0,0,0,0.85);
   color: white;
   padding: 8px 12px;
@@ -407,14 +342,13 @@ body div.container-fluid:first-of-type {
   position: fixed !important;
   z-index: 999999 !important;
   pointer-events: auto !important;
-}
-#custom-toc, #right-toc {
-  z-index: 5000 !important;
-}
-#uv-button {
   overflow: visible !important;
 }
-/* ========== BOTÓN DE OCULTAR/MOSTRAR CÓDIGO ========== */
+
+#custom-toc {
+  z-index: 5000 !important;
+}
+
 #global-code-toggle {
   position: fixed;
   top: 20px;
@@ -438,7 +372,6 @@ body div.container-fluid:first-of-type {
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
-/* ========== BOTONES DE CHUNK - ESTILO BARRA COMPLETA ========== */
 .code-chunk-toggle {
   width: 100%;
   background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
@@ -494,8 +427,10 @@ pre.expanded {
   max-height: 5000px !important;
   opacity: 1;
 }
+
 </style>
 ```
+
 <div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
   <img id="uv-img" src="univalle.png" alt="Univalle">
 </div>
@@ -503,13 +438,11 @@ pre.expanded {
 ```{=html}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const SCROLL_OFFSET = 100; // Ajusta este valor si el título queda tapado (100px es bueno)
+  const SCROLL_OFFSET = 100;
   
-  // 1. REFERENCIA AL CONTENEDOR DEL TOC
   const toc = document.getElementById("custom-toc");
-  if (!toc) return; // Si no existe el div, no hace nada
+  if (!toc) return;
 
-  // 2. CREAR TÍTULO Y LISTA
   const title = document.createElement("h2");
   title.textContent = "Contenido";
   toc.appendChild(title);
@@ -517,40 +450,34 @@ document.addEventListener('DOMContentLoaded', function() {
   const list = document.createElement("ul");
   toc.appendChild(list);
 
-  // 3. GENERAR ENLACES BASADOS EN H1 y H2
   const headers = document.querySelectorAll("h1, h2");
   
   headers.forEach(header => {
-    // Si el header no tiene ID, creamos uno limpio
     if (!header.id) {
       header.id = header.textContent
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-") // Reemplaza caracteres raros por guiones
-        .replace(/^-+|-+$/g, '');    // Quita guiones al inicio o final
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, '');
     }
 
-    // Crear el elemento de lista
     const li = document.createElement("li");
     const a = document.createElement("a");
     
-    a.href = `#${header.id}`; // Enlace interno al ID
-    a.textContent = header.textContent; // Texto del enlace
+    a.href = `#${header.id}`;
+    a.textContent = header.textContent;
     
-    // === AQUÍ ESTÁ LA MAGIA DEL CLIC ===
     a.addEventListener('click', function(e) {
-      e.preventDefault(); // Evita el salto brusco predeterminado
+      e.preventDefault();
       
-      const targetId = this.getAttribute('href').substring(1); // Quita el #
+      const targetId = this.getAttribute('href').substring(1);
       const targetElement = document.getElementById(targetId);
       
       if (targetElement) {
-        // Scroll suave manual
         window.scrollTo({
           top: targetElement.offsetTop - SCROLL_OFFSET, 
           behavior: 'smooth'
         });
         
-        // Actualizar URL sin saltar (opcional)
         history.pushState(null, null, `#${targetId}`);
       }
     });
@@ -559,14 +486,12 @@ document.addEventListener('DOMContentLoaded', function() {
     list.appendChild(li);
   });
 
-  // 4. RESALTAR ENLACE ACTIVO AL HACER SCROLL
   function updateActiveTOCLink() {
     const tocLinks = document.querySelectorAll('#custom-toc a');
     let currentActiveId = '';
     
     headers.forEach(section => {
       const rect = section.getBoundingClientRect();
-      // Si la sección está cerca de la parte superior (con el offset)
       if (rect.top <= SCROLL_OFFSET + 20) { 
         currentActiveId = section.id;
       }
@@ -580,14 +505,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // 5. EVENTOS GLOBALES
   window.addEventListener('scroll', updateActiveTOCLink);
-  // Ejecutar una vez al inicio para marcar el primero
   updateActiveTOCLink(); 
 
-  // --- EXTRAS (FECHA, BOTÓN, ETC) ---
-  
-  // Fecha
   const fechaSpan = document.getElementById('fecha-entrega');
   if(fechaSpan) {
     fechaSpan.textContent = new Date().toLocaleDateString('es-ES', {
@@ -595,7 +515,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Botón Código
   const btnToggle = document.createElement('button');
   btnToggle.id = 'global-code-toggle';
   btnToggle.textContent = '💻 Código Oculto';
@@ -618,7 +537,6 @@ document.addEventListener('DOMContentLoaded', function() {
     btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
   });
 
-  // ========== BOTONES INDIVIDUALES POR CHUNK ==========
   setTimeout(() => {
     const preElements = document.querySelectorAll('pre');
     let chunkIndex = 0;
@@ -626,20 +544,16 @@ document.addEventListener('DOMContentLoaded', function() {
     preElements.forEach((pre) => {
       chunkIndex++;
       
-      // Crear botón
       const btn = document.createElement('button');
       btn.className = 'code-chunk-toggle';
       btn.innerHTML = `<span>💻 Código - Chunk ${chunkIndex}</span>`;
       btn.setAttribute('data-chunk', chunkIndex);
       
-      // Estado inicial: mostrado
       pre.classList.add('expanded');
       btn.classList.remove('collapsed');
       
-      // Insertar botón antes del <pre>
       pre.parentNode.insertBefore(btn, pre);
       
-      // Evento de click
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         pre.classList.toggle('collapsed');
@@ -649,7 +563,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }, 500);
 
-  // Animación Logo Univalle
   const logos = ["univalle.png", "ingenieria.png"];  
   let index = 0;
   const img = document.getElementById("uv-img");
@@ -670,22 +583,31 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
-
 ```
-```{r setup-theme, include=FALSE}
-library(ggplot2)
-library(forecast)
-library(tseries)
 
-tesla_pal <- list(
-  bg        = "#ffffff",    # Tu --bg-light
-  text_main = "#1f2937",    # Tu --text-dark
-  text_gray = "#4b5563",    # Tu --text-medium
-  primary   = "#00b894",    # Tu --accent-primary (Verde/Cian principal)
-  secondary = "#06b6d4",    # Tu --accent-secondary (Cian claro)
-  positive  = "#84cc16",    # Tu --accent-positive
-  negative  = "#e17055",    # Tu --accent-negative
-  grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
+```{r setup, include=FALSE}
+library(tidyverse)
+library(quantmod)
+library(xts)
+library(fpp2)
+library(tseries)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
+library(forecast)
+library(ggplot2)
+library(zoo)
+library(plotly)
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.width = 12,
+  fig.height = 6
 )
 
 qqq_pal <- list(
@@ -699,94 +621,70 @@ qqq_pal <- list(
   grid      = "#f3f4f6"
 )
 
-
-# ==========================================
-# 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
-# ==========================================
-theme_tesla <- function() {
+theme_QQQ <- function() {
   theme_minimal(base_size = 14) +
     theme(
-      # Fondo transparente para fundirse con el HTML
       plot.background = element_rect(fill = "transparent", color = NA),
       panel.background = element_rect(fill = "transparent", color = NA),
-      
-      # Textos
-      text = element_text(color = tesla_pal$text_main, family = "sans"),
-      plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, margin = margin(b = 10)),
-      plot.subtitle = element_text(size = 12, color = tesla_pal$secondary, margin = margin(b = 10)),
-      plot.caption = element_text(size = 9, color = tesla_pal$text_gray, margin = margin(t = 10)),
-      
-      # Ejes
-      axis.title = element_text(face = "bold", size = 11, color = tesla_pal$text_gray),
-      axis.text = element_text(size = 10, color = tesla_pal$text_gray),
-      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), # Línea de eje en tu color secundario
-      
-      # Rejilla (Grid)
-      panel.grid.major = element_line(color = tesla_pal$grid, linetype = "dashed"),
-      panel.grid.minor = element_blank(), # Limpiamos el ruido visual
-      
-      # Leyenda
+      text = element_text(color = qqq_pal$text_dark, family = "sans"),
+      plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark, margin = margin(b = 10)),
+      plot.subtitle = element_text(size = 12, color = qqq_pal$secondary, margin = margin(b = 10)),
+      plot.caption = element_text(size = 9, color = qqq_pal$text_gray, margin = margin(t = 10)),
+      axis.title = element_text(face = "bold", size = 11, color = qqq_pal$text_gray),
+      axis.text = element_text(size = 10, color = qqq_pal$text_gray),
+      axis.line.x = element_line(color = qqq_pal$secondary, size = 0.5),
+      panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed"),
+      panel.grid.minor = element_blank(),
       legend.position = "bottom",
       legend.background = element_rect(fill = "transparent", color = NA),
       legend.key = element_rect(fill = "transparent", color = NA)
     )
 }
 
-# ==========================================
-# 3. ESTABLECER COMO PREDETERMINADO
-# ==========================================
-# Esto hace que TODOS tus gráficos usen este estilo automáticamente
-theme_set(theme_tesla())
-
-# Actualizar colores por defecto de las geometrías para que coincidan
-update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
-update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
-update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
-
+theme_set(theme_QQQ())
+update_geom_defaults("line", list(color = qqq_pal$primary, size = 1.1))
+update_geom_defaults("point", list(color = qqq_pal$secondary, size = 2))
+update_geom_defaults("col", list(fill = qqq_pal$primary, color = NA))
 ```
+
 ---
 
 # 1. Introducción
 
 ## 1.1 Relevancia del Análisis
 
-[**PLACEHOLDER:** Explica la relevancia de Tesla, su importancia en el mercado global, volatilidad e impacto para inversionistas]
-
-El análisis de series de tiempo en los mercados financieros es fundamental para la toma de decisiones estratégicas. Las acciones de Tesla Inc. representan un caso de estudio particularmente interesante debido a su volatilidad inherente y su impacto significativo en los mercados globales.
+[**PLACEHOLDER:** Explica la relevancia de QQQ, su importancia en el mercado global, volatilidad e impacto para inversionistas. Incluir contexto del Nasdaq-100 ETF.]
 
 ## 1.2 Metodología: Modelos ARIMA
 
-[**PLACEHOLDER:** Introduce los conceptos fundamentales de ARIMA, su importancia y utilidad en pronósticos de series temporales]
-
-Los modelos ARIMA combinan componentes autorregresivos, de integración y de media móvil para capturar dinámicas complejas en datos temporales.
+[**PLACEHOLDER:** Introducción a los conceptos fundamentales de ARIMA (Autorregresivos, Integrados, Media Móvil), su importancia teórica y utilidad práctica en pronósticos de series temporales financieras.]
 
 ---
 
 # 2. Descripción de la Serie Temporal
-```{r serie, echo=FALSE, warning=FALSE, message=FALSE}
-library(tidyquant)
-library(tidyverse)
-library(ggplot2)
-library(zoo)
-library(plotly)
-library(quantmod)
-library(xts)
-library(fpp2)
-library(tseries)
-library(scales)
-library(knitr)
-library(kableExtra)
-library(gridExtra)
-library(grid)
 
-serie_QQQ <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2022-10-07")
+## 2.1 Contexto Histórico y Datos
+
+[**PLACEHOLDER:** Contexto completo del QQQ (Nasdaq-100 ETF), período de análisis seleccionado (octubre 2022 - presente), eventos significativos que han afectado el precio (crisis de volatilidad, cambios de política monetaria, rally de IA, etc.)]
+
+```{r cargar-datos, echo=TRUE}
+
+serie_QQQ <- getSymbols("QQQ", src="yahoo", auto.assign=FALSE, from="2015-01-01") 
 Precio <- serie_QQQ$`QQQ.Close`
+
+```
+
+### Gráfico Dinámico de la Serie
+
+```{r serie-dinamica, echo=TRUE, fig.height=7}
 datos_qqq <- data.frame(
   Fecha = index(Precio),
   Precio = as.numeric(Precio)
 )
+
 datos_qqq <- datos_qqq %>%
   mutate(Corte = as.yearqtr(Fecha)) 
+
 lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
   dt <- datos_qqq[datos_qqq$Corte <= c, ]
   dt$Frame <- as.character(c) 
@@ -794,81 +692,97 @@ lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
 })
 
 datos_animados <- dplyr::bind_rows(lista_frames)
+
 p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
-  geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
-  geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
+  geom_area(aes(frame = Frame), fill = qqq_pal$primary, alpha = 0.1, position = "identity") +
+  geom_line(aes(frame = Frame), color = qqq_pal$primary, size = 0.8) +
   labs(
     title = "Evolución Dinámica del QQQ",
-    subtitle = "Crecimiento histórico acumulado",
+    subtitle = "Crecimiento histórico acumulado desde octubre 2022",
     x = "", 
     y = "Precio (USD)"
   ) +
   scale_y_continuous(labels = scales::dollar_format()) +
-  theme_tesla() +
+  theme_QQQ() +
   theme(plot.title = element_text(size = 14))
 
 plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::layout(
     paper_bgcolor = 'rgba(0,0,0,0)',
     plot_bgcolor = 'rgba(0,0,0,0)',
-    font = list(family = "Inter, sans-serif", color = tesla_pal$text_gray),
+    font = list(family = "Inter, sans-serif", color = qqq_pal$text_gray),
     hovermode = "x unified"
   ) %>%
-  plotly::animation_opts(
-    frame = 100,       
-    transition = 0,    
-    redraw = FALSE     
-  ) %>%
-  plotly::animation_slider(
-    currentvalue = list(prefix = "Periodo: ") 
-  ) %>%
+  plotly::animation_opts(frame = 100, transition = 0, redraw = FALSE) %>%
+  plotly::animation_slider(currentvalue = list(prefix = "Período: ")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
-
-## 2.1 Contexto Histórico
-
-[**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
-
 ## 2.2 Estadísticas Descriptivas
 
-[**PLACEHOLDER:** Carga tus datos y proporciona estadísticas completas de la serie]
-
-```{r datos, echo=TRUE, eval=FALSE}
-# Cargar datos de Tesla
-datos_tesla <- read.csv("tesla_data.csv")
-summary(datos_tesla$Close)
-sd(datos_tesla$Close)
-```
-
-| Estadístico | Valor |
-|:---|--:|
-| Media | [Inserta] |
-| Mediana | [Inserta] |
-| Desv. Est. | [Inserta] |
-| Mínimo | [Inserta] |
-| Máximo | [Inserta] |
+[**PLACEHOLDER:** Estadísticas completas de la serie - Media, Mediana, Desv. Est., Rango, Cuartiles. Tablas formateadas con kableExtra.]
 
 ---
 
-# 4. Resultados del Modelo ARIMA {#resultados}
+# 4. Resultados del Modelo ARIMA
 
-## 4.1 Selección de la Ventana Temporal
+## 4.1 Partición de Datos
 
-### 4.1.1 Partición de Datos
+### 4.1.1 Estrategia Train/Test
 
-Ventana de Entrenamiento (2022-10-07 → 2025-09-30)
-Ventana de Prueba (2025-10-01 → presente)
-Tabla resumen: observaciones por conjunto
-Gráfico: Serie con partición Train/Test
+La aplicación de modelos ARIMA para pronóstico de series temporales financieras requiere una estrategia de partición temporal que respete la naturaleza secuencial de los datos y simule condiciones reales de predicción. A diferencia de problemas de clasificación o regresión donde la validación cruzada aleatoria es apropiada, en series temporales es fundamental mantener el orden cronológico de las observaciones para evitar filtración de información (data leakage) y garantizar que los datos de prueba representen verdaderas predicciones "fuera de muestra" realizadas sobre períodos no observados durante la estimación del modelo (Hyndman & Athanasopoulos, 2021).
 
+La metodología adoptada en este análisis divide el conjunto completo de observaciones en dos subconjuntos temporales contiguos: un conjunto de entrenamiento (training set) utilizado para estimar los parámetros de los modelos ARIMA candidatos, y un conjunto de prueba (test set) destinado a evaluar la capacidad predictiva sin sesgo, utilizando únicamente el horizonte de pronóstico. Esta partición temporal es particularmente importante en contextos financieros donde los regímenes de mercado cambian, los patrones de volatilidad evolucionan, y la información más reciente tiende a ser más relevante para la predicción que observaciones antiguas (Tsay, 2010).
 
-```{r parti, eval=FALSE}
-Entrenamiento=window(Precio, end="2025-09-30")
-Prueba=window(Precio, start = "2025-10-01")
+El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en los calendarios financieros y evita arbitrariedades en la selección del período de corte. La estrategia asegura que aproximadamente el 95% de los datos históricos se destinen al entrenamiento, proporcionando una base robusta para la estimación de coeficientes ARIMA, mientras que el restante 5% permite validación con un horizonte de pronóstico de 10 días hábiles, consistente con los estándares de análisis de corto plazo en mercados financieros (Chatfield, 2000).
+
+```{r particion-datos, echo=TRUE}
+Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
+Prueba <- window(Precio, start = "2025-10-01")
 ```
 
-```{r graficoparti, echo=TRUE, eval=FALSE}
+### 4.1.2 Tabla Resumen: Observaciones por Conjunto
+
+```{r particion-tabla, echo=TRUE}
+particion_resumen <- data.frame(
+  Conjunto = c("Entrenamiento", "Prueba", "Total"),
+  Período = c(
+    "07-Oct-2022 → 30-Sep-2025",
+    "01-Oct-2025 → Presente",
+    "07-Oct-2022 → Presente"
+  ),
+  `Observaciones` = c(
+    length(Entrenamiento),
+    length(Prueba),
+    length(Entrenamiento) + length(Prueba)
+  ),
+  Porcentaje = c(
+    paste0(round(length(Entrenamiento)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    paste0(round(length(Prueba)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    "100%"
+  ),
+  Propósito = c(
+    "Estimación y validación de modelo",
+    "Evaluación de capacidad predictiva",
+    ""
+  )
+)
+
+kable(particion_resumen,
+      caption = "Resumen de Partición de Datos: Entrenamiento vs Prueba",
+      align = c("l", "c", "c", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(3, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark)
+```
+
+### 4.1.3 Visualización: Serie con Partición 
+
+```{r grafico-particion, echo=TRUE, fig.height=6.5}
 df_train <- data.frame(
   Fecha = index(Entrenamiento),
   Precio = as.numeric(Entrenamiento),
@@ -882,7 +796,6 @@ df_test <- data.frame(
 )
 
 df_completo <- bind_rows(df_train, df_test)
-
 fecha_corte <- as.Date("2025-10-01")
 
 ggplot(df_completo, aes(x = Fecha, y = Precio)) +
@@ -923,185 +836,1002 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
     caption = paste0("Fuente: Yahoo Finance | Período: ", 
                      min(df_completo$Fecha), " a ", max(df_completo$Fecha))
   ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.background = element_rect(fill = "transparent", color = NA),
-    panel.background = element_rect(fill = "transparent", color = NA),
-    
-    plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark,
-                              margin = margin(b = 5)),
-    plot.subtitle = element_text(size = 11, color = qqq_pal$secondary,
-                                 margin = margin(b = 15)),
-    plot.caption = element_text(size = 9, color = qqq_pal$text_gray,
-                                margin = margin(t = 15), hjust = 0),
-    
-    axis.title.y = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
-    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    
-    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
-    panel.grid.minor = element_blank(),
-    
-    plot.margin = margin(20, 25, 15, 15)
-  )
-
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-### 4.1.2 Justificación de la Partición
-
-Cumplimiento del requisito mínimo (60 períodos)
-Tamaño del test set para validar 10 pronósticos
-Proporción train/test (~95%/5%)
-
-## 4.2 Análisis de Estacionariedad {#estacionariedad}
-
-El primer paso en la metodología Box-Jenkins consiste en verificar si la serie 
-temporal es estacionaria, condición necesaria para la aplicación de modelos ARIMA.
-
-### 4.2.1 Serie en Niveles (Original)
-
-Se evaluó la estacionariedad de la serie de precios de cierre mediante dos 
-enfoques complementarios: análisis visual de la función de autocorrelación (ACF) 
-y la prueba formal de Dickey-Fuller Aumentada (ADF).
-
-**Análisis Visual: Función de Autocorrelación**
-
-```{r acf, echo=TRUE, eval=FALSE}
-
-```
-
-
-**Prueba Formal: Test de Dickey-Fuller Aumentado**
-
-[INSERTAR TABLA ADF]
-
-[INSERTAR CONCLUSIÓN: Serie NO estacionaria]
+La partición temporal establecida asegura cumplimiento con el requisito académico de mínimo 60 períodos de entrenamiento—el conjunto cuenta con 746 observaciones diarias (aproximadamente 3 años de negociación). El conjunto de prueba, con 40+ observaciones, proporciona suficiente horizonte para validar los 10 pronósticos solicitados con márgenes de seguridad estadística. La partición es no aleatoria y respeta el orden temporal, preservando autocorrelaciones y dinámicas de corto plazo que caracterizan a series financieras.
 
 ---
 
-### 4.2.2 Aplicación de Diferenciación
+## 4.2 Análisis de Estacionariedad
 
-Dado que la serie en niveles no es estacionaria, se procede a aplicar 
-diferenciación de primer orden para estabilizar la media.
+Una serie temporal es estacionaria cuando sus propiedades estadísticas fundamentales—media, varianza y función de autocorrelación—no dependen del tiempo (Hamilton, 1994). En contraste, una serie no estacionaria exhibe tendencias, cambios en nivel o varianza que evolucionan sistemáticamente, lo que viola supuestos críticos del modelo ARIMA. La identificación de estacionariedad es el primer paso metodológico en la aproximación Box-Jenkins, ya que los modelos ARIMA están diseñados específicamente para capturar estructura en series estacionarias; intentar ajustar ARIMA a datos no estacionarios produce coeficientes espurios y pronósticos infiables (Brockwell & Davis, 2016).
 
-[INSERTAR CÓDIGO Y GRÁFICO COMPARATIVO]
+La detección de no-estacionariedad se realiza mediante dos enfoques complementarios: análisis visual de la función de autocorrelación (ACF) y pruebas estadísticas formales. Desde la perspectiva visual, una serie no estacionaria presenta ACF que decae lentamente a cero, permaneciendo significativamente diferente de cero incluso en rezagos lejanos (Chatfield, 2000). Esta característica refleja que la correlación entre observaciones distantes sigue siendo elevada, indicador de raíz unitaria. Formalmente, la prueba Aumentada de Dickey-Fuller (ADF) contrasta la hipótesis nula de presencia de raíz unitaria contra la alternativa de estacionariedad, permitiendo decisión estadística sobre la necesidad de diferenciación (Dickey & Fuller, 1979).
 
----
+Cuando se identifica no-estacionariedad, la transformación mediante diferenciación de orden dd
+d convierte la serie en estacionaria. La diferenciación de primer orden ($d=1$) calcula cambios diarios: $\nabla y_t = y_t - y_{t-1}$, removiendo tendencias lineales. Para el QQQ, donde el componente de tendencia es claramente visible, una única diferenciación típicamente es suficiente para alcanzar estacionariedad en series financieras (Tsay, 2010).
+
+### 4.2.1 Serie en Niveles: Identificación de No-Estacionariedad
+
+La serie original de precios del QQQ exhibe un patrón visual de tendencia alcista con fluctuaciones amplias alrededor de trayectoria creciente. El gráfico de autocorrelación revela el síntoma clásico de no-estacionariedad:
+
+```{r acf-original, echo=TRUE, fig.height=5.5}
+acf_data <- acf(Entrenamiento, lag.max = 30, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = acf_data$lag[-1], 
+  ACF = acf_data$acf[-1]
+)
+
+n <- length(Entrenamiento)
+limite_sup <- qnorm(0.975) / sqrt(n)
+limite_inf <- -limite_sup
+
+ggplot(df_acf, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$primary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$primary, size = 2) +
+  geom_hline(yintercept = limite_sup, linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf, linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf, ymax = limite_sup,
+           fill = qqq_pal$secondary, alpha = 0.1) +
+  annotate("label", x = 20, y = 0.5,
+           label = "Decaimiento lento\n→ Serie NO estacionaria",
+           fill = qqq_pal$negative, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.1, 1.05), breaks = seq(0, 1, 0.25)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie en Niveles",
+    subtitle = "QQQ: Precio de cierre | Datos de entrenamiento",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas azules: Límites de significancia al 95%"
+  ) +
+  theme_QQQ()
+```
+
+La autocorrelación muestral permanece elevada (>0.85) incluso en rezagos distantes (lag 30). Este decaimiento lento es el indicador clásico de que la serie contiene raíz unitaria y requiere diferenciación (Brockwell & Davis, 2016). Adicionalmente, observamos que casi todos los rezagos caen fuera de las bandas de confianza, confirmando correlación sistemática estructural en la serie.
+
+### 4.2.2 Prueba: Test de Dickey-Fuller Aumentado (ADF)
+
+La prueba ADF contrasta formalmente: 
+$$H_0: \text{Serie tiene raíz unitaria (no-estacionaria)}$$
+$$H_1: \text{Serie es estacionaria}$$
+Un p-valor > 0.05 conduce al no-rechazo de $H_0$, confirmando no-estacionariedad:
+
+```{r adf-original, echo=TRUE}
+adf_resultado <- adf.test(Entrenamiento)
+
+tabla_adf <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Nivel de Significancia (α)",
+              "Hipótesis Nula (H₀)",
+              "Decisión"),
+  Valor = c(round(adf_resultado$statistic, 4),
+            adf_resultado$parameter,
+            round(adf_resultado$p.value, 4),
+            "0.05",
+            "Serie tiene raíz unitaria",
+            ifelse(adf_resultado$p.value > 0.05, 
+                   "No rechazar H₀", "Rechazar H₀")),
+  Interpretación = c("Valor del estadístico de prueba",
+                     "Rezagos incluidos en el test",
+                     "Probabilidad bajo H₀",
+                     "Umbral de decisión",
+                     "La serie NO es estacionaria",
+                     ifelse(adf_resultado$p.value > 0.05,
+                            "Serie NO estacionaria",
+                            "Serie estacionaria ✓"))
+)
+
+kable(tabla_adf, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie en Niveles",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$negative, background = "#ffe8e0") %>% 
+  row_spec(6, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
+```
+
+El estadístico ADF de -3.0468 es mayor (menos negativo) que el valor crítico aproximado de -3.43 para significancia al 5%. Con p-valor de 0.1352 > 0.05, no se rechaza $H_0$: la serie de precios en niveles es no-estacionaria (DickeyFuller, 1979). Esta evidencia estadística justifica la aplicación de diferenciación.
+
+### 4.2.3 Aplicación de Diferenciación de Primer Orden
+
+La transformación $\nabla y_t = y_t - y_{t-1}$ convierte precios en cambios diarios, removiendo la tendencia de largo plazo:
+
+```{r diferenciacion, echo=TRUE}
+dif_Entrenamiento <- diff(Entrenamiento) %>% na.omit()
+```
+
+```{r grafico-diferenciada, echo=TRUE, fig.height=6}
+df_diff <- data.frame(
+  Fecha = index(dif_Entrenamiento),
+  Valor = as.numeric(dif_Entrenamiento)
+)
+
+ggplot(df_diff, aes(x = Fecha, y = Valor)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  annotate("label", 
+           x = as.Date("2023-06-01"), 
+           y = max(df_diff$Valor) * 0.85,
+           label = paste0("Media ≈ ", round(mean(df_diff$Valor), 3)),
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.03))) +
+  scale_y_continuous(labels = scales::dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Serie Diferenciada de Primer Orden (d = 1)",
+    subtitle = "QQQ: Cambios diarios en precio de cierre | Datos de entrenamiento",
+    x = NULL,
+    y = "Cambio Diario (USD)",
+    caption = paste0("Observaciones: ", nrow(df_diff), 
+                     " | Período: ", min(df_diff$Fecha), " a ", max(df_diff$Fecha))
+  ) +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La serie diferenciada oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La volatilidad varía a lo largo del período—períodos de calma alternando con volatilidad elevada—pero la media permanece relativamente constante, característica fundamental de estacionariedad (Hamilton, 1994).
 
 ### 4.2.3 Verificación Post-Diferenciación
 
-[INSERTAR GRÁFICO ACF - Serie diferenciada]
+La validación de estacionariedad post-diferenciación combina análisis ACF y test ADF:
 
-[INSERTAR TABLA ADF - Serie diferenciada]
+```{r acf-diferenciada, echo=TRUE, fig.height=5.5}
+acf_diff_data <- acf(dif_Entrenamiento, lag.max = 30, plot = FALSE)
 
-**Conclusión:** Con un p-valor < 0.05, se rechaza H₀ y se confirma que la serie 
-diferenciada ES estacionaria. Por tanto, el orden de integración es **d = 1**.
+df_acf_diff <- data.frame(
+  Lag = acf_diff_data$lag[-1],
+  ACF = acf_diff_data$acf[-1]
+)
+
+n_diff <- length(dif_Entrenamiento)
+limite_sup_diff <- qnorm(0.975) / sqrt(n_diff)
+limite_inf_diff <- -limite_sup_diff
+
+ggplot(df_acf_diff, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$secondary, size = 2) +
+  geom_hline(yintercept = limite_sup_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf_diff, ymax = limite_sup_diff,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  annotate("label", x = 22, y = 0.12,
+           label = "Autocorrelaciones dentro\nde bandas → Estacionaria ✓",
+           fill = qqq_pal$positive, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.2), breaks = seq(-0.1, 0.2, 0.05)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie Diferenciada",
+    subtitle = "QQQ: Cambios diarios | Verificación de estacionariedad post-diferenciación",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas verdes: Límites de significancia al 95%"
+  ) +
+  theme_QQQ()
+```
+
+La mayoría de autocorrelaciones caen dentro de las bandas de confianza (región verde). Solo algunos rezagos (principalmente lag 1, 18, 20) muestran significancia marginal, pero el patrón general indica ausencia de raíz unitaria. Este contraste con el ACF de la serie original es dramático y valida la diferenciación.
+
+```{r adf-diferenciada, echo=TRUE}
+adf_diff_resultado <- adf.test(dif_Entrenamiento)
+
+tabla_adf_diff <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Nivel de Significancia (α)",
+              "Hipótesis Nula (H₀)",
+              "Decisión"),
+  Valor = c(round(adf_diff_resultado$statistic, 4),
+            adf_diff_resultado$parameter,
+            round(adf_diff_resultado$p.value, 4),
+            "0.05",
+            "Serie tiene raíz unitaria",
+            ifelse(adf_diff_resultado$p.value < 0.05, 
+                   "Rechazar H₀", "No rechazar H₀")),
+  Interpretación = c("Valor del estadístico de prueba",
+                     "Rezagos incluidos en el test",
+                     "Probabilidad bajo H₀",
+                     "Umbral de decisión",
+                     "La serie NO es estacionaria",
+                     ifelse(adf_diff_resultado$p.value < 0.05,
+                            "Serie ES estacionaria ✓",
+                            "Serie NO estacionaria"))
+)
+
+kable(tabla_adf_diff, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie Diferenciada (d=1)",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$positive, background = "#e8f5e9") %>%
+  row_spec(6, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
+```
+
+El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 < 0.05, se rechaza $H_0$ con confianza
+. La serie diferenciada es estacionaria (Dickey & Fuller, 1979). Por tanto, el parámetro de integración en ARIMA es $d=1$: una única diferenciación convierte la serie no-estacionaria de precios en una serie estacionaria de cambios diarios, cumpliendo con el supuesto fundamental requerido por la metodología Box-Jenkins (Box & Jenkins, 1976).
 
 ---
 
-## 4.3 Identificación del Modelo {#identificacion}
+## 4.3 Identificación del Modelo
 
-### 4.3.1 Análisis ACF/PACF
+Una vez verificada la estacionariedad de la serie mediante diferenciación de primer orden, el siguiente paso metodológico consiste en identificar los órdenes $p$ (autorregresivo) y $q$ (media móvil) de la estructura $ARIMA(p,d,q)$. Este proceso de identificación representa el corazón del método Box-Jenkins: utiliza funciones de autocorrelación muestral para extraer información sobre la dependencia temporal que la serie diferenciada contiene (Box & Jenkins, 1976; Brockwell & Davis, 2016).
 
-Con la serie diferenciada estacionaria, se analizan los correlogramas ACF y PACF 
-para identificar los órdenes p (AR) y q (MA) del modelo.
+La función de autocorrelación (ACF) cuantifica correlaciones lineales entre pares de observaciones separadas por rezagos 1, 2, 3, ... k. Para una serie estacionaria, el $ACF$ tiende hacia cero conforme aumenta el rezago, decayendo eventualmente dentro de bandas de confianza. La estructura del decaimiento revela información sobre la naturaleza del componente media móvil: si el $ACF$ presenta picos significativos aislados en los primeros rezagos (por ejemplo, solo lag 1 o lag 2 fuera de bandas) y luego decae rápidamente a cero, esto sugiere que un modelo $MA(q)$ con q pequeño puede capturar adecuadamente la dinámica (Hamilton, 1994; Tsay, 2010).
 
-[INSERTAR GRÁFICO DUAL ACF/PACF]
+La función de autocorrelación parcial (PACF) cuantifica correlaciones después de remover el efecto de rezagos intermedios. Matemáticamente, la autocorrelación parcial en rezago k se define como el coeficiente autorregresivo en una regresión de la serie contra sí misma en rezagos 1 hasta k, habiendo eliminado variabilidad explicada por rezagos 1 hasta k-1. La $PACF$ revela información complementaria sobre el componente autorregresivo: si la $PACF$ presenta picos significativos decayendo lentamente (varios rezagos significativos) mientras el $ACF$ decae rápidamente, esto sugiere un modelo $AR(p)$ con $p$ moderado (Box & Jenkins, 1976; Hastie et al., 2009).
 
-[INSERTAR TABLA DE PATRONES IDENTIFICADOS]
+### 4.3.1 Análisis ACF/PACF - Serie Diferenciada
+
+```{r acf-pacf-dual, echo=TRUE, fig.height=6}
+acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+pacf_data <- pacf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = as.numeric(acf_data$lag[-1]),
+  Valor = as.numeric(acf_data$acf[-1])
+)
+
+df_pacf <- data.frame(
+  Lag = as.numeric(pacf_data$lag),
+  Valor = as.numeric(pacf_data$acf)
+)
+
+n <- length(dif_Entrenamiento)
+limite <- qnorm(0.975) / sqrt(n)
+
+p_acf <- ggplot(df_acf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(title = "ACF - Serie Diferenciada",
+       subtitle = "Identificación del orden q (MA)",
+       x = "Rezago (Lag)",
+       y = "ACF") +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 12))
+
+p_pacf <- ggplot(df_pacf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(title = "PACF - Serie Diferenciada",
+       subtitle = "Identificación del orden p (AR)",
+       x = "Rezago (Lag)",
+       y = "PACF") +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 12))
+
+grid.arrange(p_acf, p_pacf, ncol = 2)
+```
+
+El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del $QQQ$ revela patrones que son característicos de mercados financieros eficientes. En el $ACF$ (panel izquierdo), se observa que la mayoría de autocorrelaciones caen dentro de las bandas de confianza teóricas para todos los rezagos hasta lag 28. Esta ausencia sistemática de autocorrelaciones significativas se interpreta según la hipótesis de mercado eficiente (EMH): los precios de activos seguros incorporan información disponible públicamente, dejando en los retornos una estructura prácticamente aleatoria sin dependencias predecibles (Fama, 1970; Malkiel, 1973). La presencia de algunas autocorrelaciones leves (por ejemplo, alrededor de lag 17-20) no alcanza magnitud para ser interpretada como estructura genuina sino más bien como ruido muestral esperado en series finitas.
+
+El $PACF$ (panel derecho) exhibe un patrón complementario: nuevamente, la mayoría de autocorrelaciones parciales se ubican dentro de bandas de confianza, con excepción de quizás lag 1 que muestra una pequeña autocorrelación parcial negativa. En conjunto, el análisis $ACF/PACF$ sugiere que la serie diferenciada es cercana a ruido blanco, es decir, una secuencia de innovaciones aleatorias sin estructura de dependencia predecible. Este hallazgo tiene implicaciones profundas: implica que cualquier modelo $ARIMA$ que intente capturar estructura en precios del $QQQ$ estará fundamentalmente limitado en su capacidad predictiva, capturando quizás un componente pequeño de ineficiencia de mercado de corto plazo más que una estructura genuina de largo plazo (Tsay, 2010; Hamilton, 1994).
+
+### 4.3.2 Modelos ARIMA Candidatos
+
+Dada la evidencia de escasa estructura predecible en los correlogramas, la identificación manual procede evaluando un conjunto de modelos candidatos que van desde el más simple (ARIMA(0,1,0), random walk puro) hasta especificaciones progresivamente más complejas. La estrategia de selección combina tres criterios complementarios: (i) plausibilidad teórica basada en observación de $ACF/PACF$, (ii) parsimonia (principio de máxima simplicidad), y (iii) comparación formal mediante criterios de información que balancean bondad de ajuste contra número de parámetros (Hyndman & Athanasopoulos, 2021).
+
+```{r modelos-candidatos-tabla, echo=TRUE}
+tabla_candidatos <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1)",
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Tipo = c("Random Walk",
+           "auto.arima()",
+           "Manual",
+           "Manual",
+           "Manual",
+           "Exploratorio"),
+  `Observación ACF/PACF` = c(
+    "Patrón general cercano a ruido blanco",
+    "Selección automática por AICc",
+    "Posible estructura en lags 1-2 del PACF",
+    "Posible estructura en lags 1-2 del ACF",
+    "Combinación de estructuras en ambos correlogramas",
+    "Pico marginal en lag 3 de ambos correlogramas"
+  ),
+  Justificación = c(
+    "Benchmark obligatorio: hipótesis de mercado eficiente",
+    "Referencia algorítmica para validar selección manual",
+    "Extensión AR(2) para capturar persistencia de corto plazo",
+    "Extensión MA(2) para capturar estructura de media móvil",
+    "Modelo simétrico que combina dinámicas AR y MA",
+    "Evaluar si rezagos marginales aportan capacidad predictiva"
+  )
+)
+
+kable(tabla_candidatos,
+      caption = "Modelos ARIMA Candidatos para Evaluación",
+      align = c("l", "c", "l", "l"),
+      col.names = c("Modelo", "Tipo", "Observación en ACF/PACF", "Justificación")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, color = qqq_pal$secondary) %>%
+  column_spec(3, width = "18em") %>%
+  column_spec(4, width = "22em") %>%
+  row_spec(2, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
+```
+
+La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$—conocido como random walk en finanzas—representa la hipótesis nula de mercado eficiente: no existe estructura explorable, y el mejor pronóstico del precio mañana es simplemente el precio hoy más una innovación aleatoria. Este modelo actúa como benchmark obligatorio contra el cual se evalúan modelos más sofisticados (Fama, 1970; Malkiel, 1973).
+El $ARIMA(1,1,1)$ fue seleccionado por la función `auto.arima()` que utiliza criterios de información (Akaike, BIC) para seleccionar automáticamente órdenes. Este modelo es el más parsimonioso que añade estructura genuina: un componente autorregresivo captura dependencia del precio rezagado un período, mientras que un componente media móvil captura el efecto de innovaciones rezagadas. La función de verosimilitud bajo $ARIMA(1,1,1)$ captura un componente adicional de dependencia que no existe en el random walk puro, aunque sea pequeño (Tsay, 2010).
+El $ARIMA(2,1,1)$ extiende el componente $AR$ a dos rezagos para evaluar si la persistencia de corto plazo requiere más de un rezago histórico. El $ARIMA(1,1,2)$ extiende en cambio el componente $MA$, explorando si el efecto de innovaciones requiere dos períodos de memoria. El $ARIMA(2,1,2)$ representa un modelo simétrico que combina ambas dinámicas. El $ARIMA(3,1,3)$ es explorador: examina si picos marginales observados alrededor de lag 3 en los correlogramas representan estructura genuina o simplemente ruido muestral (Hamilton, 1994; Box & Jenkins, 1976).
 
 ---
 
-### 4.3.2 Modelos Candidatos
+## 4.4 Estimación y Comparación de Modelos
 
-Basándose en el análisis visual y la función `auto.arima()`, se proponen los 
-siguientes modelos candidatos:
+### 4.4.1 Criterios de Información
+```{r ajuste-modelos, echo=TRUE}
+ModeloQA <- auto.arima(Entrenamiento)
+modeloQ1 <- Arima(Entrenamiento, order = c(3,1,3))
+modeloQ2 <- Arima(Entrenamiento, order = c(0,1,0))
+modeloQ3 <- Arima(Entrenamiento, order = c(2,1,1))
+modeloQ4 <- Arima(Entrenamiento, order = c(1,1,2))
+modeloQ5 <- Arima(Entrenamiento, order = c(2,1,2))
+```
 
-[INSERTAR TABLA DE MODELOS CANDIDATOS]
+
+```{r criterios-informacion, echo=TRUE}
+comparacion_IC <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Parametros = c(length(coef(modeloQ2)) + 1,
+                 length(coef(ModeloQA)) + 1,
+                 length(coef(modeloQ3)) + 1,
+                 length(coef(modeloQ4)) + 1,
+                 length(coef(modeloQ5)) + 1,
+                 length(coef(modeloQ1)) + 1),
+  AIC = round(c(AIC(modeloQ2), 
+                AIC(ModeloQA), 
+                AIC(modeloQ3), 
+                AIC(modeloQ4),
+                AIC(modeloQ5),
+                AIC(modeloQ1)), 2),
+  AICc = round(c(modeloQ2$aicc, 
+                 ModeloQA$aicc, 
+                 modeloQ3$aicc, 
+                 modeloQ4$aicc,
+                 modeloQ5$aicc,
+                 modeloQ1$aicc), 2),
+  BIC = round(c(BIC(modeloQ2), 
+                BIC(ModeloQA), 
+                BIC(modeloQ3), 
+                BIC(modeloQ4),
+                BIC(modeloQ5),
+                BIC(modeloQ1)), 2)
+)
+
+comparacion_IC <- comparacion_IC %>%
+  arrange(AICc) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, Parametros, AIC, AICc, BIC)
+
+kable(comparacion_IC,
+      caption = "Comparación de Modelos por Criterios de Información",
+      align = c("c", "l", "c", "c", "c", "c"),
+      col.names = c("Ranking", "Modelo", "# Parámetros", "AIC", "AICc", "BIC")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(5, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark) %>%
+  footnote(general = "Ordenado por AICc (menor es mejor). AICc es el criterio preferido para muestras finitas.",
+           general_title = "Nota: ")
+```
+
+### 4.4.2 Métricas de Precisión en Entrenamiento
+
+
+```{r metricas-precision, echo=TRUE}
+acc_QA <- accuracy(ModeloQA)
+acc_Q1 <- accuracy(modeloQ1)
+acc_Q2 <- accuracy(modeloQ2)
+acc_Q3 <- accuracy(modeloQ3)
+acc_Q4 <- accuracy(modeloQ4)
+acc_Q5 <- accuracy(modeloQ5)
+
+comparacion_accuracy <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  ME = round(c(acc_Q2["Training set", "ME"], 
+               acc_QA["Training set", "ME"], 
+               acc_Q3["Training set", "ME"], 
+               acc_Q4["Training set", "ME"],
+               acc_Q5["Training set", "ME"],
+               acc_Q1["Training set", "ME"]), 4),
+  RMSE = round(c(acc_Q2["Training set", "RMSE"], 
+                 acc_QA["Training set", "RMSE"], 
+                 acc_Q3["Training set", "RMSE"], 
+                 acc_Q4["Training set", "RMSE"],
+                 acc_Q5["Training set", "RMSE"],
+                 acc_Q1["Training set", "RMSE"]), 4),
+  MAE = round(c(acc_Q2["Training set", "MAE"], 
+                acc_QA["Training set", "MAE"], 
+                acc_Q3["Training set", "MAE"], 
+                acc_Q4["Training set", "MAE"],
+                acc_Q5["Training set", "MAE"],
+                acc_Q1["Training set", "MAE"]), 4),
+  MAPE = round(c(acc_Q2["Training set", "MAPE"], 
+                 acc_QA["Training set", "MAPE"], 
+                 acc_Q3["Training set", "MAPE"], 
+                 acc_Q4["Training set", "MAPE"],
+                 acc_Q5["Training set", "MAPE"],
+                 acc_Q1["Training set", "MAPE"]), 4),
+  MASE = round(c(acc_Q2["Training set", "MASE"], 
+                 acc_QA["Training set", "MASE"], 
+                 acc_Q3["Training set", "MASE"], 
+                 acc_Q4["Training set", "MASE"],
+                 acc_Q5["Training set", "MASE"],
+                 acc_Q1["Training set", "MASE"]), 4)
+)
+
+comparacion_accuracy <- comparacion_accuracy %>%
+  arrange(RMSE) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, ME, RMSE, MAE, MAPE, MASE)
+
+kable(comparacion_accuracy,
+      caption = "Métricas de Precisión sobre Datos de Entrenamiento",
+      align = c("c", "l", rep("c", 5))) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(4, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE) %>%
+  footnote(general = "ME: Error Medio | RMSE: Raíz del Error Cuadrático Medio | MAE: Error Absoluto Medio | MAPE: Error Porcentual (%) | MASE: Error Escalado",
+           general_title = "Métricas: ")
+```
 
 ---
 
-## 4.4 Estimación y Comparación de Modelos {#comparacion}
 
-### 4.4.1 Ajuste de Modelos
+## 4.5 Diagnóstico de Residuos
 
-[CÓDIGO Y RESUMEN DE CADA MODELO]
+El modelo seleccionado debe tener residuos que se comporten como ruido blanco 
+(media cero, varianza constante, sin autocorrelación).
 
+### 4.5.1 Análisis Gráfico de Residuos
+
+```{r residuos-grafico, echo=TRUE}
+residuos <- residuals(ModeloQA)
+
+df_residuos <- data.frame(
+  Fecha = index(residuos),
+  Residuo = as.numeric(residuos)
+)
+
+
+p1 <- ggplot(df_residuos, aes(x = Fecha, y = Residuo)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = c(-2*sd(df_residuos$Residuo), 2*sd(df_residuos$Residuo)), 
+             linetype = "dotted", color = qqq_pal$negative, linewidth = 0.5) +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  labs(title = "Residuos del Modelo en el Tiempo",
+       subtitle = "Verificación de media cero y varianza constante",
+       x = NULL,
+       y = "Residuo") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+p1
+acf_resid <- acf(residuos, lag.max = 25, plot = FALSE)
+df_acf_resid <- data.frame(
+  Lag = as.numeric(acf_resid$lag[-1]),
+  ACF = as.numeric(acf_resid$acf[-1])
+)
+
+n_resid <- length(residuos)
+limite_resid <- qnorm(0.975) / sqrt(n_resid)
+
+p2 <- ggplot(df_acf_resid, aes(x = Lag, y = ACF)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite_resid, limite_resid), linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite_resid, ymax = limite_resid,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$secondary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 25, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.15)) +
+  labs(title = "ACF de Residuos",
+       subtitle = "Verificación de independencia",
+       x = "Rezago (Lag)",
+       y = "ACF") +
+  theme_QQQ()
+p2
+p3 <- ggplot(df_residuos, aes(x = Residuo)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 bins = 35, fill = qqq_pal$primary, 
+                 color = "white", alpha = 0.7) +
+  geom_density(color = qqq_pal$secondary, linewidth = 1) +
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(df_residuos$Residuo), 
+                            sd = sd(df_residuos$Residuo)),
+                color = qqq_pal$negative, linewidth = 1, linetype = "dashed") +
+  labs(title = "Distribución de Residuos",
+       subtitle = "Verificación de normalidad",
+       x = "Residuo",
+       y = "Densidad",
+       caption = "Línea roja punteada: distribución normal teórica") +
+  theme_QQQ()
+p3
+```
+
+### 4.5.2 Q-Q Plot de Normalidad
+
+```{r residuos-qq, echo=TRUE}
+
+residuos_std <- scale(residuals(ModeloQA))
+df_qq <- data.frame(residuos = residuos_std)
+
+n <- length(residuos_std)
+cuantiles_teoricos <- qnorm(ppoints(n))
+cuantiles_observados <- sort(residuos_std)
+df_qq_line <- data.frame(x = cuantiles_teoricos, y = cuantiles_observados)
+
+fit <- lm(y ~ x, data = df_qq_line)
+df_qq_line$fitted <- predict(fit, df_qq_line)
+
+df_qq_puntos <- data.frame(
+  x = cuantiles_teoricos,
+  y = cuantiles_observados,
+  label = paste0(
+    "Cuantil teórico: ", round(cuantiles_teoricos, 3), "<br>",
+    "Residuo observado: ", round(cuantiles_observados, 3)
+  )
+)
+
+p_qq <- ggplot() +
+  geom_line(data = df_qq_line, aes(x = x, y = fitted), 
+            color = qqq_pal$negative, linewidth = 1.1) +
+  geom_point(data = df_qq_puntos, aes(x = x, y = y, text = label),
+             color = qqq_pal$primary, size = 2.5, alpha = 0.75) +
+  labs(
+    title = "Q-Q Plot de Residuos Estandarizados",
+    subtitle = "Verificación de normalidad del modelo | Línea roja = distribución normal teórica",
+    x = "Cuantiles Teóricos (Distribución Normal Estándar)",
+    y = "Cuantiles Observados (Residuos Estandarizados)",
+    caption = "✓ Puntos alineados con la línea roja indican buenos residuos normales"
+  ) +
+  theme_QQQ() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", color = qqq_pal$primary),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$text_gray, margin = margin(b = 8)),
+    plot.caption = element_text(size = 9, color = qqq_pal$secondary, face = "italic"),
+    panel.background = element_rect(fill = "#f8f9fa", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.line = element_line(color = qqq_pal$text_gray, linewidth = 0.5),
+    panel.grid.major = element_line(color = "#e8eef5", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+plotly::ggplotly(p_qq, tooltip = "text") %>%
+  plotly::layout(
+    font = list(family = "Arial, sans-serif", size = 11, color = qqq_pal$text_dark),
+    plot_bgcolor = "#f8f9fa",
+    paper_bgcolor = "white",
+    xaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    yaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    hovermode = "closest",
+    margin = list(l = 60, r = 30, t = 80, b = 60)
+  ) %>%
+  plotly::config(
+    displayModeBar = TRUE,
+    displaylogo = FALSE,
+    collaborate = FALSE,
+    modeBarButtonsToRemove = c("lasso2d", "select2d"),
+    toImageButtonOptions = list(
+      format = "png",
+      filename = "qq_plot_residuos",
+      height = 600,
+      width = 900,
+      scale = 2
+    )
+  )
+```
+
+### 4.5.3 Test de Independencia (Ljung-Box)
+
+```{r residuos-tabla, echo=TRUE}
+lb_test <- Box.test(residuals(ModeloQA), lag = 10, type = "Ljung-Box")
+
+tabla_ljung <- data.frame(
+  Métrica = c("Estadístico Ljung-Box", 
+              "Grados de Libertad", 
+              "P-valor",
+              "Conclusión"),
+  Valor = c(
+    round(lb_test$statistic, 4),
+    lb_test$parameter,
+    round(lb_test$p.value, 4),
+    ifelse(lb_test$p.value > 0.05, 
+           "Residuos son ruido blanco ✓", 
+           "Posible autocorrelación residual")
+  )
+)
+
+kable(tabla_ljung, 
+      caption = "Test de Ljung-Box: Independencia de Residuos",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(4, bold = TRUE, 
+           background = ifelse(lb_test$p.value > 0.05, "#e8f5e9", "#ffe8e0"),
+           color = qqq_pal$text_dark)
+```
 ---
 
-### 4.4.2 Criterios de Información
+## 4.6 Pronóstico y Evaluación
 
-[INSERTAR TABLA COMPARATIVA: AIC, AICc, BIC]
+```{r pronostico-generacion, echo=TRUE}
+pronostico <- forecast(ModeloQA, h = 10, level = 95)
 
----
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
 
-### 4.4.3 Métricas de Precisión
+fechas_pronostico <- c()
+fecha_actual <- ultima_fecha
+dias_agregados <- 0
 
-[INSERTAR TABLA accuracy()]
+while(dias_agregados < 10) {
+  fecha_actual <- fecha_actual + 1
+  if (!(weekdays(fecha_actual) %in% c("sábado", "domingo", "Saturday", "Sunday"))) {
+    fechas_pronostico <- c(fechas_pronostico, fecha_actual)
+    dias_agregados <- dias_agregados + 1
+  }
+}
 
----
+fechas_pronostico <- as.Date(fechas_pronostico, origin = "1970-01-01")
+```
 
-## 4.5 Diagnóstico de Residuos {#diagnostico}
+### 4.6.1 Tabla de Pronósticos
 
-### 4.5.1 Análisis Gráfico
+```{r tabla-pronosticos, echo=TRUE}
+tabla_pronostico <- data.frame(
+  Día = 1:10,
+  Fecha = as.character(fechas_pronostico),
+  Pronóstico = round(as.numeric(pronostico$mean), 2),
+  `Límite Inferior` = round(as.numeric(pronostico$lower), 2),
+  `Límite Superior` = round(as.numeric(pronostico$upper), 2),
+  `Amplitud IC` = round(as.numeric(pronostico$upper) - as.numeric(pronostico$lower), 2)
+)
 
-[INSERTAR checkresiduals() PERSONALIZADO]
+kable(tabla_pronostico,
+      caption = "Pronósticos del Modelo ARIMA(1,1,1) con Drift - Intervalo de Confianza al 95%",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Pronóstico (USD)", "Lím. Inferior", "Lím. Superior", "Amplitud IC")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$primary, background = "#f0f9ff") %>%
+  column_spec(4, color = qqq_pal$negative) %>%
+  column_spec(5, color = qqq_pal$positive) %>%
+  column_spec(6, color = "#666666") %>%
+  footnote(general = "IC = Intervalo de Confianza. La amplitud del intervalo aumenta con el horizonte de pronóstico.",
+           general_title = "Nota: ")
+```
 
----
+### 4.6.2 Gráfico: Pronóstico con Intervalo de Confianza
 
-### 4.5.2 Prueba de Ljung-Box
+```{r grafico-pronostico, echo=TRUE, fig.height=6.5}
+n_historico <- 100
+datos_hist <- tail(Entrenamiento, n_historico)
 
-[INSERTAR TABLA LJUNG-BOX]
+df_historico <- data.frame(
+  Fecha = as.Date(index(datos_hist)),
+  Precio = as.numeric(datos_hist),
+  Tipo = "Histórico"
+)
 
-[CONCLUSIÓN: ¿Residuos son ruido blanco?]
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
+fechas_forecast <- ultima_fecha + 1:10
 
----
+df_pronostico <- data.frame(
+  Fecha = fechas_forecast,
+  Precio = as.numeric(pronostico$mean),
+  Lower = as.numeric(pronostico$lower),
+  Upper = as.numeric(pronostico$upper)
+)
 
-## 4.6 Pronóstico y Evaluación {#pronostico}
+punto_conexion <- data.frame(
+  Fecha = ultima_fecha,
+  Precio = as.numeric(tail(datos_hist, 1)),
+  Lower = as.numeric(tail(datos_hist, 1)),
+  Upper = as.numeric(tail(datos_hist, 1))
+)
 
-### 4.6.1 Generación de Pronósticos
+df_pronostico_completo <- bind_rows(punto_conexion, df_pronostico)
 
-[INSERTAR TABLA DE PRONÓSTICOS]
+ggplot() +
+  geom_ribbon(data = df_pronostico_completo,
+              aes(x = Fecha, ymin = Lower, ymax = Upper),
+              fill = qqq_pal$secondary, alpha = 0.2) +
+  geom_line(data = df_historico,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$primary, linewidth = 0.7) +
+  geom_line(data = df_pronostico_completo,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(data = df_pronostico %>% filter(Fecha == max(Fecha)),
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$secondary, size = 2.5) +
+  geom_point(data = punto_conexion,
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$primary, size = 2.5) +
+  geom_vline(xintercept = ultima_fecha, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.5) +
+  annotate("label",
+           x = min(df_historico$Fecha) + 15,
+           y = max(df_historico$Precio, df_pronostico$Upper) * 0.99,
+           label = "Entrenamiento",
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  annotate("label",
+           x = max(df_pronostico$Fecha) - 3,
+           y = max(df_pronostico$Upper) * 1.01,
+           label = "Pronóstico",
+           fill = qqq_pal$secondary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  scale_x_date(date_breaks = "3 weeks", date_labels = "%d %b",
+               expand = expansion(mult = c(0.02, 0.08))) +
+  scale_y_continuous(labels = scales::dollar_format(),
+                     expand = expansion(mult = c(0.02, 0.05))) +
+  labs(title = "Pronóstico ARIMA(1,1,1) con Drift",
+       subtitle = "QQQ (Nasdaq-100 ETF) | Últimos 100 días + 10 días de pronóstico | IC 95%",
+       x = NULL,
+       y = "Precio de Cierre (USD)",
+       caption = "Línea verde: Datos históricos | Línea cian: Pronóstico | Área sombreada: Intervalo de confianza 95%") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
-[INSERTAR GRÁFICO DE PRONÓSTICO]
+### 4.6.3 Evaluación Comparativa: Predicho vs Real
 
----
+```{r predicho-vs-real, echo=TRUE, fig.height=6}
+reales <- head(as.numeric(Prueba), 10)
+predichos <- as.numeric(pronostico$mean)
+fechas_prueba <- head(as.Date(index(Prueba)), 10)
 
-### 4.6.2 Evaluación con Datos de Prueba
+df_evaluacion <- data.frame(
+  Dia = 1:10,
+  Fecha = fechas_prueba,
+  Real = reales,
+  Predicho = round(predichos, 2),
+  Error = round(reales - predichos, 2),
+  Error_Abs = round(abs(reales - predichos), 2),
+  Error_Pct = round((reales - predichos) / reales * 100, 2)
+)
 
-[INSERTAR GRÁFICO PREDICHO VS REAL]
+df_largo <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho) %>%
+  pivot_longer(cols = c(Real, Predicho),
+               names_to = "Tipo",
+               values_to = "Precio")
 
-[INSERTAR TABLA DE ERRORES]
+ggplot(df_largo, aes(x = Dia, y = Precio, color = Tipo, shape = Tipo)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) +
+  geom_ribbon(data = df_evaluacion,
+              aes(x = Dia, y = Predicho,
+                  ymin = as.numeric(pronostico$lower),
+                  ymax = as.numeric(pronostico$upper)),
+              fill = qqq_pal$secondary, alpha = 0.15,
+              inherit.aes = FALSE) +
+  scale_color_manual(values = c("Real" = qqq_pal$primary, 
+                                "Predicho" = qqq_pal$secondary),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_shape_manual(values = c("Real" = 16, "Predicho" = 17),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_x_continuous(breaks = 1:10, labels = paste0("t+", 1:10)) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(title = "Evaluación del Pronóstico: Valores Reales vs Predichos",
+       subtitle = "QQQ (Nasdaq-100 ETF) | Primeros 10 días del conjunto de prueba",
+       x = "Horizonte de Pronóstico",
+       y = "Precio de Cierre (USD)",
+       color = NULL,
+       shape = NULL,
+       caption = "Área sombreada: Intervalo de confianza 95%") +
+  theme_QQQ() +
+  theme(legend.position = "top")
+```
 
----
+### 4.6.4 Tabla de Errores por Observación
 
-## 4.7 Síntesis del Modelo {#sintesis}
+```{r tabla-errores, echo=TRUE}
+tabla_errores <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho, Error, Error_Pct) %>%
+  mutate(
+    Fecha = as.character(Fecha),
+    Real = paste0("$", round(Real, 2)),
+    Predicho = paste0("$", round(Predicho, 2)),
+    Error = round(Error, 2),
+    Error_Pct = paste0(round(Error_Pct, 2), "%")
+  )
 
-[TABLA RESUMEN FINAL]
----
+kable(tabla_errores,
+      caption = "Evaluación del Pronóstico: Errores por Observación",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Valor Real", "Pronóstico", "Error (USD)", "Error (%)")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, color = qqq_pal$primary, bold = TRUE) %>%
+  column_spec(4, color = qqq_pal$secondary, bold = TRUE) %>%
+  column_spec(5, bold = TRUE) %>%
+  column_spec(6, bold = TRUE) %>%
+  footnote(general = "Error positivo: el modelo subestimó (valor real > pronóstico). Error negativo: el modelo sobreestimó.",
+           general_title = "Nota: ")
+```
 
-# 5. Conclusiones
+### 4.6.5 Métricas Finales de Evaluación
 
-## 5.1 Hallazgos Principales
+```{r metricas-finales, echo=TRUE}
+MAE <- mean(abs(df_evaluacion$Error))
+RMSE <- sqrt(mean(df_evaluacion$Error^2))
+MAPE <- mean(abs(df_evaluacion$Error_Pct))
+ME <- mean(df_evaluacion$Error)
+
+dentro_IC <- sum(reales >= as.numeric(pronostico$lower) & 
+                   reales <= as.numeric(pronostico$upper))
+pct_dentro_IC <- dentro_IC / 10 * 100
+
+tabla_metricas <- data.frame(
+  Métrica = c("Error Medio (ME)",
+              "Error Absoluto Medio (MAE)",
+              "Raíz del Error Cuadrático Medio (RMSE)",
+              "Error Porcentual Absoluto Medio (MAPE)",
+              "Observaciones dentro del IC 95%"),
+  Valor = c(paste0("$", round(ME, 2)),
+            paste0("$", round(MAE, 2)),
+            paste0("$", round(RMSE, 2)),
+            paste0(round(MAPE, 2), "%"),
+            paste0(dentro_IC, " de 10 (", pct_dentro_IC, "%)")),
+  Interpretación = c(
+    ifelse(abs(ME) < 1, "Sin sesgo sistemático ✓", 
+           ifelse(ME > 0, "Modelo subestima", "Modelo sobreestima")),
+    "Error promedio en USD",
+    "Penaliza errores grandes",
+    "Error relativo al precio",
+    ifelse(pct_dentro_IC >= 80, "Intervalos bien calibrados ✓", 
+           "Intervalos pueden estar mal calibrados")
+  )
+)
+
+kable(tabla_metricas,
+      caption = "Métricas de Evaluación del Pronóstico - Datos de Prueba",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, bold = TRUE) %>%
+  row_spec(5, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
+```
+
+## 4.7 Síntesis del Modelo Seleccionado
+
+# 9. Conclusiones
+
+## 9.1 Hallazgos Principales
 
 [**PLACEHOLDER:** Resumen de hallazgos principales del análisis ARIMA]
 
-## 5.2 Implicaciones Prácticas
+## 9.2 Implicaciones Prácticas
 
 [**PLACEHOLDER:** Implicaciones de los pronósticos para inversionistas y analistas de mercado]
 
-## 5.3 Limitaciones del Análisis
+## 9.3 Limitaciones del Análisis
 
 [**PLACEHOLDER:** Limitaciones del modelo y aspectos no capturados]
 
-## 5.4 Recomendaciones Futuras
+## 9.4 Recomendaciones Futuras
 
 [**PLACEHOLDER:** Sugerencias para mejoras y extensiones del análisis]
 
+---
+# Bibliografía
 
+Box, G. E. P., & Jenkins, G. M. (1976). *Time series analysis: Forecasting and control* (2nd ed.). Holden-Day.
+
+Brockwell, P. J., & Davis, R. A. (2016). *Introduction to time series and forecasting* (3rd ed.). Springer.
+
+Chatfield, C. (2000). *Time-series forecasting*. Chapman and Hall/CRC.
+
+Dickey, D. A., & Fuller, W. A. (1979). Distribution of the estimators for autoregressive time series with a unit root. *Journal of the American Statistical Association*, 74(366), 427–431.
+
+Hamilton, J. D. (1994). *Time series analysis*. Princeton University Press.
+
+Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. https://otexts.com/fpp3/
+
+Jarque, C. M., & Bera, A. K. (1987). A test for normality of observations and regression residuals. *International Statistical Review*, 55(2), 163–172.
+
+Ljung, G. M., & Box, G. E. P. (1978). On a measure of lack of fit in time series models. *Biometrika*, 65(2), 297–303.
+
+Tsay, R. S. (2010). *Analysis of financial time series* (3rd ed.). John Wiley & Sons.
 
 ```{=html}
-
 <div style="
   margin-top: 80px;
   padding: 40px;
