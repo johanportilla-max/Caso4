@@ -876,11 +876,12 @@ tabla_adf <- data.frame(
 kable(tabla_adf, 
       caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie en Niveles",
       align = c("l", "c", "l")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   row_spec(3, bold = TRUE, color = qqq_pal$negative, background = "#ffe8e0") %>% 
-  row_spec(6, bold = TRUE, background = "#fef3f2")
+  row_spec(6, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
 ```
 
 **Conclusión:** La prueba ADF indica claramente que la serie NO es estacionaria (p > 0.05). 
@@ -1002,11 +1003,12 @@ tabla_adf_diff <- data.frame(
 kable(tabla_adf_diff, 
       caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie Diferenciada (d=1)",
       align = c("l", "c", "l")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
-  row_spec(3, bold = TRUE, color = qqq_pal$positive) %>%
-  row_spec(6, bold = TRUE, background = "#d4edda")
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$positive, background = "#e8f5e9") %>%
+  row_spec(6, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
 ```
 
 **Conclusión:** Con p-valor < 0.05, se rechaza H₀. La serie diferenciada ES estacionaria. 
@@ -1110,14 +1112,15 @@ kable(tabla_candidatos,
       caption = "Modelos ARIMA Candidatos para Evaluación",
       align = c("l", "c", "l", "l"),
       col.names = c("Modelo", "Tipo", "Observación en ACF/PACF", "Justificación")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
   column_spec(2, color = qqq_pal$secondary) %>%
   column_spec(3, width = "18em") %>%
   column_spec(4, width = "22em") %>%
-  row_spec(2, background = "#e8f5e9")
+  row_spec(2, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
 ```
 
 ---
@@ -1180,12 +1183,13 @@ kable(comparacion_IC,
       caption = "Comparación de Modelos por Criterios de Información",
       align = c("c", "l", "c", "c", "c", "c"),
       col.names = c("Ranking", "Modelo", "# Parámetros", "AIC", "AICc", "BIC")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
-  column_spec(5, bold = TRUE) %>%
-  row_spec(1, bold = TRUE, background = "#d4edda") %>%
+  column_spec(5, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark) %>%
   footnote(general = "Ordenado por AICc (menor es mejor). AICc es el criterio preferido para muestras finitas.",
            general_title = "Nota: ")
 ```
@@ -1247,12 +1251,13 @@ comparacion_accuracy <- comparacion_accuracy %>%
 kable(comparacion_accuracy,
       caption = "Métricas de Precisión sobre Datos de Entrenamiento",
       align = c("c", "l", rep("c", 5))) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
-  column_spec(4, bold = TRUE) %>%
-  row_spec(1, background = "#d4edda") %>%
+  column_spec(4, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE) %>%
   footnote(general = "ME: Error Medio | RMSE: Raíz del Error Cuadrático Medio | MAE: Error Absoluto Medio | MAPE: Error Porcentual (%) | MASE: Error Escalado",
            general_title = "Métricas: ")
 ```
@@ -1375,13 +1380,15 @@ kable(tabla_pronostico,
       caption = "Pronósticos del Modelo ARIMA(1,1,1) con Drift - Intervalo de Confianza al 95%",
       align = c("c", "c", "c", "c", "c", "c"),
       col.names = c("Día", "Fecha", "Pronóstico (USD)", "Lím. Inferior", "Lím. Superior", "Amplitud IC")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
-  column_spec(1, bold = TRUE) %>%
-  column_spec(3, bold = TRUE, color = qqq_pal$primary) %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$primary, background = "#f0f9ff") %>%
   column_spec(4, color = qqq_pal$negative) %>%
   column_spec(5, color = qqq_pal$positive) %>%
+  column_spec(6, color = "#666666") %>%
   footnote(general = "IC = Intervalo de Confianza. La amplitud del intervalo aumenta con el horizonte de pronóstico.",
            general_title = "Nota: ")
 ```
@@ -1529,14 +1536,15 @@ kable(tabla_errores,
       caption = "Evaluación del Pronóstico: Errores por Observación",
       align = c("c", "c", "c", "c", "c", "c"),
       col.names = c("Día", "Fecha", "Valor Real", "Pronóstico", "Error (USD)", "Error (%)")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
-  column_spec(1, bold = TRUE) %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
   column_spec(3, color = qqq_pal$primary, bold = TRUE) %>%
   column_spec(4, color = qqq_pal$secondary, bold = TRUE) %>%
-  column_spec(5, color = ifelse(df_evaluacion$Error > 0, qqq_pal$positive, qqq_pal$negative)) %>%
-  column_spec(6, color = ifelse(df_evaluacion$Error > 0, qqq_pal$positive, qqq_pal$negative)) %>%
+  column_spec(5, bold = TRUE) %>%
+  column_spec(6, bold = TRUE) %>%
   footnote(general = "Error positivo: el modelo subestimó (valor real > pronóstico). Error negativo: el modelo sobreestimó.",
            general_title = "Nota: ")
 ```
@@ -1578,12 +1586,13 @@ tabla_metricas <- data.frame(
 kable(tabla_metricas,
       caption = "Métricas de Evaluación del Pronóstico - Datos de Prueba",
       align = c("l", "c", "l")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+  kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
   column_spec(2, bold = TRUE) %>%
-  row_spec(5, background = "#e8f5e9")
+  row_spec(5, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
 ```
 
 ---
