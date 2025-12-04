@@ -451,6 +451,29 @@ pre {
   margin-top: 0 !important;
   transition: all 0.3s ease;
 }
+/* ========== CENTRADO UNIVERSAL DE GRÁFICOS E IMÁGENES ========== */
+
+/* 1. Centra imágenes estáticas (tanto Markdown como HTML <img>) */
+img {
+display: block;
+ margin-left: auto;
+ margin-right: auto;
+}
+
+/* 2. Centra contenedores de figuras generados por R (gráficos estáticos) */
+.r-figure {
+ display: block;
+ margin-left: auto;
+ margin-right: auto;
+ max-width: 900px; /* O el ancho máximo que desees */
+}
+
+/* 3. Centra contenedores de plotly (incluye ggplotly) */
+.html-widget.plotly {
+ display: block;
+ margin: 0 auto !important;
+ max-width: 900px; /* O el ancho máximo que desees */
+}
 </style>
 ```
 <div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
@@ -955,11 +978,12 @@ Desde una perspectiva de gestión de riesgos, esta configuración explica la alt
 library(moments)
 library(knitr)
 library(dplyr)
-serie_vec <- as.numeric(as.character(serie))
+serie_vec <- as.numeric(serie[,6])
 serie_vec <- serie_vec[!is.na(serie_vec)]
-if (max(serie_vec) > 10000) {
-  warning("⚠️ La serie contiene valores extremadamente altos. Revisa si es realmente precio de QQQ.")
+if (max(serie_vec) > 1000) {
+  warning("⚠️ La serie está por fuera del rango típico del QQQ (0–1000 USD)")
 }
+
 valores_calculados <- c(
   length(serie_vec),
   mean(serie_vec),
@@ -972,6 +996,7 @@ valores_calculados <- c(
   skewness(serie_vec),
   kurtosis(serie_vec)
 )
+
 desc <- data.frame(
   Métrica = c(
     "Observaciones Totales",
@@ -991,13 +1016,13 @@ desc <- data.frame(
     big.mark = ","
   )
 )
+
 kable(
   desc,
   format = "html",
   align = c('l', 'r'),
   table.attr = "class='table' style='width:60%; margin:auto; font-size:18px;'"
 )
-
 
 ```
 
@@ -1023,7 +1048,11 @@ kable(resumen,
       table.attr = "class='table' style='width:50%; margin:auto;'")
 
 ```
+El cálculo programático de la volatilidad, derivado de la desviación estándar de los retornos logarítmicos diarios proyectada a un horizonte de negociación anual (sd(ret_diario) * sqrt(252)), arroja una cifra consolidada de 26.97%. Este valor no constituye meramente una medida de dispersión estadística, sino la cuantificación escalar de la arquitectura de riesgo descrita en los apartados anteriores. Una volatilidad anualizada cercana al 27% sitúa al QQQ significativamente por encima del promedio histórico de índices de mercado amplio (cuyo rango estándar suele oscilar entre 15% y 20%), validando numéricamente la tesis de la concentración jerárquica del portafolio. Como se discutió en el análisis de la distribución de rendimientos, la estructura leptocúrtica y las colas pesadas no son anomalías, sino componentes intrínsecos de este valor: el 26.97% representa el costo del riesgo idiosincrático asumido al mantener una cartera donde más del 50% del peso recae en un clúster reducido de mega-caps tecnológicas (Markowitz, 1952).
 
+Al contrastar este dato con el análisis de la serie histórica, se evidencia que esta métrica funciona como un promedio ponderado de dos regímenes de mercado opuestos: los periodos de calma relativa y crecimiento orgánico (como la década de 2010-2019) y los episodios de estallido de volatilidad identificados en la cronología (la Burbuja Dot-Com, la Crisis Financiera de 2008 y la corrección de tasas de 2022). Estos eventos de estrés actúan como "shocks" que inflan la desviación estándar histórica, confirmando la presencia de agrupamiento de volatilidad (volatility clustering) característico de las series financieras no estacionarias (Mandelbrot, 1963).
+
+En consecuencia, el nivel de 26.97% confirma la naturaleza del QQQ como un activo de alta beta y alta convexidad: ofrece la capacidad de captura de crecimiento exponencial observada en la tendencia de precios a largo plazo, pero exige al inversor tolerar una variabilidad sustancial impulsada por la sensibilidad del sector tecnológico a la tasa de descuento y a las revisiones de expectativas de crecimiento futuro (Sharpe, 1964; Black, 1976).
 
 ## 2.6 Retornos Diarios
 
@@ -1217,6 +1246,14 @@ ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
   scale_color_manual(values = c("vol30" = tesla_pal$primary, "vol90" = tesla_pal$secondary, "vol252" = tesla_pal$text_gray)) +
   theme_tesla()
 ```
+
+El gráfico de volatilidad rolling (móvil) desagrega temporalmente la cifra estática de riesgo (26.97%) analizada previamente, proporcionando la evidencia visual definitiva de la heterocedasticidad condicional inherente a la serie del QQQ. Al observar la evolución de la desviación estándar anualizada en distintas ventanas temporales, se confirma que el riesgo del activo no es constante, sino que exhibe un marcado comportamiento de agrupamiento de volatilidad (volatility clustering): grandes cambios en los precios tienden a ser seguidos por grandes cambios, y periodos de calma por calma, validando empíricamente los postulados de los modelos ARCH/GARCH sugeridos para la modelación de esta serie (Engle, 1982). La estructura del gráfico está dominada por tres “regímenes de alta volatilidad” que se corresponden simétricamente con los episodios de drawdown máximo identificados en el análisis histórico.
+
+El primer régimen, correspondiente a la persistencia de la Burbuja (2000-2003), muestra el pico más ancho de la serie, donde la volatilidad anualizada supera el 75%. La línea de largo plazo (vol252) se mantiene en niveles extremos durante un periodo prolongado, lo que explica por qué los ratios de eficiencia (Sharpe y Calmar) son tan bajos: el riesgo no fue un evento transitorio, sino una condición estructural que erosionó los retornos ajustados durante años. Posteriormente, se observa el shock sistémico de 2008, con un segundo pico vertical que también rompe la barrera del 75%, indicando un contagio inmediato que afectó tanto la negociación táctica como la estratégica (Acharya et al., 2010). En contraste, el pico de 2020 (Pandemia) es extremadamente agudo pero de base estrecha, reflejando la naturaleza exógena del shock y una estabilización acelerada impulsada por la digitalización de la economía (Barrero, Bloom & Davis, 2021).
+
+La discrepancia entre las ventanas de estimación de corto plazo (vol30, línea cian) y largo plazo (vol252, línea gris) ofrece una lectura sobre la “tensión” del mercado frente a su tendencia de fondo. En periodos recientes como 2022, la volatilidad de corto plazo oscila con mucha mayor amplitud que la de largo plazo, señalando un mercado en búsqueda de equilibrio ante la incertidumbre sobre el costo del capital. Esta sensibilidad valida la hipótesis de la duración de acciones: la alta concentración en activos de crecimiento (Growth) hace que la volatilidad del QQQ reaccione de manera hipersensible a cambios en la política monetaria (Sharpe, 1964).
+
+En conclusión, este gráfico actúa como el eslabón que conecta la Asimetría estadística con el Max Drawdown histórico del 87.9%. Demuestra que la “volatilidad media” es una métrica engañosa para el QQQ, ya que el inversor rara vez experimenta el promedio; en su lugar, el activo transita entre largos periodos de volatilidad moderada y explosiones de riesgo extremo. Esta dinámica bimodal justifica plenamente la conclusión de las métricas financieras: la gestión de este activo requiere una tolerancia al riesgo excepcional, diseñada no para el promedio, sino para sobrevivir a los picos de varianza que definen su trayectoria a largo plazo (Mandelbrot, 1963; Bollerslev, 1986).
 
 ## 3 Estacionalidad Mensual del QQQ (1999–2025)
 
