@@ -722,9 +722,14 @@ Estudio Empírico sobre el Precio de Acciones de Tesla Inc.
 
 ---
 
-# 2. Descripción de la Serie Temporal
+# 2. Análisis descriptivo
 
-## 2.1 serie QQQ historica 
+En esta sección se presenta un análisis descriptivo exhaustivo de la serie histórica del ETF QQQ (Invesco QQQ Trust) —utilizado aquí como proxy del desempeño conjunto de las empresas del Nasdaq-100— recuperada programáticamente desde Yahoo Finance. La serie cubre desde el 1 de mayo de 1999 hasta 2025 y trabaja en frecuencia diaria; la variable base es el precio de cierre ajustado, a partir del cual se calculan rendimientos, logarítmicos diarios, mensuales y anuales, así como medidas de riesgo y desempeño.
+El propósito central de este bloque es ofrecer una visión integrada y reproducible de (i) la evolución temporal acumulada del precio del QQQ, (ii) la estructura actual del instrumento —por sectores y principales holdings— y (iii) un conjunto de estadísticas descriptivas y métricas financieras que cuantifiquen nivel, dispersión, asimetría, colas y riesgos extremos. 
+Las visualizaciones incluyen gráficos interactivos para facilitar la exploración temporal, un gráfico de asignación sectorial, un diagrama de empaquetamiento circular para las mayores participaciones, histogramas y densidades de retornos, boxplots por año, heatmap estacional mensual y comparaciones normalizadas frente a otros ETFs de mercado . Además, se presenta un resumen anual con volatilidad y drawdown por año para identificar episodios de estrés y recuperación, así como una cronología de hitos tecnológicos relevantes que permite contextualizar inflexiones recientes en la dinámica del QQQ.
+La interpretación de los resultados prioriza tres ejes: nivel y tendencia de largo plazo, dinámica de riesgo (volatilidad y drawdowns) y concentración (sectorial y por holdings), con el objetivo de brindar una base sólida para cualquier análisis inferencial o de modelado posterior.
+
+## 2.1.1 serie QQQ historica 
 
 ```{r serie, echo=TRUE, warning=FALSE, message=FALSE}
 library(tidyquant)
@@ -733,7 +738,7 @@ library(ggplot2)
 library(zoo)
 library(plotly)
 
-serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
+serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="1999-05-01")
 precios <- serie$QQQ.Close
 datos_qqq <- data.frame(
   Fecha = index(precios),
@@ -782,7 +787,9 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
-## 2.2 División sectorial 
+La evolución histórica del QQQ muestra una tendencia alcista secular con crecimiento claramente exponencial: el precio ha pasado de niveles inferiores a los 100 USD en el año 2000 a superar los 600 USD en 2025, revelando una dinámica de crecimiento compuesto que justifica el uso de rendimientos logarítmicos para evitar distorsiones visuales y estadísticas en series con fuerte convexidad (Tsay, 2010). A lo largo de esta trayectoria se observan episodios de estrés que estructuran la narrativa de riesgo: el colapso de la Burbuja Dot-Com (2000–2002), cuyo drawdown tardó más de una década en recuperarse, constituye un ejemplo prototípico de riesgo de cola y rupturas prolongadas de tendencia (Malkiel, 2003); la Crisis Financiera de 2008 introduce un segundo punto de inflexión, seguido años después por la corrección de 2022 asociada al ciclo de aumentos de tasas de la Reserva Federal. Estos episodios confirman que la volatilidad no es constante, sino que se concentra en periodos específicos, tal como lo sugiere la literatura clásica sobre colas pesadas y agrupamiento de volatilidad (Mandelbrot, 1963), lo que respalda el uso de densidades de retornos, métricas de drawdown y boxplots anuales como parte del análisis descriptivo. En el extremo derecho del gráfico —el periodo 2023-2025— aparece una aceleración sin precedentes atribuible al auge de la inteligencia artificial generativa, fenómeno coherente con la “cronología de hitos tecnológicos” mencionada en el análisis y con la marcada concentración del QQQ en mega-caps como NVIDIA, Microsoft y Apple, cuya participación desproporcionada impulsa el índice (Invesco, 2024). En conjunto, la trayectoria refleja una combinación de convexidad positiva de largo plazo, episodios de estrés profundos y una creciente concentración tecnológica, elementos que explican simultáneamente su alto retorno histórico y su exposición a volatilidad extrema.
+
+## 2.1.2 División sectorial 
 
 
 ```{r tortA, echo=TRUE, warning=FALSE, message=FALSE}
@@ -835,6 +842,12 @@ fig_pie <- fig_pie %>% layout(
 fig_pie
 
 ```
+
+El gráfico de Asignación Sectorial ratifica la identidad del QQQ no como un índice de mercado amplio, sino como un vehículo de inversión temático con un sesgo factorial explícito: el sector Tecnología ejerce una hegemonía absoluta sobre la estructura del fondo, acaparando el 53.9% de los activos netos. Esta concentración masiva desborda los límites tradicionales de la diversificación sectorial, convirtiendo al ETF en un instrumento altamente sensible a los ciclos de innovación y a las revisiones de valoración específicas de la industria tecnológica.
+
+Esta preponderancia se ve magnificada por la correlación estratégica de los sectores secundarios: Consumo Discrecional (13.1%) y Servicios de Comunicación (12.7%) ocupan el segundo y tercer lugar respectivamente. Desde una perspectiva fundamental, esta distribución es engañosa, pues gran parte de los componentes de estos sectores (como Amazon en consumo o Alphabet/Meta en comunicación) operan bajo dinámicas digitales similares a las tecnológicas puras. En consecuencia, cerca del 80% del portafolio se encuentra expuesto al factor Growth (Crecimiento), lo que implica una alta sensibilidad a la liquidez del mercado y al apetito por riesgo, distanciándose de la estructura más balanceada que ofrecen índices generalistas como el S&P 500 (MSCI, 2023).
+
+Por el contrario, la participación marginal de sectores defensivos y anticíclicos —como Consumo Básico (5.02%), Salud (4.3%), Industriales (4.61%) y las asignaciones residuales en Servicios Públicos (1.39%) y Energía (0.473%)— sugiere que el QQQ carece de los "amortiguadores" tradicionales contra la volatilidad macroeconómica. Esta asimetría estructural dota al portafolio de una elevada duración de acciones implícita, haciéndolo mecánicamente vulnerable a las variaciones en la tasa de descuento (tasas de interés), una característica que explica la severidad de las correcciones observadas en 2022 cuando el costo del capital se incrementó (Bernstein, 1997).
 
 ## 2.3 Mayores Holdings 
 
@@ -929,27 +942,36 @@ ggplotly(p_bubble, tooltip = "text") %>%
   )
 ```
 
-## 2.4 Análisis Estadístico
+El diagrama de empaquetamiento circular revela la estructura interna del QQQ, evidenciando una alta concentración jerárquica en un número reducido de activos de mega-capitalización. Visualmente, el gráfico confirma que el rendimiento del índice no es el resultado de una contribución homogénea, sino que depende desproporcionadamente de un clúster de empresas dominantes: las diez mayores posiciones (encabezadas por NVDA, AAPL, MSFT y AVGO) representan, en conjunto, más del 50% del peso total del portafolio, relegando al segmento de "Otros" (el resto de los componentes del Nasdaq-100) a una participación minoritaria del 46.12%. Esta arquitectura de cartera contradice el principio clásico de diversificación ingenua, exponiendo al inversor a un significativo riesgo idiosincrático derivado del desempeño individual de estos gigantes tecnológicos (Markowitz, 1952).
 
+La distribución sectorial refuerza el sesgo hacia la innovación: las burbujas predominantes en color verde (Tecnología), azul (Comunicación) y cian (Consumo Discrecional) ilustran que el QQQ es, en esencia, una apuesta factorial hacia el crecimiento y la economía digital, con una exposición mínima a sectores defensivos tradicionales. Resulta particularmente notable que NVIDIA (9.33%) haya superado a Apple (8.78%) y Microsoft (7.69%) como el componente de mayor ponderación, un cambio estructural que valida empíricamente la hipótesis planteada en el análisis de precios sobre el impacto disruptivo de la Inteligencia Artificial Generativa en la valoración de activos recientes (Fama & French, 2015).
+
+Desde una perspectiva de gestión de riesgos, esta configuración explica la alta beta y la convexidad observada en la serie histórica: la correlación positiva entre estos pocos activos líderes amplifica tanto los rendimientos exponenciales en mercados alcistas como la severidad de los drawdowns en periodos de corrección, confirmando que la dinámica del QQQ está intrínsecamente ligada a la salud financiera y las expectativas de crecimiento de este selecto grupo de empresas (Sharpe, 1964).
+
+
+## 2.4 Análisis Estadístico
 
 ```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(moments)
 library(knitr)
-
-serie_vec <- as.numeric(serie)
+library(dplyr)
+serie_vec <- as.numeric(as.character(serie))
+serie_vec <- serie_vec[!is.na(serie_vec)]
+if (max(serie_vec) > 10000) {
+  warning("⚠️ La serie contiene valores extremadamente altos. Revisa si es realmente precio de QQQ.")
+}
 valores_calculados <- c(
-    length(serie_vec),
-    mean(serie_vec, na.rm = TRUE),
-    median(serie_vec, na.rm = TRUE),
-    min(serie_vec, na.rm = TRUE),
-    max(serie_vec, na.rm = TRUE),
-    max(serie_vec, na.rm = TRUE) - min(serie_vec, na.rm = TRUE),
-    var(serie_vec, na.rm = TRUE),
-    sd(serie_vec, na.rm = TRUE),
-    skewness(serie_vec, na.rm = TRUE),
-    kurtosis(serie_vec, na.rm = TRUE)
+  length(serie_vec),
+  mean(serie_vec),
+  median(serie_vec),
+  min(serie_vec),
+  max(serie_vec),
+  max(serie_vec) - min(serie_vec),
+  var(serie_vec),
+  sd(serie_vec),
+  skewness(serie_vec),
+  kurtosis(serie_vec)
 )
-
 desc <- data.frame(
   Métrica = c(
     "Observaciones Totales",
@@ -963,15 +985,19 @@ desc <- data.frame(
     "Asimetría (Skewness)",
     "Curtosis"
   ),
-  Valor = format(valores_calculados, scientific = FALSE, big.mark = ",", digits = 2, nsmall = 2)
+  Valor = format(
+    round(valores_calculados, 4),
+    scientific = FALSE,
+    big.mark = ","
+  )
 )
-
 kable(
   desc,
   format = "html",
   align = c('l', 'r'),
   table.attr = "class='table' style='width:60%; margin:auto; font-size:18px;'"
 )
+
 
 ```
 
@@ -1013,6 +1039,20 @@ ggplot(ret_df, aes(x = Retorno)) +
 
 ```
 
+La distribución de los rendimientos diarios del QQQ revela una estructura estadística coherente con la arquitectura altamente concentrada del portafolio descrita en los apartados anteriores. Como muestra el gráfico, la curva de densidad presenta un pico pronunciado alrededor de cero y colas más gruesas de lo que predeciría una distribución normal, rasgo típico de activos dominados por empresas de gran capitalización fuertemente correlacionadas entre sí.
+
+Este patrón leptocúrtico —evidenciado visualmente por la altura central desproporcionada y la presencia de observaciones extremas (tanto positivas como negativas) en los márgenes— es consistente con el comportamiento de un índice no diversificado de manera homogénea, sino fuertemente dependiente de unos pocos motores de crecimiento. En efecto, la concentración estructural en NVDA, AAPL, MSFT y AVGO expuesta en el diagrama de empaquetamiento circular se manifiesta directamente en la forma de la distribución:
+
+cuando estas compañías se sincronizan al alza, generan acumulación de rendimientos pequeños y frecuentes, que estrechan la parte central de la distribución;
+
+pero cuando experimentan shocks idiosincráticos o correcciones de múltiplos, producen movimientos abruptos de mayor magnitud, responsables de las colas pesadas observadas.
+
+Desde una perspectiva de riesgo, esta distribución asimétrica confirma una alta kurtosis y la presencia de eventos de gran impacto con mayor probabilidad que la predicha por modelos clásicos de media-varianza (Markowitz, 1952). Ello es coherente con el sesgo factorial descrito previamente: un ETF con exposición cercana al 80% al factor Growth y mínima participación en sectores defensivos exhibirá de forma natural una mayor propensión a "jumps" y episodios de volatilidad concentrada.
+
+La ligera inclinación de la distribución hacia rendimientos negativos —visible en la cola izquierda más extendida— es una expresión empírica de la sensibilidad del QQQ a cambios en la tasa de descuento, propiedad también discutida en el análisis sectorial. Durante ciclos de endurecimiento monetario, los activos de larga duración implícita (como la tecnología de mega-capitalización) tienden a exhibir caídas más pronunciadas, lo cual explica tanto la asimetría negativa como la convexidad detectada en la serie histórica (Sharpe, 1964).
+
+En conjunto, la forma de la distribución no solo plasma el comportamiento estadístico de los rendimientos, sino que funciona como una evidencia visual directa de la propia identidad del QQQ:
+un vehículo altamente concentrado, dominado por factores de crecimiento, sensible a liquidez y a ciclos tecnológicos, y estructuralmente propenso a movimientos extremos más frecuentes que los esperados bajo supuestos gaussianos.
 
 
 
@@ -1033,6 +1073,15 @@ ggplot(ret_anual_df, aes(x = Año, y = Ret, group = Año)) +
 
 ```
 
+El gráfico de cajas por año muestra de manera clara cómo ha evolucionado la variabilidad de los retornos diarios del ETF QQQ desde 1999 hasta 2025. En los primeros años, especialmente entre 1999 y 2002, se observan cajas mucho más anchas y una mayor presencia de valores atípicos, tanto positivos como negativos. Esta dispersión refleja el contexto de la burbuja punto-com y su colapso, donde el sector tecnológico experimentó altos niveles de incertidumbre y movimientos extremos. Los retornos muestran una volatilidad significativamente mayor que en el resto del periodo, evidenciada por whiskers largos y una nube densa de puntos alejados de la mediana.
+
+A partir de 2003 y durante buena parte de la década siguiente, la distribución anual de los retornos se vuelve más estrecha. Entre 2004 y 2007, las cajas se estabilizan y los valores atípicos disminuyen, señalando un periodo de menor volatilidad en el sector tecnológico y un comportamiento más predecible de la serie. No obstante, en 2008 aparece nuevamente una fuerte expansión de la dispersión: los outliers negativos son notablemente profundos y los positivos más altos, lo que coincide perfectamente con la crisis financiera global. Es un año donde el riesgo sistemático se intensifica y el mercado reacciona con variaciones abruptas.
+
+Durante los años siguientes, especialmente entre 2009 y 2019, los retornos del QQQ muestran nuevamente un patrón de estabilidad relativa. La mayoría de las cajas son bajas, con medianas cercanas a cero y un rango intercuartílico pequeño, lo que sugiere un periodo prolongado de crecimiento económico con correcciones moderadas. Sin embargo, la crisis del COVID-19 en 2020 trae un nuevo salto en la volatilidad: las cajas se expanden, aparecen retornos extremadamente negativos y también picos positivos. Este comportamiento es característico de un shock global repentino, donde los mercados pasan por fases de pánico seguidas por fuertes rebotes.
+
+En los años más recientes —2021 a 2024— se observa una volatilidad intermedia: mayor que en el periodo 2013–2019, pero menor que en 2020 o en los años de la burbuja tecnológica. Esta variabilidad puede asociarse a factores como las tasas de interés elevadas, presiones inflacionarias, cambios en las políticas monetarias y la mayor sensibilidad del sector tecnológico a estas condiciones. Aunque los retornos siguen centrados alrededor de cero, la presencia de outliers indica que el mercado continúa expuesto a episodios de shocks ocasionales.
+
+En conjunto, el gráfico confirma que los retornos diarios del QQQ mantienen una distribución típicamente estrecha con mediana cercana a cero, pero presentan explosiones periódicas de volatilidad asociadas a eventos macroeconómicos de gran escala. Este patrón es característico de series financieras: comportamiento estable la mayor parte del tiempo, interrumpido por episodios de turbulencia. Para el análisis de modelos ARIMA, esto es relevante porque estos picos de volatilidad pueden introducir heterocedasticidad y afectar la estabilidad del modelo, por lo que un análisis complementario de volatilidad (p. ej., GARCH) sería apropiado si el proyecto lo requiere.
 
 ## 2.7 Rendimientos por año
 
@@ -1058,8 +1107,19 @@ ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno)) +
   theme_tesla()
 ```
 
-## 2.8 Drawdown 
+El gráfico del retorno anual del QQQ permite observar con claridad cómo el desempeño del índice tecnológico ha estado marcado por ciclos de fuertes expansiones y contracciones, coherentes con los eventos identificados previamente en el análisis de retornos diarios. Los primeros años, entre 2000 y 2002, muestran caídas muy pronunciadas, superiores al –40%, que coinciden con el estallido de la burbuja punto-com, un fenómeno ampliamente documentado en la literatura financiera (Shiller, 2000). Este periodo se caracteriza por pérdidas consecutivas de magnitud excepcional, reflejando un mercado extremadamente volátil e incierto, como también se evidenció en la dispersión extrema del boxplot anual, consistente con la alta varianza de los retornos de activos tecnológicos señalada por French, Schwert y Stambaugh (1987).
 
+Tras esta etapa, el QQQ muestra episodios de recuperación significativos, como en 2003 (40.29%) y especialmente en 2009 (43.07%), año en el que el mercado rebota después de la crisis financiera global. No obstante, la caída abrupta de 2008 (–54.36%) resalta como uno de los peores años de toda la serie, reafirmando la alta sensibilidad del sector tecnológico a choques sistémicos, tal como ha sido analizado en estudios sobre riesgo sistémico y contagio financiero (Acharya et al., 2010). Estos resultados son coherentes con el patrón observado en los retornos diarios: periodos largos de estabilidad interrumpidos por shocks severos.
+
+Entre 2010 y 2019 se observa una etapa de crecimiento sostenido, donde la mayoría de los años presentan retornos positivos, algunos de ellos muy elevados, como 2013 (32.08%) y 2019 (38.91%). Esta década fue una de las más sólidas para el sector tecnológico, impulsada por avances en plataformas digitales, inteligencia artificial temprana, redes móviles y expansión de las grandes empresas tecnológicas, lo cual se relaciona con la tendencia de crecimiento persistente de activos con alta innovación documentada por Brynjolfsson y McAfee (2014). La estabilidad reflejada en los boxplots de estos años coincide con un mercado maduro y menos propenso a oscilaciones extremas en comparación con décadas pasadas.
+
+En 2020, marcado por la pandemia de COVID-19, el QQQ muestra un fuerte crecimiento del 43.04%, resultado del incremento en la demanda de servicios digitales, teletrabajo y compañías tecnológicas en general, un comportamiento consistente con el “efecto digitalización acelerada” descrito por Barrero, Bloom y Davis (2021). Sin embargo, al año siguiente (2022) aparece una caída significativa del –40.15%, asociada al aumento de tasas de interés, inflación elevada y el ajuste de valoraciones del sector tecnológico, en línea con los efectos que describe el modelo de valoración de activos bajo cambios en política monetaria (Bernanke & Kuttner, 2005). Esta caída vuelve a reflejarse en la ampliación de la volatilidad observada en el boxplot para ese periodo.
+
+Finalmente, los años más recientes (2023–2025) exhiben retornos positivos moderados (entre 18% y 22%), lo que sugiere un periodo de recuperación y estabilización después del fuerte ajuste de 2022. Estos valores están alineados con un mercado que continúa creciendo, aunque en un contexto más cauteloso, influenciado por políticas monetarias restrictivas y cambios estructurales en el sector tecnológico.
+
+En conjunto, el gráfico muestra que el QQQ es un activo con alto potencial de crecimiento, pero también con eventos periódicos de riesgo elevado, característica típica de los mercados tecnológicos. Este comportamiento es coherente con los patrones detectados en los boxplots y con la naturaleza no estacionaria de las series financieras, lo que justifica la importancia de técnicas como ARIMA para modelar tendencias (Box & Jenkins, 1976), complementadas —cuando sea necesario— con modelos de volatilidad como GARCH para capturar la heterocedasticidad inherente a este tipo de datos (Engle, 1982).
+
+## 2.8 Drawdown 
 
 ```{r drawdown, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 library(PerformanceAnalytics)
@@ -1079,6 +1139,18 @@ ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   theme_tesla()
 ```
+
+El gráfico de drawdown histórico del QQQ revela de manera clara la profundidad y duración de las pérdidas relativas del índice respecto a sus máximos previos, lo que permite evaluar no solo la volatilidad, sino también la resiliencia del mercado tecnológico a lo largo del tiempo. El periodo más crítico se observa al inicio de la serie, entre 2000 y 2002, cuando el índice sufre un colapso superior al –80% tras el estallido de la burbuja punto-com. Esta caída extraordinaria es consistente con el comportamiento descrito anteriormente en los retornos anuales, donde se evidenciaron pérdidas consecutivas cercanas al –40%, un fenómeno ampliamente documentado en la literatura sobre burbujas especulativas (Shiller, 2000). Además, la prolongada permanencia del QQQ en drawdowns profundos durante casi una década subraya la fragilidad estructural del sector tecnológico en ese momento, caracterizado por valoraciones excesivas y escaso respaldo en flujos de caja reales.
+
+Posteriormente, a partir de 2009, se aprecia un proceso de recuperación sostenida que coincide con la salida de la crisis financiera global. Aunque 2008 marcó un drawdown cercano al –54%, el repunte inmediato del 2009, previamente resaltado en los retornos anuales, refleja el retorno gradual de la confianza en los mercados, fenómeno que la literatura asocia con políticas monetarias expansivas y medidas de estabilización financiera (Bernanke & Gertler, 2001). No obstante, el drawdown de este período también destaca que, aunque el mercado se recupera, la profundidad de la caída anterior prolonga el tiempo de retorno a un máximo histórico, reforzando la idea de que el drawdown no solo mide pérdidas, sino también la duración del proceso de recuperación (time to recovery).
+
+Entre 2010 y 2020, el gráfico muestra una notable estabilidad relativa del QQQ, con drawdowns más moderados y recuperaciones más rápidas. Este comportamiento coincide con la fase de crecimiento sostenido observada en los retornos anuales, impulsada por la expansión de las grandes empresas tecnológicas, avances en inteligencia artificial, comercio digital y servicios en la nube. Este patrón es coherente con estudios que evidencian la creciente madurez y resistencia del sector tecnológico durante esta década (Brynjolfsson & McAfee, 2014). En este periodo, las caídas existen, pero ninguna se aproxima a los extremos vividos en las décadas previas, indicando una mayor solidez estructural del índice.
+
+El gráfico también evidencia un drawdown significativo durante la pandemia de COVID-19 en 2020, aunque de corta duración. A diferencia de crisis anteriores, el QQQ experimenta una caída rápida, seguida de una recuperación igual de acelerada, fenómeno asociado a la digitalización abrupta de la economía, que impulsó fuertemente la demanda por empresas tecnológicas (Barrero, Bloom & Davis, 2021). Este comportamiento refuerza la idea de que el QQQ posee una estructura sectorial que se beneficia de shocks que incrementan la dependencia digital, lo que explica la rápida salida del drawdown.
+
+Finalmente, el periodo 2022–2023 muestra un nuevo episodio de drawdown profundo, aunque no tan extremo como los históricos, alcanzando niveles cercanos al –35%. Esta caída coincide con el ajuste de valoraciones provocado por el aumento de tasas de interés, la inflación elevada y la contracción monetaria global. Estos shocks afectan especialmente a activos de crecimiento como los tecnológicos, cuyo valor presente es altamente sensible a cambios en las tasas de descuento, en línea con los argumentos del modelo CAPM y la literatura sobre sensibilidad de activos de crecimiento a tasas de interés (Sharpe, 1964; Bernanke & Kuttner, 2005). Sin embargo, a diferencia de crisis anteriores, el drawdown se recupera parcialmente dentro del mismo periodo, demostrando mayor robustez del mercado tecnológico contemporáneo.
+
+En conjunto, el análisis del drawdown confirma la narrativa construida en los gráficos previos: el QQQ es un activo con un potencial de crecimiento extraordinario, pero con episodios recurrentes de caídas severas que pueden prolongarse en el tiempo. Este comportamiento hace evidente la naturaleza no estacionaria y heterocedástica de la serie, lo cual justifica el uso de modelos ARIMA para capturar tendencias y de modelos GARCH para describir la volatilidad condicional (Engle, 1982; Bollerslev, 1986). El drawdown, por tanto, complementa los análisis anteriores al mostrar no solo cuán fuerte cae el índice, sino cuánto tiempo tarda en recuperarse, un factor crítico en la gestión del riesgo financiero.
 
 ## 2.9 Métricas Financieras 
 
@@ -1112,6 +1184,15 @@ metrics <- data.frame(
 knitr::kable(metrics, format = "html", table.attr = "class='table' style='width:60%; margin:auto;'")
 ```
 
+El presente conjunto de Métricas Financieras ofrece una visión sintética y cuantitativa de la eficiencia, el riesgo y el rendimiento agregado de la estrategia, complementando de manera crítica los análisis de retornos anuales y drawdown histórico. El Retorno Acumulado del 343.84% y la Tasa de Crecimiento Anual Compuesto (CAGR) de 5.77% validan el alto potencial de apreciación del activo, una característica consistente con la fase de crecimiento sostenido observada en períodos post-crisis. Estas cifras de rendimiento total confirman que, a pesar de los episodios de riesgo extremo, la estrategia o el sector subyacente posee una capacidad sustancial para generar riqueza a largo plazo.
+
+Sin embargo, las métricas ajustadas al riesgo revelan la baja eficiencia del rendimiento. El Ratio de Sharpe de 0.343 es penalizado por la alta volatilidad total, sugiriendo que el retorno está siendo consumido por la dispersión de los retornos, tanto al alza como a la baja. Más crítico aún es el Ratio de Sortino, que con un valor de 0.03, indica que el riesgo de cola negativo (downside risk) ha sido desproporcionadamente alto en relación con el rendimiento generado. Este hallazgo se alinea directamente con los eventos de pérdida catastrófica identificados en los análisis históricos, donde las caídas severas dominan el perfil de riesgo.
+
+El indicador de riesgo extremo, el Max Drawdown, alcanza un valor extraordinariamente alto del 87.9%. Esta cifra es la manifestación cuantitativa del colapso sufrido durante el estallido de la burbuja punto-com (2000-2002) y subraya la fragilidad estructural histórica y el riesgo de pérdida casi total de capital inherente al activo en sus períodos más críticos. Desde la perspectiva de la gestión de riesgo, este valor define el peor escenario histórico tolerable. Finalmente, el Ratio Calmar de 0.066 relaciona el rendimiento anualizado con el Max Drawdown. Un valor tan bajo es una consecuencia directa del Max Drawdown extremo, confirmando la ineficiencia de la estrategia en términos de recuperación del capital y reforzando la tesis de que el time to recovery tras los grandes choques puede ser prolongado y exige una tolerancia al riesgo excepcional.
+
+En conclusión, el análisis de las métricas confirma la narrativa general: el activo ofrece un potencial de crecimiento robusto, evidenciado por el retorno acumulado, pero lo hace asumiendo un costo de riesgo históricamente severo. Las bajas cifras de Sharpe y Sortino, junto con el Max Drawdown casi total, evidencian un perfil de riesgo dominado por eventos de cola, lo que implica que el modelado y la gestión de este activo deben necesariamente considerar la asimetría y la curtosis inherentes a la distribución de sus retornos para cuantificar adecuadamente la severidad de las pérdidas potenciales.
+
+
 ```{r rolling_vol, echo=TRUE, warning=FALSE, message=FALSE}
 library(zoo)
 
@@ -1137,7 +1218,7 @@ ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
   theme_tesla()
 ```
 
-## 3 Estacionalidad Mensual del QQQ (2010–2025)
+## 3 Estacionalidad Mensual del QQQ (1999–2025)
 
 ```{r heatmap_estacional_mejor, echo=TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
@@ -1173,6 +1254,86 @@ maxdd_yr <- dd_df %>% group_by(Año) %>%
 
 res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
 knitr::kable(res_yr, format = "html")
+```
+
+
+```{r comparacion, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
+library(tidyquant)
+library(tidyverse)
+library(plotly)
+tesla_pal <- list(
+  primary = "#cc0000",
+  secondary = "#000000",
+  text_main = "#333333",
+  text_gray = "#666666"
+)
+theme_tesla <- function() {
+  theme_minimal(base_family = "Inter") +
+    theme(
+      plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main),
+      plot.subtitle = element_text(size = 11, color = tesla_pal$text_gray, margin = margin(b = 15)),
+      legend.position = "none",
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(color = "#e5e5e5", linetype = "dashed"),
+      axis.text = element_text(color = tesla_pal$text_gray),
+      axis.title = element_text(color = tesla_pal$text_gray, size = 10)
+    )
+}
+
+tickers <- c("QQQ", "SPY", "DIA", "IWM")
+nombres_map <- c(
+  "QQQ" = "QQQ (Nasdaq-100)",
+  "SPY" = "SPY (S&P 500)",
+  "DIA" = "DIA (Dow Jones)",
+  "IWM" = "IWM (Small Caps)"
+)
+
+datos_comp <- tq_get(tickers, get = "stock.prices", from = "1999-05-01")
+datos_norm <- datos_comp %>%
+  group_by(symbol) %>%
+  mutate(
+    Retorno_Acum = (adjusted / first(adjusted)) - 1,
+    Nombre = nombres_map[symbol]
+  ) %>%
+  ungroup()
+
+colores_comp <- c(
+  "QQQ" = tesla_pal$primary,   
+  "SPY" = "#2c3e50",           
+  "DIA" = "#7f8c8d",        
+  "IWM" = "#f39c12"            
+)
+
+p_comp <- ggplot(datos_norm, aes(x = date, y = Retorno_Acum, color = symbol)) +
+  geom_line(aes(size = symbol, alpha = symbol)) +
+  
+  scale_color_manual(values = colores_comp, labels = nombres_map) +
+  scale_size_manual(values = c("QQQ" = 1.2, "SPY" = 0.6, "DIA" = 0.6, "IWM" = 0.6), guide="none") +
+  scale_alpha_manual(values = c("QQQ" = 1, "SPY" = 0.7, "DIA" = 0.7, "IWM" = 0.6), guide="none") +
+  
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  
+  labs(
+    title = "QQQ vs El Mercado",
+    subtitle = "Rendimiento acumulado comparativo (2010 - Presente)",
+    x = "",
+    y = "Retorno Acumulado"
+  ) +
+  theme_tesla()
+
+plotly::ggplotly(p_comp, tooltip = c("x", "y", "colour")) %>%
+  layout(
+    legend = list(
+      orientation = "h", 
+      x = 0.5, 
+      xanchor = "center",
+      y = 1.05,
+      title = list(text = "")
+    ),
+    hovermode = "x unified"
+  ) %>%
+  config(displayModeBar = FALSE)
 ```
 
 ```{r partiion, echo=TRUE, warning=FALSE, message=FALSE}
@@ -1290,93 +1451,7 @@ ggplot(data_cronologia, aes(x = Fecha, y = Categoria, color = Categoria)) +
   )
 ```
 
-```{r arima, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-library(tidyquant)
-library(tidyverse)
-library(plotly)
 
-# Definimos la paleta por si no estaba cargada previamente
-tesla_pal <- list(
-  primary = "#cc0000",
-  secondary = "#000000",
-  text_main = "#333333",
-  text_gray = "#666666"
-)
-
-# Definición de tema personalizado (theme_tesla) por si falta
-theme_tesla <- function() {
-  theme_minimal(base_family = "Inter") +
-    theme(
-      plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main),
-      plot.subtitle = element_text(size = 11, color = tesla_pal$text_gray, margin = margin(b = 15)),
-      legend.position = "none",
-      panel.grid.minor = element_blank(),
-      panel.grid.major.x = element_blank(),
-      panel.grid.major.y = element_line(color = "#e5e5e5", linetype = "dashed"),
-      axis.text = element_text(color = tesla_pal$text_gray),
-      axis.title = element_text(color = tesla_pal$text_gray, size = 10)
-    )
-}
-
-# --- INICIO DEL CÓDIGO DEL GRÁFICO ---
-
-tickers <- c("QQQ", "SPY", "DIA", "IWM")
-nombres_map <- c(
-  "QQQ" = "QQQ (Nasdaq-100)",
-  "SPY" = "SPY (S&P 500)",
-  "DIA" = "DIA (Dow Jones)",
-  "IWM" = "IWM (Small Caps)"
-)
-
-# Descarga de datos
-datos_comp <- tq_get(tickers, get = "stock.prices", from = "2010-01-01")
-
-# Normalización
-datos_norm <- datos_comp %>%
-  group_by(symbol) %>%
-  mutate(
-    Retorno_Acum = (adjusted / first(adjusted)) - 1,
-    Nombre = nombres_map[symbol]
-  ) %>%
-  ungroup()
-
-colores_comp <- c(
-  "QQQ" = tesla_pal$primary,   
-  "SPY" = "#2c3e50",           
-  "DIA" = "#7f8c8d",        
-  "IWM" = "#f39c12"            
-)
-
-p_comp <- ggplot(datos_norm, aes(x = date, y = Retorno_Acum, color = symbol)) +
-  geom_line(aes(size = symbol, alpha = symbol)) +
-  
-  scale_color_manual(values = colores_comp, labels = nombres_map) +
-  scale_size_manual(values = c("QQQ" = 1.2, "SPY" = 0.6, "DIA" = 0.6, "IWM" = 0.6), guide="none") +
-  scale_alpha_manual(values = c("QQQ" = 1, "SPY" = 0.7, "DIA" = 0.7, "IWM" = 0.6), guide="none") +
-  
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  
-  labs(
-    title = "QQQ vs El Mercado",
-    subtitle = "Rendimiento acumulado comparativo (2010 - Presente)",
-    x = "",
-    y = "Retorno Acumulado"
-  ) +
-  theme_tesla()
-
-plotly::ggplotly(p_comp, tooltip = c("x", "y", "colour")) %>%
-  layout(
-    legend = list(
-      orientation = "h", 
-      x = 0.5, 
-      xanchor = "center",
-      y = 1.05,
-      title = list(text = "")
-    ),
-    hovermode = "x unified"
-  ) %>%
-  config(displayModeBar = FALSE)
-```
 
 
 # 3. Resultados del Modelo ARIMA
