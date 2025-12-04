@@ -11,16 +11,15 @@ La capacidad de anticipar el comportamiento futuro de los precios en los mercado
 
 El Invesco QQQ Trust (QQQ) es uno de los fondos cotizados en bolsa (ETF) más negociados a nivel mundial, con activos bajo gestión superiores a los 400 mil millones de dólares. Este instrumento replica el índice Nasdaq-100, compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con una fuerte concentración en el sector tecnológico que incluye líderes como Apple, Microsoft, NVIDIA, Amazon y Alphabet. Entre 2009 y 2019, el QQQ se benefició significativamente de las economías de escala en software, el auge de los smartphones y el desarrollo de ecosistemas tecnológicos integrados. Esta composición convierte al QQQ en un referente para analizar el comportamiento del sector tecnológico estadounidense y, por extensión, las tendencias de innovación que impulsan la economía global.
 
-La importancia de modelar series de precios como la del QQQ radica en múltiples factores. En primer lugar, los pronósticos financieros juegan un papel fundamental en la formación de expectativas de mercado e influyen directamente en las decisiones de inversión, la asignación de activos y la evaluación de riesgos. En segundo lugar, el análisis cuantitativo de series temporales permite identificar patrones, tendencias y comportamientos que, aunque no garantizan certeza absoluta, proporcionan información valiosa para diseñar estrategias de inversión más fundamentadas.
+La importancia de modelar series de precios como la del QQQ radica en múltiples factores. En primer lugar, los pronósticos financieros juegan un papel fundamental en la formación de expectativas de mercado e influyen directamente en las decisiones de inversión, la asignación de activos y la evaluación de riesgos. En segundo lugar, el análisis cuantitativo de series temporales permite identificar patrones y comportamientos que proporcionan información valiosa para diseñar estrategias de inversión más fundamentadas. La predicción específica del QQQ es particularmente importante porque replica el índice Nasdaq-100, concentrado en empresas tecnológicas líderes en desarrollo de inteligencia artificial, computación en la nube y ecosistemas digitales innovadores. Dado que el sector tecnológico representa uno de los mercados emergentes y con mayor potencial de crecimiento en la economía global, predecir el comportamiento del QQQ permite anticipar tendencias en innovación, evaluar correctamente la valuación de activos tecnológicos y gestionar la exposición al riesgo en un sector de alta volatilidad que impulsa transformaciones estructurales en la economía mundial.
 
 En este contexto, los modelos ARIMA (AutoRegressive Integrated Moving Average) se han consolidado como uno de los enfoques más utilizados para el pronóstico de series de tiempo, junto con los modelos de suavizado exponencial. Mientras que los modelos de suavizado exponencial se basan en una descripción de la tendencia y la estacionalidad en los datos, los modelos ARIMA tienen como objetivo describir las autocorrelaciones presentes en la serie. Estos modelos integran tres componentes fundamentales: el componente autorregresivo (AR), que pronostica la variable de interés utilizando una combinación lineal de sus valores pasados; el componente de integración (I), que transforma series no estacionarias en estacionarias mediante la aplicación de diferencias sucesivas; y el componente de media móvil (MA), que utiliza errores de pronóstico pasados en un modelo similar a la regresión.
 
 Un aspecto fundamental previo al ajuste de modelos ARIMA es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación ACF de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
 
-El presente estudio emplea datos históricos del ETF QQQ obtenidos de Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre de 2025, con un total de 791 observaciones diarias de precios de cierre. Durante este período, el precio del QQQ fluctuó entre un mínimo de $260.10 y un máximo de $635.77, con un precio promedio de $435.84 y una desviación estándar de $97.95. El rendimiento acumulado del período alcanzó un notable 131.14%, reflejando la fuerte recuperación del sector tecnológico tras el mercado bajista de 2022 y el impulso generado por desarrollos en inteligencia artificial. La volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%, característica de instrumentos con alta exposición al sector tecnológico.
+El presente estudio emplea datos históricos del ETF QQQ obtenidos de Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre de 2025, con un total de 791 observaciones diarias de precios de cierre. Durante este período, el precio del QQQ fluctuó entre un mínimo de \$260.10 y un máximo de \$635.77, con un precio promedio de \$435.84 y una desviación estándar de \$97.95. El rendimiento acumulado del período alcanzó un notable 131.14%, reflejando la fuerte recuperación del sector tecnológico tras el mercado bajista de 2022 y el impulso generado por desarrollos en inteligencia artificial. La volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%, característica de instrumentos con alta exposición al sector tecnológico.
 
 El análisis incluye la verificación de supuestos estadísticos fundamentales: evaluación de estacionariedad mediante la prueba de Dickey-Fuller Aumentada y análisis gráfico de las funciones de autocorrelación (ACF) y autocorrelación parcial (PACF), la selección del modelo óptimo utilizando criterios de información (AICc), y la validación diagnóstica de residuos para confirmar que se comporten como ruido blanco. Se comparan múltiples especificaciones ARIMA, incluyendo el modelo seleccionado automáticamente mediante la función auto.arima y configuraciones alternativas sugeridas por el análisis de los gráficos ACF y PACF, reconociendo que aunque la automatización es útil, "cualquier cosa automatizada puede ser un poco peligrosa, y vale la pena entender algo sobre el comportamiento de los modelos".
-
 
 ------------------------------------------------------------------------
 
@@ -34,114 +33,58 @@ La base de datos utilizada en este análisis proviene de Yahoo Finance, una de l
 
 Para este análisis, se empleó el ETF Invesco QQQ Trust (símbolo: QQQ), el cual replica el índice Nasdaq-100 y está compuesto por las 100 empresas no financieras de mayor capitalización listadas en el mercado Nasdaq. La extracción de datos se realizó mediante la función `getSymbols()` del paquete `quantmod` de R, que permite automatizar la descarga directa desde la fuente. El período de estudio abarca desde el 7 de octubre de 2022 hasta el 2 de diciembre de 2025, resultando en un total de 791 observaciones diarias de precios de cierre.
 
-El período seleccionado es particularmente informativo para el análisis de series temporales financieras, ya que captura la recuperación del sector tecnológico tras el mercado bajista de 2022, el impulso generado por los desarrollos en inteligencia artificial, y las fluctuaciones asociadas a cambios en las políticas monetarias de la Reserva Federal. Durante este período, el precio del QQQ fluctuó entre un mínimo de \$260.10 y un máximo de \$635.77, con un rendimiento acumulado del 131.14%, lo que evidencia tanto la tendencia alcista general como la volatilidad característica de este instrumento.
-
-```{r carga_datos, message=FALSE, warning=FALSE}
-library(quantmod)
-library(forecast)
-library(tseries)
-library(ggplot2)
-library(knitr)
-library(kableExtra)
-
-getSymbols("QQQ", src = "yahoo", from = "2022-10-07", to = "2025-12-03")
-
-precios <- Cl(QQQ)
-```
+El período seleccionado es particularmente informativo para el análisis de series temporales financieras, ya que captura la recuperación del sector tecnológico tras el mercado bajista de 2022, el impulso generado por los desarrollos en inteligencia artificial, y las fluctuaciones asociadas a cambios en las políticas monetarias de la Reserva Federal.
 
 ## Descripción de las variables
 
 El dataset construido para este análisis se centra en una única variable cuantitativa: el precio de cierre diario del ETF QQQ. Esta variable representa el último precio al que se negoció el instrumento durante cada sesión bursátil y es la medida estándar utilizada en el análisis técnico y la modelización de series temporales financieras.
 
-```{r tabla_variables, echo=FALSE}
-variables <- data.frame(
-  Variable = c("QQQ.Close", "Fecha"),
-  Descripción = c("Precio de cierre diario del ETF QQQ", "Fecha de la observación (días hábiles)"),
-  Tipo = c("Cuantitativa continua", "Temporal"),
-  Unidad = c("USD", "Fecha")
-)
-
-kable(variables, caption = "Descripción de las variables del estudio") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-```
-
 La elección del precio de cierre como variable de análisis se fundamenta en que este refleja el consenso del mercado al finalizar cada sesión, incorporando toda la información disponible durante el día de negociación. Además, es el precio utilizado para el cálculo de rendimientos, valoración de portafolios y la mayoría de los indicadores técnicos.
 
 ## Partición de datos
 
-Con el objetivo de evaluar la capacidad predictiva de los modelos ARIMA, el conjunto de datos fue dividido en dos subconjuntos mediante un esquema de partición temporal, respetando el orden cronológico inherente a las series de tiempo:
+En el análisis de series temporales, es práctica estándar dividir los datos disponibles en subconjuntos separados para entrenar y validar el modelo. La partición temporal es fundamental para evaluar la capacidad predictiva de un modelo en un escenario realista.
 
-```{r tabla_particion, echo=FALSE}
-particion <- data.frame(
-  Conjunto = c("Entrenamiento", "Prueba"),
-  Período = c("07-Oct-2022 a 30-Sep-2025", "01-Oct-2025 a 02-Dic-2025"),
-  Observaciones = c(746, 45),
-  Propósito = c("Ajuste y selección de modelos", "Evaluación fuera de muestra")
-)
+La estrategia de partición temporal respeta el orden cronológico de los datos, dividiendo la serie en un conjunto de entrenamiento que comprende la mayor parte de las observaciones históricas, utilizado para identificar los parámetros óptimos del modelo y estimar sus coeficientes, y un conjunto de prueba que representa un período posterior no utilizado durante el ajuste, permitiendo evaluar cómo habría funcionado el modelo en un escenario de pronóstico real.
 
-kable(particion, caption = "Partición de los datos para entrenamiento y prueba") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-```
-
-Esta partición sigue las recomendaciones estándares en el análisis de series temporales, donde el conjunto de entrenamiento representa aproximadamente el 94% de los datos y el conjunto de prueba el 6% restante. A diferencia de la validación cruzada tradicional que divide los datos aleatoriamente, en series temporales es fundamental mantener el orden cronológico para evitar fugas de información (data leakage) y simular condiciones reales de pronóstico.
-
-```{r particion_datos}
-# Crear serie de tiempo
-qqq_ts <- ts(as.numeric(precios), start = c(2022, 280), frequency = 252)
-
-# Partición de datos
-n_total <- length(qqq_ts)
-n_train <- 746
-
-train_ts <- window(qqq_ts, end = c(2025, 243))
-test_ts <- window(qqq_ts, start = c(2025, 244))
-
-cat("Observaciones totales:", n_total, "\n")
-cat("Observaciones entrenamiento:", length(train_ts), "\n")
-cat("Observaciones prueba:", length(test_ts), "\n")
-```
-
-La validación cruzada de series temporales, también conocida como "evaluación en un origen de predicción variable" (rolling forecasting origin), permite evaluar cómo se habría desempeñado el modelo con datos históricos mediante una ventana deslizante. Sin embargo, para este estudio se optó por una partición fija que simula el escenario práctico donde se ajusta un modelo con datos históricos y se evalúa su desempeño en un período futuro no observado durante el entrenamiento.
-
-```{r grafico_serie}
-autoplot(qqq_ts) +
-  geom_vline(xintercept = 2025.75, linetype = "dashed", color = "red") +
-  annotate("text", x = 2024.5, y = 600, label = "Entrenamiento", color = "blue") +
-  annotate("text", x = 2025.9, y = 600, label = "Prueba", color = "red") +
-  ggtitle("Serie de Tiempo: Precios de Cierre QQQ (2022-2025)") +
-  xlab("Año") +
-  ylab("Precio (USD)") +
-  theme_minimal()
-```
+Esta metodología es esencial en series temporales porque evita la "fuga de información" (data leakage) que ocurriría si se permitiera que datos futuros influyeran en la predicción del pasado. A diferencia de la validación cruzada aleatoria utilizada en otros contextos, la partición secuencial mantiene la estructura cronológica de los datos, respetando las dependencias temporales inherentes a estos.
 
 ## Descripción del modelo
 
-El presente estudio adopta la metodología de modelos ARIMA (AutoRegressive Integrated Moving Average), los cuales proporcionan un enfoque robusto para el pronóstico de series temporales al describir las autocorrelaciones presentes en los datos. A diferencia de los modelos de suavizado exponencial que se basan en tendencias y estacionalidad, los modelos ARIMA capturan la estructura de dependencia temporal mediante tres componentes fundamentales.
+El presente estudio adopta la metodología de modelos ARIMA (AutoRegressive Integrated Moving Average), desarrollada por Box y Jenkins en la década de 1970, la cual proporciona un marco sistemático y robusto para el análisis y pronóstico de series temporales. Los modelos ARIMA se fundamentan en la idea de que el valor actual de una serie puede explicarse mediante una función de sus valores pasados, sus errores de pronóstico pasados, o una combinación de ambos elementos.
+
+A diferencia de los modelos de regresión tradicionales que requieren variables explicativas externas, los modelos ARIMA son modelos univariados que extraen toda la información predictiva de la propia historia de la serie. Esta característica los hace especialmente útiles cuando no se dispone de predictores externos confiables o cuando el objetivo es capturar la dinámica intrínseca de la serie temporal.
+
+La filosofía subyacente de los modelos ARIMA es que las series temporales exhiben patrones de autocorrelación, es decir, correlación entre observaciones separadas por diferentes intervalos de tiempo (rezagos o lags). Este modelo a su vez captura estas autocorrelaciones de manera parsimoniosa mediante la combinación de tres componentes que trabajan de forma integrada.
 
 ### Componentes del modelo ARIMA(p,d,q)
 
 La notación ARIMA(p,d,q) especifica tres parámetros que definen completamente el modelo:
 
-```{r tabla_parametros, echo=FALSE}
-parametros <- data.frame(
-  Parámetro = c("p", "d", "q"),
-  Componente = c("Autorregresivo (AR)", "Integración (I)", "Media Móvil (MA)"),
-  Descripción = c(
-    "Orden de la parte autorregresiva. Indica cuántos valores pasados de la serie se utilizan para predecir el valor actual.",
-    "Grado de diferenciación. Número de veces que se debe diferenciar la serie para alcanzar estacionariedad.",
-    "Orden de la parte de media móvil. Indica cuántos errores de pronóstico pasados se incorporan al modelo."
-  )
-)
+-   **p (Autorregresivo):** Orden de la parte autorregresiva. Indica cuántos valores pasados de la serie se utilizan para predecir el valor actual.
 
-kable(parametros, caption = "Parámetros del modelo ARIMA(p,d,q)") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-```
+-   **d (Integración):** Grado de diferenciación. Número de veces que se debe diferenciar la serie para alcanzar estacionariedad.
+
+-   **q (Media Móvil):** Orden de la parte de media móvil. Indica cuántos errores de pronóstico pasados se incorporan al modelo.
+
+#### Componente Autorregresivo AR(p)
 
 El modelo autorregresivo de orden $p$ (AR(p)) pronostica la variable de interés utilizando una combinación lineal de sus valores pasados:
 
 $$y_t = c + \phi_1 y_{t-1} + \phi_2 y_{t-2} + \cdots + \phi_p y_{t-p} + \varepsilon_t$$
 
-donde $\varepsilon_t$ es ruido blanco y $\phi_1, \ldots, \phi_p$ son los coeficientes autorregresivos.
+donde:
+
+-   $y_t$ es el valor de la serie en el tiempo $t$
+-   $c$ es una constante (intercepto)
+-   $\phi_1, \phi_2, \ldots, \phi_p$ son los coeficientes autorregresivos que miden la influencia de cada rezago
+-   $\varepsilon_t$ es el término de error (ruido blanco) con media cero y varianza constante $\sigma^2$
+
+En un modelo AR(1), el valor actual depende únicamente del valor inmediatamente anterior. El coeficiente $\phi_1$ indica la persistencia de la serie: valores cercanos a 1 implican alta persistencia (los shocks tienen efectos duraderos), mientras que valores cercanos a 0 indican que la serie revierte rápidamente a su media. Para que el modelo sea estacionario, los coeficientes deben satisfacer restricciones específicas.
+
+La interpretación económica del componente AR es que si una serie ha estado elevada en el período anterior, tiende a permanecer elevada en el período actual, capturando el concepto de inercia o persistencia en el comportamiento de la variable.
+
+#### Componente de Media Móvil MA(q)
 
 El modelo de media móvil de orden $q$ (MA(q)) utiliza errores de pronóstico pasados en lugar de valores pasados de la variable:
 
@@ -149,142 +92,122 @@ $$y_t = c + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t
 
 donde $\theta_1, \ldots, \theta_q$ son los coeficientes de media móvil.
 
-### Verificación de estacionariedad
+La interpretación económica del componente MA es que los shocks o sorpresas en una serie tienen efectos transitorios que se disipan gradualmente. Esto es útil para capturar comportamientos donde los precios o valores regresan a su nivel promedio después de una perturbación, en lugar de permanecer desplazados permanentemente.
 
-Antes de ajustar un modelo ARIMA, es fundamental verificar que la serie temporal sea estacionaria, es decir, que sus propiedades estadísticas (media, varianza) no dependan del momento en que se observa la serie. Una serie estacionaria es aproximadamente horizontal, presenta varianza constante y no tiene patrones predecibles a largo plazo.
+#### Componente de Integración I(d)
 
-La estacionariedad se evaluó mediante dos enfoques complementarios:
+Muchas series temporales económicas y financieras no son estacionarias en su forma original, presentando tendencias, medias cambiantes o varianzas no constantes. Una serie estacionaria es aquella cuyas propiedades estadísticas (media, varianza, autocovarianzas) son invariantes en el tiempo, mientras que una serie no estacionaria exhibe comportamientos que dependen del momento en que se observa.
 
-**Análisis gráfico (ACF):** La función de autocorrelación (ACF) de datos estacionarios cae a cero relativamente rápido, mientras que la ACF de datos no estacionarios decrece lentamente. Un decaimiento lento en la ACF, con valores de $r_1$ grandes y positivos, indica no estacionariedad.
+El componente de integración aborda este problema mediante la diferenciación, una transformación que calcula los cambios entre observaciones consecutivas:
 
-**Prueba de Dickey-Fuller Aumentada (ADF):** Esta prueba estadística formal tiene como hipótesis nula que los datos son no estacionarios (presencia de raíz unitaria). Un p-valor menor al nivel de significancia ($\alpha = 0.05$) indica rechazo de la hipótesis nula, concluyendo que la serie es estacionaria.
+$$y'_t = y_t - y_{t-1} = \Delta y_t$$
 
-```{r prueba_adf}
-# Prueba ADF para la serie original
-adf_original <- adf.test(train_ts)
-cat("Prueba ADF - Serie Original:\n")
-cat("Estadístico:", adf_original$statistic, "\n")
-cat("P-valor:", adf_original$p.value, "\n")
+Esta operación, conocida como primera diferencia, elimina tendencias lineales y puede estabilizar la media de la serie. Si una diferencia no es suficiente para lograr estacionariedad, se puede aplicar una segunda diferencia:
 
-if (adf_original$p.value < 0.05) {
-  cat("Conclusión: La serie ES estacionaria (rechazamos H0)\n")
-} else {
-  cat("Conclusión: La serie NO es estacionaria (no rechazamos H0)\n")
-}
-```
+$$y''_t = y'_t - y'_{t-1} = \Delta^2 y_t$$
 
-Para transformar series no estacionarias en estacionarias, se aplica la diferenciación, definida como el cambio entre cada observación y la anterior:
+El parámetro $d$ indica el número de diferencias necesarias para que la serie se vuelva estacionaria. Una serie que requiere $d$ diferencias para ser estacionaria se denomina integrada de orden $d$, denotada como I(d). En la práctica, rara vez se requieren más de dos diferencias.
 
-$$y'_t = y_t - y_{t-1}$$
+### Formulación general del modelo ARIMA(p,d,q)
 
-En la práctica, rara vez es necesario aplicar más de dos diferencias para lograr estacionariedad.
+Combinando los tres componentes, el modelo ARIMA(p,d,q) se puede expresar de forma compacta utilizando el operador de rezago $B$ (donde $B y_t = y_{t-1}$):
 
-```{r diferenciacion}
-# Primera diferencia
-diff1 <- diff(train_ts)
+$$\Phi(B)(1-B)^d y_t = c + \Theta(B) \varepsilon_t$$
 
-# Prueba ADF para la serie diferenciada
-adf_diff <- adf.test(diff1)
-cat("\nPrueba ADF - Primera Diferencia:\n")
-cat("Estadístico:", adf_diff$statistic, "\n")
-cat("P-valor:", adf_diff$p.value, "\n")
+donde:
 
-# Gráfico de diferenciación
-par(mfrow = c(2, 1))
-plot(train_ts, main = "Serie Original", ylab = "Precio (USD)")
-plot(diff1, main = "Primera Diferencia", ylab = "Cambio en Precio (USD)")
-par(mfrow = c(1, 1))
-```
+-   $\Phi(B) = 1 - \phi_1 B - \phi_2 B^2 - \cdots - \phi_p B^p$ es el polinomio autorregresivo
+-   $(1-B)^d$ es el operador de diferenciación aplicado $d$ veces
+-   $\Theta(B) = 1 + \theta_1 B + \theta_2 B^2 + \cdots + \theta_q B^q$ es el polinomio de media móvil
 
-### Selección del orden del modelo
+Esta representación compacta facilita el análisis teórico del modelo y la derivación de sus propiedades estadísticas. La elegancia de esta formulación radica en que captura dinámicas complejas mediante la combinación sistemática de componentes que actúan en diferentes niveles: el componente AR modela la persistencia, el componente MA modela los efectos de shocks transitorios, y el componente I transforma la serie para alcanzar propiedades estadísticas deseables.
 
-La selección de los parámetros $(p, d, q)$ se realizó mediante dos estrategias complementarias:
+### Supuestos del modelo
 
-**Análisis de funciones ACF y PACF:** Los gráficos de autocorrelación (ACF) y autocorrelación parcial (PACF) proporcionan guías para determinar los órdenes $p$ y $q$:
+Para que las inferencias estadísticas y los pronósticos derivados del modelo ARIMA sean válidos y confiables, es necesario que se cumplan ciertos supuestos fundamentales sobre la naturaleza de la serie y sus residuos. Estos supuestos garantizan que el modelo captura adecuadamente la estructura de los datos y que las propiedades estadísticas del modelo son robustas.
 
-- Si el ACF es exponencialmente decadente y hay un corte significativo en el lag $p$ del PACF: modelo AR(p)
-- Si el PACF es exponencialmente decadente y hay un corte significativo en el lag $q$ del ACF: modelo MA(q)
+En primer lugar, la serie temporal debe presentar estacionariedad en media y varianza, lo que significa que sus propiedades estadísticas permanecen aproximadamente constantes a lo largo del tiempo. Esto es crítico porque asegura que las relaciones identificadas entre observaciones son estables y predecibles, en lugar de ser resultado de tendencias determinísticas no modeladas.
 
-```{r acf_pacf}
-# ACF y PACF de la serie diferenciada
-par(mfrow = c(1, 2))
-acf(diff1, lag.max = 40, main = "ACF - Primera Diferencia")
-pacf(diff1, lag.max = 40, main = "PACF - Primera Diferencia")
-par(mfrow = c(1, 1))
-```
+En segundo lugar, los residuos del modelo ajustado deben comportarse como ruido blanco, es decir, como una secuencia de observaciones aleatorias e independientes sin patrones sistemáticos. Si los residuos contienen estructura, esto sugiere que el modelo no ha capturado completamente la dinámica temporal de los datos.
 
-**Criterios de información:** Se utilizó el AICc (Criterio de Información de Akaike corregido) para comparar modelos con el mismo orden de diferenciación. El AICc evalúa la verosimilitud del modelo y aplica una penalización por agregar parámetros, reduciendo la tendencia al sobreajuste:
+Adicionalmente, se asume que los errores son homoscedásticos, teniendo varianza constante a través del tiempo. Finalmente, aunque no es estrictamente necesario para la estimación del modelo, la normalidad de los residuos es deseable para la construcción de intervalos de confianza precisos y para la validez de las pruebas de hipótesis sobre los parámetros.
+
+## Herramientas conceptuales para la identificación y validación del modelo
+
+### Pruebas de estacionariedad
+
+La estacionariedad es un requisito previo fundamental antes de proceder con la modelización ARIMA. Una serie no estacionaria produciría inferencias engañosas y pronósticos poco confiables. Por ello, se requieren métodos formales para evaluar si una serie posee esta propiedad o necesita transformaciones.
+
+La **Prueba Aumentada de Dickey-Fuller (ADF)** es el contraste estadístico estándar en la práctica. Esta prueba contrasta la hipótesis nula de presencia de una raíz unitaria (indicador de no estacionariedad) contra la alternativa de que la serie es estacionaria. El resultado de esta prueba determina el orden de integración $d$ del modelo ARIMA: si la serie original falla la prueba, se procede a diferenciar y repetir hasta lograr estacionariedad.
+
+### Funciones de autocorrelación: ACF y PACF
+
+Las funciones de autocorrelación proporcionan una ventana diagnóstica para entender patrones de dependencia temporal en los datos. Son herramientas esenciales en la identificación preliminar de la estructura ARIMA.
+
+**Función de Autocorrelación (ACF):** Cuantifica la correlación entre observaciones de la serie separadas por diferentes rezagos. Su comportamiento es diagnóstico: en series estacionarias decae gradualmente hacia cero, mientras que en series no estacionarias persiste en valores altos durante muchos rezagos. Desde la perspectiva de identificación del modelo, el ACF es particularmente útil para distinguir procesos de media móvil: un corte abrupto después del rezago $q$ sugiere un componente MA(q).
+
+**Función de Autocorrelación Parcial (PACF):** Elimina la influencia de rezagos intermedios, aislando el efecto directo de cada rezago sobre el presente. Esta función es especialmente informativa para identificar procesos autorregresivos: un corte abrupto después del rezago $p$ sugiere un componente AR(p).
+
+El análisis combinado de estos gráficos proporciona indicios valiosos sobre la especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
+
+### Búsqueda automática: función auto.arima
+
+En la práctica moderna, la función `auto.arima()` automatiza gran parte del proceso de identificación del modelo mediante algoritmos de búsqueda. Esta función realiza una búsqueda sistemática sobre un rango especificado de valores para $p$, $d$ y $q$, evaluando cada combinación mediante criterios de información como AICc.
+
+Sin embargo, es importante reconocer que aunque la automatización es conveniente, conlleva limitaciones. Un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por esta razón, resulta valioso complementar la búsqueda automática con el análisis visual de ACF y PACF, permitiendo que la teoría económica y el conocimiento del dominio del problema informen la especificación final.
+
+### Criterios de selección del modelo: AICc
+
+Cuando múltiples especificaciones ARIMA son candidatas, es necesario un criterio objetivo para elegir entre ellas. Los **criterios de información** cumplen este rol al balancear la calidad del ajuste con la complejidad del modelo.
+
+El **AICc (Criterio de Información de Akaike Corregido)** es el criterio más utilizado en la práctica para la selección de modelos ARIMA. Este criterio evalúa la verosimilitud del modelo (qué tan bien se ajusta a los datos) y aplica una penalización por agregar parámetros adicionales, reduciendo la tendencia al sobreajuste. Su fórmula es:
 
 $$\text{AICc} = \text{AIC} + \frac{2(p+q+k+1)(p+q+k+2)}{T-p-q-k-2}$$
 
-Es importante señalar que los criterios de información no son adecuados para seleccionar el orden de diferenciación ($d$), ya que la diferenciación cambia los datos sobre los que se calcula la verosimilitud, haciendo los valores de AIC no comparables entre modelos con diferentes órdenes de diferenciación.
+donde $T$ es el número de observaciones, $p$ y $q$ son los órdenes del modelo ARIMA, y $k$ es el número de parámetros adicionales (como la constante). El término adicional respecto al AIC clásico corrige el sesgo que ocurre en muestras pequeñas.
 
-### Función auto.arima y sus limitaciones
+Especificaciones con menor AICc son preferibles, ya que indican un mejor balance entre ajuste y parsimonia. Un aspecto crítico es que los criterios de información no son aplicables para seleccionar el orden de diferenciación $d$, pues la diferenciación altera la escala de los datos sobre la cual se computa la verosimilitud, haciendo que los valores de AICc no sean comparables entre modelos con diferente $d$. Por ello, el parámetro $d$ se determina primero mediante pruebas de estacionariedad, y el AICc se utiliza posteriormente para optimizar los órdenes $p$ y $q$.
 
-La función `auto.arima()` del paquete `forecast` de R automatiza la selección del modelo ARIMA mediante una búsqueda algorítmica que minimiza el AICc. Sin embargo, es fundamental reconocer sus limitaciones y riesgos:
+### Diagnóstico de residuos: Prueba de Ljung-Box
 
-- **Búsqueda no exhaustiva:** La función `auto.arima()` no considera todos los modelos posibles en su búsqueda por defecto, utilizando un algoritmo stepwise que puede omitir el modelo óptimo global.
+Después de ajustar un modelo ARIMA específico, es necesario verificar que el modelo haya capturado adecuadamente la estructura temporal. El diagnóstico de residuos es el procedimiento mediante el cual se evalúa esta adecuación.
 
-- **Riesgo de automatización:** Como señala la literatura especializada, "la función auto.arima es útil, pero cualquier cosa automatizada puede ser un poco peligrosa, y vale la pena entender algo sobre el comportamiento de los modelos, incluso cuando se confía en un procedimiento automático para elegir el modelo".
+La **Prueba de Ljung-Box** es un contraste estadístico que evalúa si existe autocorrelación significativa en los residuos. Contrasta la hipótesis nula de ausencia de autocorrelación contra la alternativa de presencia de autocorrelación en al menos algún rezago. Si los residuos conservan autocorrelación, es señal de que el modelo especificado no ha extraído completamente la información temporal disponible, requiriendo respecificación con órdenes más altos.
 
-- **Dependencia de los datos:** Los modelos ARIMA se basan en datos históricos, lo que limita su capacidad para adaptarse a cambios estructurales o eventos sin precedentes en el mercado.
+Un p-valor elevado en esta prueba indica que los residuos se comportan consistentemente con ruido blanco, suministrando confianza en que el modelo ha cumplido su propósito de modelar adecuadamente la dinámica temporal de la serie.
 
-```{r auto_arima}
-# Selección automática del modelo
-modelo_auto <- auto.arima(train_ts, 
-                          stepwise = FALSE, 
-                          approximation = FALSE,
-                          trace = TRUE)
+### Criterios de selección del modelo
 
-# Resumen del modelo seleccionado
-summary(modelo_auto)
-```
+Cuando múltiples especificaciones ARIMA son candidatas, es necesario un criterio objetivo para elegir entre ellas. Los **criterios de información** como el AICc cumplen este rol al balancear la calidad del ajuste con la complejidad del modelo.
 
-Para mitigar estos riesgos, en este estudio se complementó el modelo automático con la estimación de múltiples especificaciones alternativas sugeridas por el análisis visual de ACF y PACF, comparándolas mediante el criterio AICc.
+El AICc penaliza la inclusión de parámetros adicionales, previniendo el sobreajuste que podría resultar en pronósticos pobres fuera de muestra. Especificaciones con menor AICc son preferibles. Un aspecto crítico es que estos criterios no son aplicables para seleccionar el orden de diferenciación $d$, pues la diferenciación altera la escala sobre la cual se computa la verosimilitud. Por ello, $d$ se determina primero mediante pruebas de estacionariedad, y el AICc se utiliza posteriormente para optimizar $p$ y $q$.
 
-### Diagnóstico de residuos
+## Procedimiento metodológico general
 
-La validación del modelo seleccionado se realizó mediante el análisis de residuos, verificando que estos se comporten como ruido blanco:
+La metodología Box-Jenkins, desarrollada como framework estándar para la modelización ARIMA, propone un proceso iterativo:
 
-- **Gráfico de residuos:** Verificar ausencia de patrones sistemáticos
-- **ACF de residuos:** Confirmar que las autocorrelaciones están dentro de las bandas de significancia
-- **Prueba de Ljung-Box:** Evaluar si existe autocorrelación significativa en los residuos
+1.  **Determinación del orden de integración:** Se evalúa estacionariedad mediante pruebas formales, identificando el número de diferencias necesarias.
 
-Si los residuos no se asemejan a ruido blanco, el modelo debe ser modificado hasta satisfacer este supuesto fundamental.
+2.  **Análisis exploratorio de ACF y PACF:** Se examinan los gráficos de autocorrelación para obtener sugerencias preliminares sobre órdenes $p$ y $q$.
 
-```{r diagnostico_residuos}
-# Diagnóstico de residuos
-checkresiduals(modelo_auto)
+3.  **Estimación comparativa:** Se ajustan múltiples especificaciones candidatas, comparándolas según criterios de información. La búsqueda automática puede iniciar este proceso, pero debe complementarse con especificaciones alternativas sugeridas por el análisis gráfico.
 
-# Prueba de Ljung-Box
-ljung_box <- Box.test(residuals(modelo_auto), lag = 10, type = "Ljung-Box")
-cat("\nPrueba de Ljung-Box:\n")
-cat("Estadístico:", ljung_box$statistic, "\n")
-cat("P-valor:", ljung_box$p.value, "\n")
+4.  **Validación diagnóstica:** Se examinan los residuos del modelo seleccionado mediante análisis gráfico y pruebas estadísticas, verificando que se asemejen a ruido blanco.
 
-if (ljung_box$p.value > 0.05) {
-  cat("Conclusión: No hay autocorrelación significativa en los residuos\n")
-} else {
-  cat("Conclusión: Existe autocorrelación significativa en los residuos\n")
-}
-```
+5.  **Generación de pronósticos:** Una vez validado el modelo, se procede a realizar predicciones sobre el conjunto de datos de prueba.
 
-## Base de datos del estudio
+## Métricas de evaluación del desempeño predictivo
 
-A continuación se presenta una muestra de los datos utilizados para el análisis, incluyendo las primeras observaciones del conjunto de entrenamiento y del conjunto de prueba:
+Para evaluar objetivamente la precisión de los pronósticos generados por el modelo ARIMA en el conjunto de prueba, se emplean métricas cuantitativas estándar:
 
-```{r tabla_datos}
-datos_completos <- data.frame(
-Fecha = index(precios),
-Precio_Cierre = as.numeric(precios)
-)
+**RMSE (Root Mean Squared Error):** $$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{t=1}^{n} (\hat{y}_t - y_t)^2}$$
 
-#Agregar columna de conjunto
-datos_completos$Conjunto <- ifelse(datos_completos$Fecha <= as.Date("2025-09-30"),
-"Entrenamiento", "Prueba")
-kable(datos_completos,
-col.names = c("Fecha", "Precio Cierre (USD)", "Conjunto"),
-caption = "Base de datos completa: Precios de cierre QQQ (791 observaciones)") %>%
-kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
-scroll_box(width = "100%", height = "500px")
-```
+Esta métrica amplifica penalizaciones sobre errores grandes, siendo sensible a presencia de valores atípicos en los errores de pronóstico.
+
+**MAE (Mean Absolute Error):** $$\text{MAE} = \frac{1}{n} \sum_{t=1}^{n} |\hat{y}_t - y_t|$$
+
+Proporciona una medida de error promedio que es menos sensible a outliers que el RMSE, ofreciendo una perspectiva más robusta del desempeño general.
+
+**MAPE (Mean Absolute Percentage Error):** $$\text{MAPE} = \frac{100}{n} \sum_{t=1}^{n} \left| \frac{y_t - \hat{y}_t}{y_t} \right|$$
+
+Expresa el error como porcentaje relativo del valor observado, permitiendo comparabilidad del desempeño independientemente de la magnitud absoluta de los valores predichos.

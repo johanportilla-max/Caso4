@@ -834,6 +834,8 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+---
+
 ## 4.2 Análisis de Estacionariedad
 
 La metodología Box-Jenkins requiere que la serie temporal sea estacionaria. 
