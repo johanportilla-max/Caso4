@@ -1,6 +1,6 @@
 ---
 title: "Análisis de Series de Tiempo y Pronóstósticos ARIMA"
-subtitle: "Estudio Empírico sobre el Precio de Acciones de Tesla Inc."
+subtitle: "Estudio Empírico sobre el Precio de Acciones del QQQ"
 author: "Camilo"
 date: "`r format(Sys.Date(), '%d de %B de %Y')`"
 output:
@@ -437,41 +437,62 @@ body div.container-fluid:first-of-type {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
-/* ========== NUEVO: ESTILO PARA EL BOTÓN INDIVIDUAL DE CADA CHUNK ========== */
-.chunk-code-toggle {
-  background-color: transparent;
-  color: var(--accent-primary); /* Color verde/cian */
-  border: 1px solid var(--accent-primary);
-  padding: 4px 10px;
-  border-radius: 6px;
+
+/* ========== BOTONES DE CHUNK - ESTILO BARRA COMPLETA ========== */
+.code-chunk-toggle {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
   font-weight: 600;
-  margin-bottom: 5px; /* Espacio entre botón y código */
-  margin-top: 15px;   /* Espacio respecto al elemento anterior */
-  transition: all 0.2s ease;
-  display: inline-flex;
+  font-size: 0.95em;
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 5px;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 100;
 }
 
-.chunk-code-toggle:hover {
-  background-color: var(--accent-primary);
-  color: white;
-  box-shadow: 0 4px 10px rgba(0, 184, 148, 0.2);
+.code-chunk-toggle:hover {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  box-shadow: 0 6px 16px rgba(0, 184, 148, 0.3);
 }
 
-.chunk-code-toggle.active {
-  background-color: var(--bg-lighter);
-  color: var(--text-gray);
-  border-color: var(--text-gray);
+.code-chunk-toggle::after {
+  content: "▼";
+  font-size: 1em;
+  transition: transform 0.3s ease;
+  display: inline-block;
 }
 
-/* Ajuste para que el bloque de código (pre) aparezca pegado al botón */
+.code-chunk-toggle.collapsed::after {
+  transform: rotate(-180deg);
+}
+
 pre {
   margin-top: 0 !important;
-  transition: all 0.3s ease;
+  margin-bottom: 25px !important;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  border-radius: 0 0 10px 10px;
+}
+
+pre.collapsed {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+  opacity: 0;
+}
+
+pre.expanded {
+  max-height: 5000px !important;
+  opacity: 1;
 }
 </style>
 ```
@@ -582,137 +603,51 @@ document.addEventListener('DOMContentLoaded', function() {
   let codeVisible = true;
   btnToggle.addEventListener('click', function() {
     const codes = document.querySelectorAll('pre');
+    const toggleBtns = document.querySelectorAll('.code-chunk-toggle');
     codeVisible = !codeVisible;
     codes.forEach(code => {
       code.style.display = codeVisible ? 'block' : 'none';
     });
+    toggleBtns.forEach(btn => {
+      if (codeVisible) {
+        btn.style.display = 'flex';
+      } else {
+        btn.style.display = 'none';
+      }
+    });
     btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
   });
 
-  // Animación Logo Univalle
-  const logos = ["univalle.png", "ingenieria.png"];  
-  let index = 0;
-  const img = document.getElementById("uv-img");
-  const btn = document.getElementById("uv-button");
-  if (btn && img) {
-    setInterval(() => {
-      btn.classList.add("spin");
-      setTimeout(() => {
-        index = (index + 1) % logos.length;
-        img.style.opacity = 0;
-        setTimeout(() => {
-          img.src = logos[index];
-          img.style.opacity = 1;
-        }, 200);
-      }, 600);
-      setTimeout(() => btn.classList.remove("spin"), 1200);
-    }, 3500);
-  }
-});
-document.addEventListener('DOMContentLoaded', function() {
-  const SCROLL_OFFSET = 100;
-
-  // --- 1. LÓGICA DEL TOC (Igual que antes) ---
-  const toc = document.getElementById("custom-toc");
-  if (toc) {
-    const title = document.createElement("h2");
-    title.textContent = "Contenido";
-    toc.appendChild(title);
-    const list = document.createElement("ul");
-    toc.appendChild(list);
-
-    const headers = document.querySelectorAll("h1, h2");
-    headers.forEach(header => {
-      if (!header.id) {
-        header.id = header.textContent.toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, '');
-      }
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.href = `#${header.id}`;
-      a.textContent = header.textContent;
-      
-      a.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href').substring(1);
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-          window.scrollTo({
-            top: targetElement.offsetTop - SCROLL_OFFSET, 
-            behavior: 'smooth'
-          });
-          history.pushState(null, null, `#${targetId}`);
-        }
-      });
-      li.appendChild(a);
-      list.appendChild(li);
-    });
-
-    function updateActiveTOCLink() {
-      const tocLinks = document.querySelectorAll('#custom-toc a');
-      let currentActiveId = '';
-      headers.forEach(section => {
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= SCROLL_OFFSET + 20) { 
-          currentActiveId = section.id;
-        }
-      });
-      tocLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === `#${currentActiveId}`) {
-          link.classList.add('active');
-        }
-      });
-    }
-    window.addEventListener('scroll', updateActiveTOCLink);
-    updateActiveTOCLink(); 
-  }
-
-  // --- 2. NUEVA LÓGICA: BOTONES INDIVIDUALES PARA CADA CÓDIGO ---
-  
-  // Seleccionamos todos los bloques de código generados por R
-  // R Markdown suele ponerlos en 'pre.r' o dentro de div.sourceCode
-  const codeBlocks = document.querySelectorAll('pre.r, pre.sourceCode, .sourceCode pre');
-
-  codeBlocks.forEach(block => {
-    // 1. Ocultar el código por defecto
-    block.style.display = 'none';
-
-    // 2. Crear el botón
-    const btn = document.createElement('button');
-    btn.className = 'chunk-code-toggle';
-    btn.innerHTML = '<span>&#9654;</span> Ver Código'; // Icono de play
+  // ========== BOTONES INDIVIDUALES POR CHUNK ==========
+  setTimeout(() => {
+    const preElements = document.querySelectorAll('pre');
+    let chunkIndex = 0;
     
-    // 3. Insertar el botón ANTES del bloque de código
-    // Buscamos el padre para insertar antes del <pre>
-    block.parentNode.insertBefore(btn, block);
-
-    // 4. Agregar evento click
-    btn.addEventListener('click', function() {
-      if (block.style.display === 'none') {
-        // Mostrar
-        block.style.display = 'block';
-        btn.innerHTML = '<span>&#9660;</span> Ocultar Código';
-        btn.classList.add('active');
-      } else {
-        // Ocultar
-        block.style.display = 'none';
-        btn.innerHTML = '<span>&#9654;</span> Ver Código';
-        btn.classList.remove('active');
-      }
+    preElements.forEach((pre) => {
+      chunkIndex++;
+      
+      // Crear botón
+      const btn = document.createElement('button');
+      btn.className = 'code-chunk-toggle';
+      btn.innerHTML = `<span>💻 Código - Chunk ${chunkIndex}</span>`;
+      btn.setAttribute('data-chunk', chunkIndex);
+      
+      // Estado inicial: mostrado
+      pre.classList.add('expanded');
+      btn.classList.remove('collapsed');
+      
+      // Insertar botón antes del <pre>
+      pre.parentNode.insertBefore(btn, pre);
+      
+      // Evento de click
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        pre.classList.toggle('collapsed');
+        pre.classList.toggle('expanded');
+        btn.classList.toggle('collapsed');
+      });
     });
-  });
-
-  // --- 3. EXTRAS (FECHA, LOGOS) ---
-  const fechaSpan = document.getElementById('fecha-entrega');
-  if(fechaSpan) {
-    fechaSpan.textContent = new Date().toLocaleDateString('es-ES', {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
-  }
-
-  // Eliminé el botón global anterior para que no tengas conflicto, 
-  // ya que ahora tienes botones individuales.
+  }, 500);
 
   // Animación Logo Univalle
   const logos = ["univalle.png", "ingenieria.png"];  
@@ -753,28 +688,57 @@ tesla_pal <- list(
   grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
 )
 
+qqq_pal <- list(
+  bg        = "#ffffff",
+  text_dark = "#1f2937",
+  text_gray = "#4b5563",
+  primary   = "#00b894",
+  secondary = "#06b6d4",
+  positive  = "#84cc16",
+  negative  = "#e17055",
+  grid      = "#f3f4f6"
+)
+
+
+# ==========================================
+# 2. CREACIÓN DEL TEMA PERSONALIZADO "THEME_TESLA"
+# ==========================================
 theme_tesla <- function() {
   theme_minimal(base_size = 14) +
     theme(
+      # Fondo transparente para fundirse con el HTML
       plot.background = element_rect(fill = "transparent", color = NA),
       panel.background = element_rect(fill = "transparent", color = NA),
+      
+      # Textos
       text = element_text(color = tesla_pal$text_main, family = "sans"),
       plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, margin = margin(b = 10)),
       plot.subtitle = element_text(size = 12, color = tesla_pal$secondary, margin = margin(b = 10)),
       plot.caption = element_text(size = 9, color = tesla_pal$text_gray, margin = margin(t = 10)),
+      
+      # Ejes
       axis.title = element_text(face = "bold", size = 11, color = tesla_pal$text_gray),
       axis.text = element_text(size = 10, color = tesla_pal$text_gray),
-      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), 
+      axis.line.x = element_line(color = tesla_pal$secondary, size = 0.5), # Línea de eje en tu color secundario
+      
+      # Rejilla (Grid)
       panel.grid.major = element_line(color = tesla_pal$grid, linetype = "dashed"),
-      panel.grid.minor = element_blank(),
+      panel.grid.minor = element_blank(), # Limpiamos el ruido visual
+      
+      # Leyenda
       legend.position = "bottom",
       legend.background = element_rect(fill = "transparent", color = NA),
       legend.key = element_rect(fill = "transparent", color = NA)
     )
 }
 
+# ==========================================
+# 3. ESTABLECER COMO PREDETERMINADO
+# ==========================================
+# Esto hace que TODOS tus gráficos usen este estilo automáticamente
 theme_set(theme_tesla())
 
+# Actualizar colores por defecto de las geometrías para que coincidan
 update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
 update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
 update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
@@ -782,39 +746,44 @@ update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
 ```
 ---
 
-# Análisis de Series de Tiempo y Pronósticos ARIMA
-
-Estudio Empírico sobre el Precio de Acciones de Tesla Inc.
-
----
-
 # 1. Introducción
 
 ## 1.1 Relevancia del Análisis
 
+[**PLACEHOLDER:** Explica la relevancia de Tesla, su importancia en el mercado global, volatilidad e impacto para inversionistas]
 
+El análisis de series de tiempo en los mercados financieros es fundamental para la toma de decisiones estratégicas. Las acciones de Tesla Inc. representan un caso de estudio particularmente interesante debido a su volatilidad inherente y su impacto significativo en los mercados globales.
 
 ## 1.2 Metodología: Modelos ARIMA
 
+[**PLACEHOLDER:** Introduce los conceptos fundamentales de ARIMA, su importancia y utilidad en pronósticos de series temporales]
+
+Los modelos ARIMA combinan componentes autorregresivos, de integración y de media móvil para capturar dinámicas complejas en datos temporales.
 
 ---
 
 # 2. Descripción de la Serie Temporal
-
-## 2.1 serie QQQ historica 
-
-```{r serie, echo=TRUE, warning=FALSE, message=FALSE}
+```{r serie, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyquant)
 library(tidyverse)
 library(ggplot2)
 library(zoo)
 library(plotly)
+library(quantmod)
+library(xts)
+library(fpp2)
+library(tseries)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
 
-serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
-precios <- serie$QQQ.Close
+serie_QQQ <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2022-10-07")
+Precio <- serie_QQQ$`QQQ.Close`
 datos_qqq <- data.frame(
-  Fecha = index(precios),
-  Precio = as.numeric(precios)
+  Fecha = index(Precio),
+  Precio = as.numeric(Precio)
 )
 datos_qqq <- datos_qqq %>%
   mutate(Corte = as.yearqtr(Fecha)) 
@@ -826,11 +795,8 @@ lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
 
 datos_animados <- dplyr::bind_rows(lista_frames)
 p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
-  
   geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
-  
   geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
-  
   labs(
     title = "Evolución Dinámica del QQQ",
     subtitle = "Crecimiento histórico acumulado",
@@ -859,484 +825,276 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
-## 2.2 División sectorial 
-
-
-```{r tortA, echo=TRUE, warning=FALSE, message=FALSE}
-library(plotly)
-sectores <- data.frame(
-  Sector = c("Tecnología", "Consumo Discrecional", "Servicios de Comunicación", 
-             "Consumo Básico", "Industriales", "Salud", "Otros", 
-             "Servicios Públicos", "Materiales", "Energía"),
-  Peso = c(53.60, 13.04, 12.61, 4.99, 4.58, 4.28, 3.22, 1.38, 1.25, 0.47)
-)
-
-colores_sector <- c(
-  "#2b5c8a",
-  "#5d5b94", 
-  "#8e6fa3",
-  "#c46d9e",
-  "#e67586", 
-  "#f38972", 
-  "#f8a262",
-  "#fbc058", 
-  "#fce05d", 
-  "#34495e"  
-)
-fig_pie <- plot_ly(sectores, labels = ~Sector, values = ~Peso, type = 'pie',
-        textposition = 'outside',      
-        textinfo = 'label+percent',    
-        hoverinfo = 'label+value+percent',
-        marker = list(
-          colors = colores_sector, 
-          line = list(color = '#ffffff', width = 1.5) 
-        ),
-        sort = FALSE, 
-        automargin = TRUE
-)
-
-fig_pie <- fig_pie %>% layout(
-  title = list(
-    text = "<b>Asignación Sectorial</b>",
-    font = list(size = 22, family = "Poppins, sans-serif", color = tesla_pal$text_main),
-    x = 0.05, 
-    y = 0.95
-  ),
-  showlegend = FALSE, 
-  margin = list(t = 80, b = 40, l = 80, r = 80), 
-  paper_bgcolor = 'rgba(0,0,0,0)',
-  plot_bgcolor = 'rgba(0,0,0,0)',
-  font = list(family = "Inter, sans-serif", size = 12, color = tesla_pal$text_gray)
-)
-
-fig_pie
-
-```
-
-## 2.3 Mayores Holdings 
-
-```{r top10, echo=TRUE, warning=FALSE, message=FALSE}
-
-library(packcircles)
-library(dplyr)
-library(ggplot2)
-library(plotly)
-
-top10 <- data.frame(
-  ticker = c("NVDA","AAPL","MSFT","AVGO","AMZN","GOOGL","GOOG","TSLA","META","NFLX"),
-  empresa = c("NVIDIA","Apple Inc.","Microsoft","Broadcom Inc.","Amazon.com, Inc.",
-              "Alphabet Class A","Alphabet Class C","Tesla, Inc.","Meta Plataformas, Inc.","Netflix, Inc."),
-  peso = c(9.33, 8.78, 7.69, 6.59, 5.21, 3.97, 3.71, 3.31, 2.93, 2.36),
-  sector = c("Tecnología","Tecnología","Tecnología","Tecnología",
-             "Consumo","Comunicación","Comunicación",
-             "Consumo","Comunicación","Consumo"),
-  stringsAsFactors = FALSE
-)
-
-otros_val <- round(100 - sum(top10$peso), 2)
-holdings <- bind_rows(top10,
-                      data.frame(ticker="OTROS", empresa="Resto del QQQ",
-                                 peso = otros_val, sector="Varios", stringsAsFactors = FALSE)) %>%
-  arrange(desc(peso))
-
-packing <- circleProgressiveLayout(holdings$peso, sizetype='area')
-holdings_pack <- cbind(holdings, packing)
-holdings_pack$id <- seq_len(nrow(holdings_pack))
-holdings_pack <- holdings_pack %>% rename(center_x = x, center_y = y)
-
-dat.gg <- circleLayoutVertices(packing, npoints = 100)
-dat.gg <- merge(dat.gg, holdings_pack, by = "id")
-
-holdings_pack <- holdings_pack %>%
-  mutate(
-    peso_label = gsub("\\.", ",", formatC(peso, digits = 2, format = "f")),
-    hover_text = paste0(
-      empresa, "\n",
-      "Ticker: ", ticker, "\n",
-      "Peso: ", peso_label, "%\n",
-      "Sector: ", sector
-    ),
-    label_text = ifelse(peso >= 2.3, paste0(ticker, "\n", peso_label, "%"), "")
-  )
-
-fill_map <- c(
-  "Tecnología"   = tesla_pal$primary,
-  "Consumo"      = tesla_pal$secondary,
-  "Comunicación" = "#3b82f6",
-  "Varios"       = tesla_pal$text_gray
-)
-
-p_bubble <- ggplot() +
-  geom_polygon(
-    data = dat.gg,
-    aes(x = x, y = y, group = id, fill = sector,
-        text = holdings_pack$hover_text[match(id, holdings_pack$id)]),
-    color = "white", size = 0.5, alpha = 0.95
-  ) +
-  geom_text(
-    data = holdings_pack,
-    aes(x = center_x, y = center_y, label = label_text, text = hover_text),
-    size = 3.8, color = "white", fontface = "bold", lineheight = 0.9
-  ) +
-  scale_fill_manual(values = fill_map) +
-  theme_void() +
-  coord_equal() +
-  labs(title = "Composición del Portafolio QQQ",
-       subtitle = "Top holdings según la imagen") +
-  theme(
-    plot.title = element_text(face = "bold", size = 16, color = tesla_pal$text_main, hjust = 0.5),
-    plot.subtitle = element_text(size = 12, color = tesla_pal$text_gray, hjust = 0.5),
-    legend.position = "bottom",
-    legend.title = element_blank(),
-    plot.margin = margin(10,10,10,10)
-  )
-
-ggplotly(p_bubble, tooltip = "text") %>%
-  config(displayModeBar = FALSE) %>%
-  layout(
-    font = list(family = "Inter", color = tesla_pal$text_main),
-    plot_bgcolor  = "rgba(0,0,0,0)",
-    paper_bgcolor = "rgba(0,0,0,0)",
-    legend = list(orientation = "h", yanchor = "bottom", y = -0.12, xanchor = "center", x = 0.5),
-    hoverlabel = list(
-      bgcolor = "rgba(255,255,255,0.97)",
-      bordercolor = "rgba(0,0,0,0.08)",
-      font = list(family = "Inter", color = tesla_pal$text_main, size = 11)
-    )
-  )
-```
-
-## 2.4 Análisis Estadístico
-
-
-```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
-library(moments)
-library(knitr)
-
-serie_vec <- as.numeric(serie)
-valores_calculados <- c(
-    length(serie_vec),
-    mean(serie_vec, na.rm = TRUE),
-    median(serie_vec, na.rm = TRUE),
-    min(serie_vec, na.rm = TRUE),
-    max(serie_vec, na.rm = TRUE),
-    max(serie_vec, na.rm = TRUE) - min(serie_vec, na.rm = TRUE),
-    var(serie_vec, na.rm = TRUE),
-    sd(serie_vec, na.rm = TRUE),
-    skewness(serie_vec, na.rm = TRUE),
-    kurtosis(serie_vec, na.rm = TRUE)
-)
-
-desc <- data.frame(
-  Métrica = c(
-    "Observaciones Totales",
-    "Media",
-    "Mediana",
-    "Mínimo",
-    "Máximo",
-    "Rango",
-    "Varianza",
-    "Desviación Estándar",
-    "Asimetría (Skewness)",
-    "Curtosis"
-  ),
-  Valor = format(valores_calculados, scientific = FALSE, big.mark = ",", digits = 2, nsmall = 2)
-)
-
-kable(
-  desc,
-  format = "html",
-  align = c('l', 'r'),
-  table.attr = "class='table' style='width:60%; margin:auto; font-size:18px;'"
-)
-
-```
-
-## 2.5 Rendimientos Diarios
-
-```{r tablarendimientos, echo=TRUE, warning=FALSE, message=FALSE}
-library(quantmod)
-library(dplyr)
-library(ggplot2)
-library(tidyverse)
-
-# Precios ya cargados en tu objeto "serie"
-precios <- serie$QQQ.Close
-
-# Retornos
-ret_diario  <- dailyReturn(precios, type = "log")
-ret_mensual <- monthlyReturn(precios, type = "log")
-ret_anual   <- yearlyReturn(precios, type = "log")
-
-# Volatilidad anualizada
-vol_anual <- sd(ret_diario) * sqrt(252)
-
-```
-
-
-## 2.6 Retornos Diarios
-
-```{r tablaretrnosentos, echo=TRUE, warning=FALSE, message=FALSE}
-ret_df <- data.frame(Retorno = as.numeric(ret_diario))
-
-ggplot(ret_df, aes(x = Retorno)) +
-  geom_histogram(aes(y = ..density..), bins = 60, fill = tesla_pal$primary, alpha = 0.4) +
-  geom_density(color = tesla_pal$secondary, size = 1.2) +
-  labs(title = "Distribución de los Rendimientos Diarios del QQQ",
-       x = "Retorno Diario (log)", y = "Densidad") +
-  theme_tesla()
-
-```
-
-
-
-
-```{r boxpllot, echo=TRUE, warning=FALSE, message=FALSE}
-
-ret_anual_df <- data.frame(
-  Fecha = index(ret_diario),
-  Ret = as.numeric(ret_diario),
-  Año = format(index(ret_diario), "%Y")
-)
-
-ggplot(ret_anual_df, aes(x = Año, y = Ret, group = Año)) +
-  geom_boxplot(fill = tesla_pal$primary, alpha = 0.7) +
-  labs(title = "Distribución de los Retornos Diarios por Año (QQQ)",
-       x = "Año", y = "Retorno Diario") +
-  theme_tesla() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
-
-```
-
-
-## 2.7 Rendimientos por año
-
-```{r rendimientosaño, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-ret_anual_df <- data.frame(
-  Año = year(index(ret_anual)),
-  Retorno = round(100 * as.numeric(ret_anual), 2)
-)
-
-ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno)) +
-  geom_col(fill = tesla_pal$primary) +
-  geom_text(
-    aes(label = paste0(Retorno, "%")),
-    vjust = -0.5,
-    color = tesla_pal$text_main,  
-    size = 4
-  ) +
-  labs(title = "Retorno Anual del QQQ",
-       x = "Año", y = "Retorno (%)") +
-  theme_tesla()
-```
-
-## 2.8 Drawdown 
-
-
-```{r drawdown, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-library(PerformanceAnalytics)
-library(ggplot2)
-library(dplyr)
-ret_diario <- dailyReturn(precios, type = "log")
-
-dd <- PerformanceAnalytics::Drawdowns(ret_diario)
-dd_df <- data.frame(
-  Fecha = index(dd),
-  Drawdown = as.numeric(dd)
-)
-ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
-  geom_line(color = tesla_pal$primary, linewidth = 0.7) +
-  labs(title = "Drawdown Histórico del QQQ",
-       x = "", y = "Drawdown") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  theme_tesla()
-```
-
-## 2.9 Métricas Financieras 
-
-```{r metrics_financieras, echo=TRUE, warning=FALSE, message=FALSE}
-library(PerformanceAnalytics)
-library(xts)
-
-# Cálculo de métricas
-cagr <- Return.annualized(ret_diario, scale = 252)
-cumulative_return <- Return.cumulative(ret_diario)
-
-sharpe_annual <- (mean(ret_diario, na.rm=TRUE) / sd(ret_diario, na.rm=TRUE)) * sqrt(252)
-sortino <- SortinoRatio(ret_diario, MAR = 0)
-max_dd <- maxDrawdown(ret_diario)
-
-calmar <- as.numeric(cagr) / abs(as.numeric(max_dd))
-
-# Tabla con métricas
-metrics <- data.frame(
-  Métrica = c("CAGR (anual)", "Retorno acumulado", "Sharpe (aprx anual)", 
-              "Sortino", "Max Drawdown", "Calmar"),
-  Valor = c(
-    scales::percent(as.numeric(cagr), accuracy = 0.01),
-    scales::percent(as.numeric(cumulative_return), accuracy = 0.01),
-    round(as.numeric(sharpe_annual), 3),
-    round(as.numeric(sortino), 3),
-    scales::percent(as.numeric(max_dd), accuracy = 0.1),
-    round(as.numeric(calmar), 3)
-  ),
-  stringsAsFactors = FALSE
-)
-
-knitr::kable(metrics, format = "html", table.attr = "class='table' style='width:60%; margin:auto;'")
-```
-
-```{r rolling_vol, echo=TRUE, warning=FALSE, message=FALSE}
-library(zoo)
-
-rollsd30  <- rollapply(as.numeric(ret_diario), width = 30, FUN = sd, fill = NA, align = "right")
-rollsd90  <- rollapply(as.numeric(ret_diario), width = 90, FUN = sd, fill = NA, align = "right")
-rollsd252 <- rollapply(as.numeric(ret_diario), width = 252, FUN = sd, fill = NA, align = "right")
-
-df_roll <- data.frame(
-  Fecha = index(ret_diario),
-  vol30 = rollsd30 * sqrt(252),
-  vol90 = rollsd90 * sqrt(252),
-  vol252 = rollsd252 * sqrt(252)
-)
-
-library(reshape2)
-dfm <- melt(df_roll, id.vars = "Fecha", variable.name = "Window", value.name = "VolAnual")
-
-ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
-  geom_line(size = 0.8) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
-  labs(title = "Volatilidad Rolling (annualizada)", y = "Vol Annualizada", x = "") +
-  scale_color_manual(values = c("vol30" = tesla_pal$primary, "vol90" = tesla_pal$secondary, "vol252" = tesla_pal$text_gray)) +
-  theme_tesla()
-```
-
-## 3 Estacionalidad Mensual del QQQ (2010–2025)
-
-```{r heatmap_estacional_mejor, echo=TRUE, warning=FALSE, message=FALSE}
-library(ggplot2)
-library(viridis)
-
-df_m <- data.frame(Fecha = index(ret_mensual), Ret = as.numeric(ret_mensual))
-df_m <- df_m %>% mutate(Año = lubridate::year(Fecha), Mes = lubridate::month(Fecha, label = TRUE, abbr = TRUE), RetP = Ret*100)
-tabla_m <- df_m %>% group_by(Año, Mes) %>% summarise(RetP = mean(RetP, na.rm = TRUE))
-ggplot(tabla_m, aes(x = Mes, y = factor(Año), fill = RetP)) +
-  geom_tile(color = "white") +
-  scale_fill_viridis_c(option = "C", direction = 1, name = "Ret (%)") +
-  labs(title = "Heatmap Estacional Mensual (QQQ)") +
-  theme_tesla()
-```
-
-## 3.1 Resumen anual
-
-```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
-library(dplyr)
-library(tidyr)
-
-df_ann <- data.frame(Fecha = index(ret_anual), Ret = as.numeric(ret_anual))
-df_ann <- df_ann %>% mutate(Año = lubridate::year(Fecha), RetPct = Ret * 100)
-vol_year <- ret_diario %>% 
-  data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario)) %>%
-  mutate(Año = lubridate::year(Fecha)) %>%
-  group_by(Año) %>%
-  summarise(Vol = sd(Ret, na.rm=TRUE)*sqrt(252)*100, Ret = sum(Ret)*100)
-dd_df <- data.frame(Fecha = index(ret_diario), Ret = as.numeric(ret_diario))
-dd_df <- dd_df %>% mutate(Año = lubridate::year(Fecha))
-maxdd_yr <- dd_df %>% group_by(Año) %>%
-  summarise(MaxDD = min( cumprod(1+Ret) / cummax(cumprod(1+Ret)) - 1 ) * 100)
-
-res_yr <- left_join(vol_year, maxdd_yr, by = "Año") %>% arrange(desc(Año))
-knitr::kable(res_yr, format = "html")
-```
-
 
 ## 2.1 Contexto Histórico
 
 [**PLACEHOLDER:** Contexto de Tesla Inc., su cotización en bolsa, período de análisis seleccionado, eventos significativos que han afectado el precio]
 
+## 2.2 Estadísticas Descriptivas
 
+[**PLACEHOLDER:** Carga tus datos y proporciona estadísticas completas de la serie]
 
-
-# 3. Resultados del Modelo ARIMA
-
-## 3.1 Evaluación de Estacionariedad
-
-[**PLACEHOLDER:** Documenta pruebas de estacionariedad KPSS y ADF. Interpreta resultados]
-
-```{r estacionariedad, echo=TRUE, eval=FALSE}
-library(urca)
-library(tseries)
-
-summary(ur.kpss(datos_tesla$Close))
-adf.test(datos_tesla$Close)
+```{r datos, echo=TRUE, eval=FALSE}
+# Cargar datos de Tesla
+datos_tesla <- read.csv("tesla_data.csv")
+summary(datos_tesla$Close)
+sd(datos_tesla$Close)
 ```
 
-## 3.2 Análisis ACF y PACF
-
-[**PLACEHOLDER:** Inserta gráficos ACF y PACF. Analiza patrones de autocorrelación]
-
-```{r acf, echo=TRUE, eval=FALSE}
-library(ggplot2)
-ggtsdisplay(diff(datos_tesla$Close))
-```
-
-## 3.3 Selección del Modelo
-
-[**PLACEHOLDER:** Documenta parámetros p, d, q seleccionados y justificación]
-
-| Parámetro | Valor | Justificación |
-|:---|:--:|:---|
-| p | [ ] | [Basado en PACF] |
-| d | [ ] | [Basado en tests de estacionariedad] |
-| q | [ ] | [Basado en ACF] |
-
-## 3.4 Ajuste del Modelo
-
-[**PLACEHOLDER:** Resumen del modelo ARIMA ajustado con coeficientes interpretados]
-
-```{r arima, echo=TRUE, eval=FALSE}
-library(forecast)
-fit <- auto.arima(datos_tesla$Close, seasonal=FALSE)
-summary(fit)
-```
-
-## 3.5 Diagnóstico de Residuos
-
-[**PLACEHOLDER:** Análisis de residuos: gráficos, pruebas de normalidad y autocorrelación]
-
-```{r residuos, echo=TRUE, eval=FALSE}
-checkresiduals(fit)
-```
-
-## 3.6 Pronósticos
-
-[**PLACEHOLDER:** Pronósticos para períodos futuros con intervalos de confianza]
-
-```{r forecast, echo=TRUE, eval=FALSE}
-forecast_tesla <- forecast(fit, h=10)
-autoplot(forecast_tesla)
-```
+| Estadístico | Valor |
+|:---|--:|
+| Media | [Inserta] |
+| Mediana | [Inserta] |
+| Desv. Est. | [Inserta] |
+| Mínimo | [Inserta] |
+| Máximo | [Inserta] |
 
 ---
 
-# 4. Conclusiones
+# 4. Resultados del Modelo ARIMA {#resultados}
 
-## 4.1 Hallazgos Principales
+## 4.1 Selección de la Ventana Temporal
+
+### 4.1.1 Partición de Datos
+
+Ventana de Entrenamiento (2022-10-07 → 2025-09-30)
+Ventana de Prueba (2025-10-01 → presente)
+Tabla resumen: observaciones por conjunto
+Gráfico: Serie con partición Train/Test
+
+
+```{r parti, eval=FALSE}
+Entrenamiento=window(Precio, end="2025-09-30")
+Prueba=window(Precio, start = "2025-10-01")
+```
+
+```{r graficoparti, echo=TRUE, eval=FALSE}
+df_train <- data.frame(
+  Fecha = index(Entrenamiento),
+  Precio = as.numeric(Entrenamiento),
+  Conjunto = "Entrenamiento"
+)
+
+df_test <- data.frame(
+  Fecha = index(Prueba),
+  Precio = as.numeric(Prueba),
+  Conjunto = "Prueba"
+)
+
+df_completo <- bind_rows(df_train, df_test)
+
+fecha_corte <- as.Date("2025-10-01")
+
+ggplot(df_completo, aes(x = Fecha, y = Precio)) +
+  geom_ribbon(data = df_train, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$primary, alpha = 0.08) +
+  geom_ribbon(data = df_test, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$secondary, alpha = 0.15) +
+  geom_line(data = df_train, color = qqq_pal$primary, linewidth = 0.9) +
+  geom_line(data = df_test, color = qqq_pal$secondary, linewidth = 1.1) +
+  geom_vline(xintercept = fecha_corte, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.8) +
+  annotate("text", x = fecha_corte, y = max(df_completo$Precio) * 1.02,
+           label = "Corte: 01-Oct-2025", hjust = -0.05, vjust = 0,
+           color = qqq_pal$negative, fontface = "bold", size = 3.5) +
+  annotate("label", 
+           x = as.Date("2024-01-01"), 
+           y = max(df_completo$Precio) * 0.85,
+           label = paste0("ENTRENAMIENTO\n", nrow(df_train), " observaciones"),
+           fill = qqq_pal$primary, color = "white", 
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  annotate("label", 
+           x = max(df_test$Fecha) - 10,
+           y = min(df_completo$Precio) * 1.15,
+           label = paste0("PRUEBA\n", nrow(df_test), " obs."),
+           fill = qqq_pal$secondary, color = "white", 
+           fontface = "bold", size = 3.2, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.05))) +
+  scale_y_continuous(labels = dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Partición de Datos: Entrenamiento vs Prueba",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Serie de precios de cierre diarios",
+    x = NULL,
+    y = "Precio de Cierre (USD)",
+    caption = paste0("Fuente: Yahoo Finance | Período: ", 
+                     min(df_completo$Fecha), " a ", max(df_completo$Fecha))
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", color = NA),
+    panel.background = element_rect(fill = "transparent", color = NA),
+    
+    plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark,
+                              margin = margin(b = 5)),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$secondary,
+                                 margin = margin(b = 15)),
+    plot.caption = element_text(size = 9, color = qqq_pal$text_gray,
+                                margin = margin(t = 15), hjust = 0),
+    
+    axis.title.y = element_text(face = "bold", size = 10, color = qqq_pal$text_gray),
+    axis.text = element_text(size = 9, color = qqq_pal$text_gray),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    
+    panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed", linewidth = 0.4),
+    panel.grid.minor = element_blank(),
+    
+    plot.margin = margin(20, 25, 15, 15)
+  )
+
+```
+
+### 4.1.2 Justificación de la Partición
+
+Cumplimiento del requisito mínimo (60 períodos)
+Tamaño del test set para validar 10 pronósticos
+Proporción train/test (~95%/5%)
+
+## 4.2 Análisis de Estacionariedad {#estacionariedad}
+
+El primer paso en la metodología Box-Jenkins consiste en verificar si la serie 
+temporal es estacionaria, condición necesaria para la aplicación de modelos ARIMA.
+
+### 4.2.1 Serie en Niveles (Original)
+
+Se evaluó la estacionariedad de la serie de precios de cierre mediante dos 
+enfoques complementarios: análisis visual de la función de autocorrelación (ACF) 
+y la prueba formal de Dickey-Fuller Aumentada (ADF).
+
+**Análisis Visual: Función de Autocorrelación**
+
+```{r acf, echo=TRUE, eval=FALSE}
+
+```
+
+
+**Prueba Formal: Test de Dickey-Fuller Aumentado**
+
+[INSERTAR TABLA ADF]
+
+[INSERTAR CONCLUSIÓN: Serie NO estacionaria]
+
+---
+
+### 4.2.2 Aplicación de Diferenciación
+
+Dado que la serie en niveles no es estacionaria, se procede a aplicar 
+diferenciación de primer orden para estabilizar la media.
+
+[INSERTAR CÓDIGO Y GRÁFICO COMPARATIVO]
+
+---
+
+### 4.2.3 Verificación Post-Diferenciación
+
+[INSERTAR GRÁFICO ACF - Serie diferenciada]
+
+[INSERTAR TABLA ADF - Serie diferenciada]
+
+**Conclusión:** Con un p-valor < 0.05, se rechaza H₀ y se confirma que la serie 
+diferenciada ES estacionaria. Por tanto, el orden de integración es **d = 1**.
+
+---
+
+## 4.3 Identificación del Modelo {#identificacion}
+
+### 4.3.1 Análisis ACF/PACF
+
+Con la serie diferenciada estacionaria, se analizan los correlogramas ACF y PACF 
+para identificar los órdenes p (AR) y q (MA) del modelo.
+
+[INSERTAR GRÁFICO DUAL ACF/PACF]
+
+[INSERTAR TABLA DE PATRONES IDENTIFICADOS]
+
+---
+
+### 4.3.2 Modelos Candidatos
+
+Basándose en el análisis visual y la función `auto.arima()`, se proponen los 
+siguientes modelos candidatos:
+
+[INSERTAR TABLA DE MODELOS CANDIDATOS]
+
+---
+
+## 4.4 Estimación y Comparación de Modelos {#comparacion}
+
+### 4.4.1 Ajuste de Modelos
+
+[CÓDIGO Y RESUMEN DE CADA MODELO]
+
+---
+
+### 4.4.2 Criterios de Información
+
+[INSERTAR TABLA COMPARATIVA: AIC, AICc, BIC]
+
+---
+
+### 4.4.3 Métricas de Precisión
+
+[INSERTAR TABLA accuracy()]
+
+---
+
+## 4.5 Diagnóstico de Residuos {#diagnostico}
+
+### 4.5.1 Análisis Gráfico
+
+[INSERTAR checkresiduals() PERSONALIZADO]
+
+---
+
+### 4.5.2 Prueba de Ljung-Box
+
+[INSERTAR TABLA LJUNG-BOX]
+
+[CONCLUSIÓN: ¿Residuos son ruido blanco?]
+
+---
+
+## 4.6 Pronóstico y Evaluación {#pronostico}
+
+### 4.6.1 Generación de Pronósticos
+
+[INSERTAR TABLA DE PRONÓSTICOS]
+
+[INSERTAR GRÁFICO DE PRONÓSTICO]
+
+---
+
+### 4.6.2 Evaluación con Datos de Prueba
+
+[INSERTAR GRÁFICO PREDICHO VS REAL]
+
+[INSERTAR TABLA DE ERRORES]
+
+---
+
+## 4.7 Síntesis del Modelo {#sintesis}
+
+[TABLA RESUMEN FINAL]
+---
+
+# 5. Conclusiones
+
+## 5.1 Hallazgos Principales
 
 [**PLACEHOLDER:** Resumen de hallazgos principales del análisis ARIMA]
 
-## 4.2 Implicaciones Prácticas
+## 5.2 Implicaciones Prácticas
 
 [**PLACEHOLDER:** Implicaciones de los pronósticos para inversionistas y analistas de mercado]
 
-## 4.3 Limitaciones del Análisis
+## 5.3 Limitaciones del Análisis
 
 [**PLACEHOLDER:** Limitaciones del modelo y aspectos no capturados]
 
-## 4.4 Recomendaciones Futuras
+## 5.4 Recomendaciones Futuras
 
 [**PLACEHOLDER:** Sugerencias para mejoras y extensiones del análisis]
 
@@ -1382,6 +1140,3 @@ autoplot(forecast_tesla)
   </div>
 </div>
 ```
-
-
-

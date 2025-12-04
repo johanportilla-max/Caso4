@@ -724,16 +724,57 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 
 ---
 
-# 3. Preparación de Datos
+# 4. Resultados del Modelo ARIMA
 
-## 3.1 Partición Train/Test
+## 4.1 Partición de Datos
+
+### 4.1.1 Estrategia Train/Test
 
 ```{r particion-datos, echo=TRUE}
 Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
 Prueba <- window(Precio, start = "2025-10-01")
 ```
 
-### Visualización de la Partición
+### 4.1.2 Tabla Resumen: Observaciones por Conjunto
+
+```{r particion-tabla, echo=TRUE}
+particion_resumen <- data.frame(
+  Conjunto = c("Entrenamiento", "Prueba", "Total"),
+  Período = c(
+    "07-Oct-2022 → 30-Sep-2025",
+    "01-Oct-2025 → Presente",
+    "07-Oct-2022 → Presente"
+  ),
+  `Observaciones` = c(
+    length(Entrenamiento),
+    length(Prueba),
+    length(Entrenamiento) + length(Prueba)
+  ),
+  Porcentaje = c(
+    paste0(round(length(Entrenamiento)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    paste0(round(length(Prueba)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    "100%"
+  ),
+  Propósito = c(
+    "Estimación y validación de modelo",
+    "Evaluación de capacidad predictiva",
+    ""
+  )
+)
+
+kable(particion_resumen,
+      caption = "Resumen de Partición de Datos: Entrenamiento vs Prueba",
+      align = c("l", "c", "c", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(3, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark)
+```
+
+### 4.1.3 Visualización: Serie con Partición 
 
 ```{r grafico-particion, echo=TRUE, fig.height=6.5}
 df_train <- data.frame(
@@ -793,16 +834,12 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
----
-
-# 4. Análisis de Estacionariedad
+## 4.2 Análisis de Estacionariedad
 
 La metodología Box-Jenkins requiere que la serie temporal sea estacionaria. 
 En esta sección se evalúan la estacionariedad de la serie en niveles y se aplica diferenciación si es necesario.
 
-## 4.1 Serie en Niveles
-
-### Análisis Visual: Función de Autocorrelación (ACF)
+### 4.2.1 Serie en Niveles
 
 ```{r acf-original, echo=TRUE, fig.height=5.5}
 acf_data <- acf(Entrenamiento, lag.max = 30, plot = FALSE)
@@ -844,7 +881,7 @@ ggplot(df_acf, aes(x = Lag, y = ACF)) +
   theme_QQQ()
 ```
 
-### Prueba Formal: Test de Dickey-Fuller Aumentado (ADF)
+### 4.2.2 Prueba: Test de Dickey-Fuller Aumentado (ADF)
 
 ```{r adf-original, echo=TRUE}
 adf_resultado <- adf.test(Entrenamiento)
@@ -887,13 +924,11 @@ kable(tabla_adf,
 **Conclusión:** La prueba ADF indica claramente que la serie NO es estacionaria (p > 0.05). 
 Se requiere aplicar diferenciación.
 
-## 4.2 Aplicación de Diferenciación de Primer Orden
+### 4.2.3 Aplicación de Diferenciación de Primer Orden
 
 ```{r diferenciacion, echo=TRUE}
 dif_Entrenamiento <- diff(Entrenamiento) %>% na.omit()
 ```
-
-### Serie Diferenciada en el Tiempo
 
 ```{r grafico-diferenciada, echo=TRUE, fig.height=6}
 df_diff <- data.frame(
@@ -927,9 +962,7 @@ ggplot(df_diff, aes(x = Fecha, y = Valor)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-## 4.3 Verificación Post-Diferenciación
-
-### ACF - Serie Diferenciada
+### 4.2.3 Verificación Post-Diferenciación
 
 ```{r acf-diferenciada, echo=TRUE, fig.height=5.5}
 acf_diff_data <- acf(dif_Entrenamiento, lag.max = 30, plot = FALSE)
@@ -970,8 +1003,6 @@ ggplot(df_acf_diff, aes(x = Lag, y = ACF)) +
   ) +
   theme_QQQ()
 ```
-
-### ADF - Serie Diferenciada
 
 ```{r adf-diferenciada, echo=TRUE}
 adf_diff_resultado <- adf.test(dif_Entrenamiento)
@@ -1016,9 +1047,9 @@ Por tanto, el **orden de integración es d = 1**.
 
 ---
 
-# 5. Identificación del Modelo
+## 4.3 Identificación del Modelo
 
-## 5.1 Análisis ACF/PACF - Serie Diferenciada
+### 4.3.1 Análisis ACF/PACF - Serie Diferenciada
 
 ```{r acf-pacf-dual, echo=TRUE, fig.height=6}
 acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
@@ -1074,7 +1105,7 @@ p_pacf <- ggplot(df_pacf, aes(x = Lag, y = Valor)) +
 grid.arrange(p_acf, p_pacf, ncol = 2)
 ```
 
-## 5.2 Modelos Candidatos
+### 4.3.2 Modelos ARIMA Candidatos
 
 ```{r modelos-candidatos-tabla, echo=TRUE}
 tabla_candidatos <- data.frame(
@@ -1125,10 +1156,9 @@ kable(tabla_candidatos,
 
 ---
 
-# 6. Estimación y Comparación de Modelos
+## 4.4 Estimación y Comparación de Modelos
 
-## 6.1 Ajuste de Modelos
-
+### 4.4.1 Criterios de Información
 ```{r ajuste-modelos, echo=TRUE}
 ModeloQA <- auto.arima(Entrenamiento)
 modeloQ1 <- Arima(Entrenamiento, order = c(3,1,3))
@@ -1138,7 +1168,6 @@ modeloQ4 <- Arima(Entrenamiento, order = c(1,1,2))
 modeloQ5 <- Arima(Entrenamiento, order = c(2,1,2))
 ```
 
-## 6.2 Criterios de Información
 
 ```{r criterios-informacion, echo=TRUE}
 comparacion_IC <- data.frame(
@@ -1194,7 +1223,8 @@ kable(comparacion_IC,
            general_title = "Nota: ")
 ```
 
-## 6.3 Métricas de Precisión
+### 4.4.2 Métricas de Precisión en Entrenamiento
+
 
 ```{r metricas-precision, echo=TRUE}
 acc_QA <- accuracy(ModeloQA)
@@ -1264,14 +1294,15 @@ kable(comparacion_accuracy,
 
 ---
 
-# 7. Diagnóstico de Residuos
+
+## 4.5 Diagnóstico de Residuos
 
 El modelo seleccionado debe tener residuos que se comporten como ruido blanco 
 (media cero, varianza constante, sin autocorrelación).
 
-## 7.1 Análisis Gráfico de Residuos
+### 4.5.1 Análisis Gráfico de Residuos
 
-```{r residuos-grafico, echo=TRUE, fig.height=12}
+```{r residuos-grafico, echo=TRUE}
 residuos <- residuals(ModeloQA)
 
 df_residuos <- data.frame(
@@ -1338,11 +1369,131 @@ p3 <- ggplot(df_residuos, aes(x = Residuo)) +
 p3
 ```
 
+### 4.5.2 Q-Q Plot de Normalidad
+
+```{r residuos-qq, echo=TRUE}
+
+residuos_std <- scale(residuals(ModeloQA))
+df_qq <- data.frame(residuos = residuos_std)
+
+n <- length(residuos_std)
+cuantiles_teoricos <- qnorm(ppoints(n))
+cuantiles_observados <- sort(residuos_std)
+df_qq_line <- data.frame(x = cuantiles_teoricos, y = cuantiles_observados)
+
+fit <- lm(y ~ x, data = df_qq_line)
+df_qq_line$fitted <- predict(fit, df_qq_line)
+
+df_qq_puntos <- data.frame(
+  x = cuantiles_teoricos,
+  y = cuantiles_observados,
+  label = paste0(
+    "Cuantil teórico: ", round(cuantiles_teoricos, 3), "<br>",
+    "Residuo observado: ", round(cuantiles_observados, 3)
+  )
+)
+
+p_qq <- ggplot() +
+  geom_line(data = df_qq_line, aes(x = x, y = fitted), 
+            color = qqq_pal$negative, linewidth = 1.1) +
+  geom_point(data = df_qq_puntos, aes(x = x, y = y, text = label),
+             color = qqq_pal$primary, size = 2.5, alpha = 0.75) +
+  labs(
+    title = "Q-Q Plot de Residuos Estandarizados",
+    subtitle = "Verificación de normalidad del modelo | Línea roja = distribución normal teórica",
+    x = "Cuantiles Teóricos (Distribución Normal Estándar)",
+    y = "Cuantiles Observados (Residuos Estandarizados)",
+    caption = "✓ Puntos alineados con la línea roja indican buenos residuos normales"
+  ) +
+  theme_QQQ() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", color = qqq_pal$primary),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$text_gray, margin = margin(b = 8)),
+    plot.caption = element_text(size = 9, color = qqq_pal$secondary, face = "italic"),
+    panel.background = element_rect(fill = "#f8f9fa", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.line = element_line(color = qqq_pal$text_gray, linewidth = 0.5),
+    panel.grid.major = element_line(color = "#e8eef5", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+plotly::ggplotly(p_qq, tooltip = "text") %>%
+  plotly::layout(
+    font = list(family = "Arial, sans-serif", size = 11, color = qqq_pal$text_dark),
+    plot_bgcolor = "#f8f9fa",
+    paper_bgcolor = "white",
+    xaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    yaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    hovermode = "closest",
+    margin = list(l = 60, r = 30, t = 80, b = 60)
+  ) %>%
+  plotly::config(
+    displayModeBar = TRUE,
+    displaylogo = FALSE,
+    collaborate = FALSE,
+    modeBarButtonsToRemove = c("lasso2d", "select2d"),
+    toImageButtonOptions = list(
+      format = "png",
+      filename = "qq_plot_residuos",
+      height = 600,
+      width = 900,
+      scale = 2
+    )
+  )
+```
+
+### 4.5.3 Test de Independencia (Ljung-Box)
+
+```{r residuos-tabla, echo=TRUE}
+lb_test <- Box.test(residuals(ModeloQA), lag = 10, type = "Ljung-Box")
+
+tabla_ljung <- data.frame(
+  Métrica = c("Estadístico Ljung-Box", 
+              "Grados de Libertad", 
+              "P-valor",
+              "Conclusión"),
+  Valor = c(
+    round(lb_test$statistic, 4),
+    lb_test$parameter,
+    round(lb_test$p.value, 4),
+    ifelse(lb_test$p.value > 0.05, 
+           "Residuos son ruido blanco ✓", 
+           "Posible autocorrelación residual")
+  )
+)
+
+kable(tabla_ljung, 
+      caption = "Test de Ljung-Box: Independencia de Residuos",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(4, bold = TRUE, 
+           background = ifelse(lb_test$p.value > 0.05, "#e8f5e9", "#ffe8e0"),
+           color = qqq_pal$text_dark)
+```
 ---
 
-# 8. Pronóstico y Evaluación
-
-## 8.1 Generación de Pronósticos
+## 4.6 Pronóstico y Evaluación
 
 ```{r pronostico-generacion, echo=TRUE}
 pronostico <- forecast(ModeloQA, h = 10, level = 95)
@@ -1364,7 +1515,7 @@ while(dias_agregados < 10) {
 fechas_pronostico <- as.Date(fechas_pronostico, origin = "1970-01-01")
 ```
 
-### Tabla de Pronósticos
+### 4.6.1 Tabla de Pronósticos
 
 ```{r tabla-pronosticos, echo=TRUE}
 tabla_pronostico <- data.frame(
@@ -1393,7 +1544,7 @@ kable(tabla_pronostico,
            general_title = "Nota: ")
 ```
 
-## 8.2 Gráfico de Pronóstico
+### 4.6.2 Gráfico: Pronóstico con Intervalo de Confianza
 
 ```{r grafico-pronostico, echo=TRUE, fig.height=6.5}
 n_historico <- 100
@@ -1467,9 +1618,7 @@ ggplot() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-## 8.3 Evaluación con Datos de Prueba
-
-### Predicho vs Real
+### 4.6.3 Evaluación Comparativa: Predicho vs Real
 
 ```{r predicho-vs-real, echo=TRUE, fig.height=6}
 reales <- head(as.numeric(Prueba), 10)
@@ -1519,7 +1668,7 @@ ggplot(df_largo, aes(x = Dia, y = Precio, color = Tipo, shape = Tipo)) +
   theme(legend.position = "top")
 ```
 
-### Tabla de Errores
+### 4.6.4 Tabla de Errores por Observación
 
 ```{r tabla-errores, echo=TRUE}
 tabla_errores <- df_evaluacion %>%
@@ -1549,7 +1698,7 @@ kable(tabla_errores,
            general_title = "Nota: ")
 ```
 
-### Métricas Finales de Evaluación
+### 4.6.5 Métricas Finales de Evaluación
 
 ```{r metricas-finales, echo=TRUE}
 MAE <- mean(abs(df_evaluacion$Error))
@@ -1595,6 +1744,7 @@ kable(tabla_metricas,
   row_spec(5, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
 ```
 
+## 4.7 Síntesis del Modelo Seleccionado
 ---
 
 # 9. Conclusiones
