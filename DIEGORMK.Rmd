@@ -1,7 +1,7 @@
 ---
 title: "Análisis de Series de Tiempo y Pronóstósticos ARIMA"
 subtitle: "Estudio Empírico sobre el Precio de Acciones de Tesla Inc."
-author: "Camilo"
+author: "Portilla Aguirre Johan Camilo (2422468), Barros Rayo Alejandro (2415837), Muñoz Portela Diego Fernando (2415620)"
 date: "`r format(Sys.Date(), '%d de %B de %Y')`"
 output:
   html_document:
