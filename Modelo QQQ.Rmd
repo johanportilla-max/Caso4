@@ -846,7 +846,7 @@ La partición temporal establecida asegura cumplimiento con el requisito académ
 
 ## 4.2 Análisis de Estacionariedad
 
-Una serie temporal es estacionaria cuando sus propiedades estadísticas fundamentales—media, varianza y función de autocorrelación—no dependen del tiempo (Hamilton, 1994). En contraste, una serie no estacionaria exhibe tendencias, cambios en nivel o varianza que evolucionan sistemáticamente, lo que viola supuestos críticos del modelo ARIMA. La identificación de estacionariedad es el primer paso metodológico en la aproximación Box-Jenkins, ya que los modelos ARIMA están diseñados específicamente para capturar estructura en series estacionarias; intentar ajustar ARIMA a datos no estacionarios produce coeficientes espurios y pronósticos infiables (Brockwell & Davis, 2016).
+Una serie temporal es estacionaria cuando sus propiedades estadísticas fundamentales—media, varianza y función de autocorrelación—no dependen del tiempo (Hamilton, 1994). En contraste, una serie no estacionaria exhibe tendencias, cambios en nivel o varianza que evolucionan sistemáticamente, lo que viola supuestos críticos del modelo $ARIMA$. La identificación de estacionariedad es el primer paso metodológico en la aproximación Box-Jenkins, ya que los modelos $ARIMA$ están diseñados específicamente para capturar estructura en series estacionarias; intentar ajustar $ARIMA$ a datos no estacionarios produce coeficientes espurios y pronósticos infiables (Brockwell & Davis, 2016).
 
 La detección de no-estacionariedad se realiza mediante dos enfoques complementarios: análisis visual de la función de autocorrelación (ACF) y pruebas estadísticas formales. Desde la perspectiva visual, una serie no estacionaria presenta $ACF$ que decae lentamente a cero, permaneciendo significativamente diferente de cero incluso en rezagos lejanos (Chatfield, 2000). Esta característica refleja que la correlación entre observaciones distantes sigue siendo elevada, indicador de raíz unitaria. Formalmente, la prueba Aumentada de Dickey-Fuller (ADF) contrasta la hipótesis nula de presencia de raíz unitaria contra la alternativa de estacionariedad, permitiendo decisión estadística sobre la necesidad de diferenciación (Dickey & Fuller, 1979).
 
@@ -1270,7 +1270,7 @@ kable(comparacion_IC,
 
 La comparación mediante criterios de información representa la etapa cuantitativa de la selección de modelos. Estos criterios resuelven un dilema fundamental en modelado estadístico: modelos más complejos (más parámetros) siempre se ajustan mejor a los datos (menor residuos), pero esta mejora puede ser simplemente overfitting—capturar ruido aleatorio en lugar de estructura genuina (Hastie et al., 2009; Hyndman & Athanasopoulos, 2021).
 
-El Criterio de Información de Akaike (AIC) y su variante corregida para muestras finitas (AICc) resuelven este trade-off penalizando modelos por número de parámetros. Formalmente, $AICc = -2ℓ + 2k + 2k(k+1)/(n-k-1)$, donde $ℓ$ es la log-verosimilitud máxima, k es el número de parámetros, y $n$ es el tamaño muestral (Burnham & Anderson, 2002; Tsay, 2010). Para muestras finitas típicas en series de tiempo (como nuestro caso con n=746 observaciones), $AICc$ es superior a $AIC$ porque aplica penalización más severa por parámetros adicionales. El $BIC$ (Bayesian Information Criterion), alternativa, aplica penalización aún más severa: $BIC = -2ℓ + k·ln(n)$, haciendo que BIC favorezca modelos muy simples (Hamilton, 1994).
+El Criterio de Información de Akaike (AIC) y su variante corregida para muestras finitas (AICc) resuelven este trade-off penalizando modelos por número de parámetros. Formalmente, $AICc = -2ℓ + 2k + 2k(k+1)/(n-k-1)$, donde $ℓ$ es la log-verosimilitud máxima, k es el número de parámetros, y $n$ es el tamaño muestral (Burnham & Anderson, 2002; Tsay, 2010). Para muestras finitas típicas en series de tiempo (como nuestro caso con n=746 observaciones), $AICc$ es superior a $AIC$ porque aplica penalización más severa por parámetros adicionales. El $BIC$ (Bayesian Information Criterion), alternativa, aplica penalización aún más severa: $BIC = -2ℓ + k·ln(n)$, haciendo que $BIC$ favorezca modelos muy simples (Hamilton, 1994).
 
 En nuestro análisis, el $ARIMA(1,1,1)$ + drift emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2) y todos los demás modelos. Esta diferencia de 4.2 puntos en $AICc$ entre ranking 1 y 2 es sustancial: según regla de oro de Burnham & Anderson (2002), diferencias >10 en $AICc$ indican que modelo inferior tiene esencialmente probabilidad posterior negligible; diferencias entre 4-7 indican soporte moderado para modelo superior. La diferencia de 4.2 en nuestro caso es clara aunque no dramática, validando $ARIMA(1,1,1)$ como notablemente superior.
 
@@ -1347,6 +1347,21 @@ kable(comparacion_accuracy,
            general_title = "Métricas: ")
 ```
 
+```{r comparacion-ic-visual, echo=TRUE, fig.height=4.5}
+ggplot(comparacion_IC, aes(x = reorder(Modelo, AICc), y = AICc, 
+                           fill = Modelo == "ARIMA(1,1,1) + drift")) +
+  geom_col(color = "white", linewidth = 0.8) +
+  geom_text(aes(label = round(AICc, 1)), vjust = -0.5, fontface = "bold") +
+  scale_fill_manual(values = c("TRUE" = qqq_pal$positive, 
+                               "FALSE" = qqq_pal$secondary), guide = "none") +
+  labs(title = "Comparación de Criterios IC: AICc por Modelo",
+       subtitle = "Menor AICc = Mejor balance ajuste-complejidad",
+       x = "Modelo", y = "AICc",
+       caption = "Verde: Modelo seleccionado") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
 Las métricas de precisión cuantifican cómo cada modelo se desempeña al predecir observaciones en el conjunto de entrenamiento. Mientras que criterios de información (AIC, AICc) evalúan trade-off entre ajuste y complejidad de manera agregada, las métricas permiten inspeccionar la naturaleza exacta de los errores de predicción (Hyndman & Athanasopoulos, 2021; Tsay, 2010).
 
 El Error Medio (ME) cuantifica sesgo: si $ME$ es cercano a cero, las predicciones son insesgadas en promedio; si es positivo/negativo, el modelo subestima/sobrestima sistemáticamente. En nuestro caso, todos los modelos exhiben $ME$ cercano a cero (rango: -0.0001 a 0.4939), confirmando que son aproximadamente insesgados. El $ARIMA(1,1,1)$ + drift tiene $ME =$ -0.0001, virtualmente perfecto en términos de sesgo.

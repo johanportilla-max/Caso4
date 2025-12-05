@@ -1,0 +1,1959 @@
+---
+title: "Análisis de Series de Tiempo y Pronósticos ARIMA"
+subtitle: "Estudio Empírico sobre el Precio de Acciones del QQQ"
+author: "Camilo"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output:
+  html_document:
+    theme: darkly
+    toc: false         
+    toc_float: false   
+---
+
+<div id="custom-toc"></div>
+
+```{=html}
+<style type="text/css">
+
+/* ========== PALETA DE COLORES CLARA - ESTÉTICA PROFESIONAL Y DINÁMICA ========== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap');
+
+html, body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3 {
+  font-family: 'Poppins', 'Inter', sans-serif !important;
+  letter-spacing: -0.02em;
+}
+:root {
+  --bg-light: #ffffff;
+  --bg-lighter: #f5f7fa;
+  --text-dark: #1f2937;
+  --text-medium: #4b5563;
+  --text-gray: #94a3b8;
+  --accent-primary: #00b894;
+  --accent-secondary: #06b6d4;
+  --accent-positive: #84cc16;
+  --accent-negative: #e17055;
+  --accent-soft: #3b82f6;
+}
+
+* {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg-light) !important;
+  color: var(--text-dark) !important;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  line-height: 1.65 !important;
+  overflow-x: hidden !important;
+  min-height: 100vh !important;
+}
+
+div.container-fluid:first-of-type {
+  width: auto !important;
+  max-width: 100% !important;
+  padding: 60px 80px !important;
+}
+
+#custom-toc {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 260px;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  background: var(--bg-lighter);
+  border-right: 2px solid var(--accent-secondary);
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 999;
+}
+
+#custom-toc h2 {
+  position: relative;
+  flex-shrink: 0;
+  background: var(--bg-lighter);
+  z-index: 10;
+  padding: 10px 15px 15px 15px; 
+  margin: 0;
+  border-bottom: 2px solid rgba(0, 184, 148, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+#custom-toc ul {
+  list-style: none !important;
+  padding: 0px 10px 20px 10px !important; 
+  margin: 0 !important;
+  flex-grow: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-secondary) transparent;
+}
+
+#custom-toc li:first-child {
+  margin-top: 2px !important;
+}
+
+#custom-toc li {
+  margin: 8px 0 !important;
+}
+
+#custom-toc a {
+  display: block;
+  padding: 10px 14px;
+  color: var(--text-medium) !important;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all .2s ease;
+}
+
+#custom-toc a:hover {
+  background: rgba(0,184,148,0.15);
+  color: var(--accent-primary) !important;
+  transform: translateX(5px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+#custom-toc a.active {
+  background: var(--bg-light);
+  color: var(--accent-primary) !important;
+  border-left: 5px solid var(--accent-secondary);
+  font-weight: 600;
+  transform: translateX(4px);
+}
+
+#custom-toc::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+#custom-toc::-webkit-scrollbar-thumb {
+  background: var(--accent-secondary) !important;
+  border-radius: 10px !important;
+}
+
+#TOC {
+  display: none !important;
+}
+
+.section.level1 {
+  margin-bottom: 80px !important;
+  padding: 50px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,251,252,1) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-top: 6px solid var(--accent-primary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.section.level1:hover {
+  border-top-color: var(--accent-secondary) !important;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-3px) !important;
+}
+
+h1 {
+  font-size: 3.2rem !important;
+  line-height: 1.05 !important;
+  color: var(--text-dark) !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+.subtitle {
+  display: block;
+  color: var(--accent-secondary);
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+  padding-left: 8px;
+  border-left: 4px solid rgba(6,182,212,0.12);
+}
+
+h2 {
+  font-size: 2.2em !important;
+  color: var(--accent-primary) !important;
+  margin-top: 50px !important;
+  border-left: 8px solid var(--accent-secondary) !important;
+  padding-left: 20px !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+}
+
+h2:hover {
+  padding-left: 25px !important;
+  color: var(--accent-secondary) !important;
+}
+
+h3 {
+  font-size: 1.6em !important;
+  color: var(--accent-secondary) !important;
+  border-left: 5px solid var(--accent-positive) !important;
+  padding-left: 15px !important;
+  margin-top: 30px !important;
+  font-weight: 500 !important;
+}
+
+p {
+  color: var(--text-dark) !important;
+  font-size: 1.05em !important;
+  line-height: 1.8 !important;
+}
+
+table {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  background: var(--bg-light) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  margin: 25px 0 !important;
+}
+
+thead {
+  background: var(--accent-primary) !important;
+}
+
+th {
+  color: var(--bg-light) !important;
+  font-weight: 700 !important;
+  padding: 15px 20px !important;
+}
+
+td {
+  border-bottom: 1px solid var(--bg-lighter) !important;
+  color: var(--text-dark) !important;
+  padding: 12px 20px !important;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-lighter) !important;
+}
+
+tbody tr:hover {
+  background-color: rgba(6, 182, 212, 0.1) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+pre {
+  background: var(--bg-lighter) !important;
+  border-left: 6px solid var(--accent-secondary) !important;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(6, 182, 212, 0.2) !important;
+  border-radius: 10px !important;
+  padding: 25px !important;
+}
+
+body .container-fluid,
+body .main-container,
+body div.container-fluid:first-of-type {
+  margin-left: 280px !important;
+  max-width: calc(100% - 300px) !important;
+}
+
+@media (max-width: 768px) {
+  #custom-toc {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px !important;
+    margin-bottom: 30px !important;
+  }
+  
+  div.container-fluid:first-of-type {
+    padding: 20px !important;
+  }
+}
+
+#uv-button {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 9999;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+#uv-button:hover {
+  transform: scale(1.1);
+}
+
+#uv-button img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  transition: opacity .4s ease;
+  display: block;
+  margin: auto;        
+  position: absolute;  
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin-logo {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#uv-button.spin {
+  animation: spin-logo 1.2s linear;
+}
+
+#uv-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translate(-100%, -50%);
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.85em;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+#uv-button:hover::after {
+  opacity: 1;
+}
+
+#uv-button {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  overflow: visible !important;
+}
+
+#custom-toc {
+  z-index: 5000 !important;
+}
+
+#global-code-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+#global-code-toggle:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.code-chunk-toggle {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.95em;
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.code-chunk-toggle:hover {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  box-shadow: 0 6px 16px rgba(0, 184, 148, 0.3);
+}
+
+.code-chunk-toggle::after {
+  content: "▼";
+  font-size: 1em;
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.code-chunk-toggle.collapsed::after {
+  transform: rotate(-180deg);
+}
+
+pre {
+  margin-top: 0 !important;
+  margin-bottom: 25px !important;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  border-radius: 0 0 10px 10px;
+}
+
+pre.collapsed {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+  opacity: 0;
+}
+
+pre.expanded {
+  max-height: 5000px !important;
+  opacity: 1;
+}
+
+</style>
+```
+
+<div id="uv-button" data-tooltip="Escuela de Ingeniería Industrial - Cali">
+  <img id="uv-img" src="univalle.png" alt="Univalle">
+</div>
+
+```{=html}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const SCROLL_OFFSET = 100;
+  
+  const toc = document.getElementById("custom-toc");
+  if (!toc) return;
+
+  const title = document.createElement("h2");
+  title.textContent = "Contenido";
+  toc.appendChild(title);
+  
+  const list = document.createElement("ul");
+  toc.appendChild(list);
+
+  const headers = document.querySelectorAll("h1, h2");
+  
+  headers.forEach(header => {
+    if (!header.id) {
+      header.id = header.textContent
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, '');
+    }
+
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    
+    a.href = `#${header.id}`;
+    a.textContent = header.textContent;
+    
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const targetId = this.getAttribute('href').substring(1);
+      const targetElement = document.getElementById(targetId);
+      
+      if (targetElement) {
+        window.scrollTo({
+          top: targetElement.offsetTop - SCROLL_OFFSET, 
+          behavior: 'smooth'
+        });
+        
+        history.pushState(null, null, `#${targetId}`);
+      }
+    });
+
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+
+  function updateActiveTOCLink() {
+    const tocLinks = document.querySelectorAll('#custom-toc a');
+    let currentActiveId = '';
+    
+    headers.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      if (rect.top <= SCROLL_OFFSET + 20) { 
+        currentActiveId = section.id;
+      }
+    });
+    
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${currentActiveId}`) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveTOCLink);
+  updateActiveTOCLink(); 
+
+  const fechaSpan = document.getElementById('fecha-entrega');
+  if(fechaSpan) {
+    fechaSpan.textContent = new Date().toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  const btnToggle = document.createElement('button');
+  btnToggle.id = 'global-code-toggle';
+  btnToggle.textContent = '💻 Código Oculto';
+  document.body.appendChild(btnToggle);
+  let codeVisible = true;
+  btnToggle.addEventListener('click', function() {
+    const codes = document.querySelectorAll('pre');
+    const toggleBtns = document.querySelectorAll('.code-chunk-toggle');
+    codeVisible = !codeVisible;
+    codes.forEach(code => {
+      code.style.display = codeVisible ? 'block' : 'none';
+    });
+    toggleBtns.forEach(btn => {
+      if (codeVisible) {
+        btn.style.display = 'flex';
+      } else {
+        btn.style.display = 'none';
+      }
+    });
+    btnToggle.textContent = codeVisible ? '💻 Código Oculto' : '👁️ Mostrar Código';
+  });
+
+  setTimeout(() => {
+    const preElements = document.querySelectorAll('pre');
+    let chunkIndex = 0;
+    
+    preElements.forEach((pre) => {
+      chunkIndex++;
+      
+      const btn = document.createElement('button');
+      btn.className = 'code-chunk-toggle';
+      btn.innerHTML = `<span>💻 Código - Chunk ${chunkIndex}</span>`;
+      btn.setAttribute('data-chunk', chunkIndex);
+      
+      pre.classList.add('expanded');
+      btn.classList.remove('collapsed');
+      
+      pre.parentNode.insertBefore(btn, pre);
+      
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        pre.classList.toggle('collapsed');
+        pre.classList.toggle('expanded');
+        btn.classList.toggle('collapsed');
+      });
+    });
+  }, 500);
+
+  const logos = ["univalle.png", "ingenieria.png"];  
+  let index = 0;
+  const img = document.getElementById("uv-img");
+  const btn = document.getElementById("uv-button");
+  if (btn && img) {
+    setInterval(() => {
+      btn.classList.add("spin");
+      setTimeout(() => {
+        index = (index + 1) % logos.length;
+        img.style.opacity = 0;
+        setTimeout(() => {
+          img.src = logos[index];
+          img.style.opacity = 1;
+        }, 200);
+      }, 600);
+      setTimeout(() => btn.classList.remove("spin"), 1200);
+    }, 3500);
+  }
+});
+</script>
+```
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(quantmod)
+library(xts)
+library(fpp2)
+library(tseries)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
+library(forecast)
+library(ggplot2)
+library(zoo)
+library(plotly)
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.width = 12,
+  fig.height = 6
+)
+
+qqq_pal <- list(
+  bg        = "#ffffff",
+  text_dark = "#1f2937",
+  text_gray = "#4b5563",
+  primary   = "#00b894",
+  secondary = "#06b6d4",
+  positive  = "#84cc16",
+  negative  = "#e17055",
+  grid      = "#f3f4f6"
+)
+
+theme_QQQ <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      text = element_text(color = qqq_pal$text_dark, family = "sans"),
+      plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark, margin = margin(b = 10)),
+      plot.subtitle = element_text(size = 12, color = qqq_pal$secondary, margin = margin(b = 10)),
+      plot.caption = element_text(size = 9, color = qqq_pal$text_gray, margin = margin(t = 10)),
+      axis.title = element_text(face = "bold", size = 11, color = qqq_pal$text_gray),
+      axis.text = element_text(size = 10, color = qqq_pal$text_gray),
+      axis.line.x = element_line(color = qqq_pal$secondary, size = 0.5),
+      panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed"),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom",
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.key = element_rect(fill = "transparent", color = NA)
+    )
+}
+
+theme_set(theme_QQQ())
+update_geom_defaults("line", list(color = qqq_pal$primary, size = 1.1))
+update_geom_defaults("point", list(color = qqq_pal$secondary, size = 2))
+update_geom_defaults("col", list(fill = qqq_pal$primary, color = NA))
+```
+
+---
+
+# 1. Introducción
+
+## 1.1 Relevancia del Análisis
+
+[**PLACEHOLDER:** Explica la relevancia de QQQ, su importancia en el mercado global, volatilidad e impacto para inversionistas. Incluir contexto del Nasdaq-100 ETF.]
+
+## 1.2 Metodología: Modelos ARIMA
+
+[**PLACEHOLDER:** Introducción a los conceptos fundamentales de ARIMA (Autorregresivos, Integrados, Media Móvil), su importancia teórica y utilidad práctica en pronósticos de series temporales financieras.]
+
+---
+
+# 2. Descripción de la Serie Temporal
+
+## 2.1 Contexto Histórico y Datos
+
+[**PLACEHOLDER:** Contexto completo del QQQ (Nasdaq-100 ETF), período de análisis seleccionado (octubre 2022 - presente), eventos significativos que han afectado el precio (crisis de volatilidad, cambios de política monetaria, rally de IA, etc.)]
+
+```{r cargar-datos, echo=TRUE}
+
+serie_QQQ <- getSymbols("QQQ", src="yahoo", auto.assign=FALSE, from="2015-01-01") 
+Precio <- serie_QQQ$`QQQ.Close`
+
+```
+
+### Gráfico Dinámico de la Serie
+
+```{r serie-dinamica, echo=TRUE, fig.height=7}
+datos_qqq <- data.frame(
+  Fecha = index(Precio),
+  Precio = as.numeric(Precio)
+)
+
+datos_qqq <- datos_qqq %>%
+  mutate(Corte = as.yearqtr(Fecha)) 
+
+lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
+  dt <- datos_qqq[datos_qqq$Corte <= c, ]
+  dt$Frame <- as.character(c) 
+  return(dt)
+})
+
+datos_animados <- dplyr::bind_rows(lista_frames)
+
+p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
+  geom_area(aes(frame = Frame), fill = qqq_pal$primary, alpha = 0.1, position = "identity") +
+  geom_line(aes(frame = Frame), color = qqq_pal$primary, size = 0.8) +
+  labs(
+    title = "Evolución Dinámica del QQQ",
+    subtitle = "Crecimiento histórico acumulado desde octubre 2022",
+    x = "", 
+    y = "Precio (USD)"
+  ) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 14))
+
+plotly::ggplotly(p, tooltip = c("x", "y")) %>%
+  plotly::layout(
+    paper_bgcolor = 'rgba(0,0,0,0)',
+    plot_bgcolor = 'rgba(0,0,0,0)',
+    font = list(family = "Inter, sans-serif", color = qqq_pal$text_gray),
+    hovermode = "x unified"
+  ) %>%
+  plotly::animation_opts(frame = 100, transition = 0, redraw = FALSE) %>%
+  plotly::animation_slider(currentvalue = list(prefix = "Período: ")) %>%
+  plotly::config(displayModeBar = FALSE)
+```
+
+## 2.2 Estadísticas Descriptivas
+
+[**PLACEHOLDER:** Estadísticas completas de la serie - Media, Mediana, Desv. Est., Rango, Cuartiles. Tablas formateadas con kableExtra.]
+
+---
+
+# 4. Resultados del Modelo ARIMA
+
+## 4.1 Partición de Datos
+
+### 4.1.1 Estrategia Train/Test
+
+La aplicación de modelos ARIMA para pronóstico de series temporales financieras requiere una estrategia de partición temporal que respete la naturaleza secuencial de los datos y simule condiciones reales de predicción. A diferencia de problemas de clasificación o regresión donde la validación cruzada aleatoria es apropiada, en series temporales es fundamental mantener el orden cronológico de las observaciones para evitar filtración de información (data leakage) y garantizar que los datos de prueba representen verdaderas predicciones "fuera de muestra" realizadas sobre períodos no observados durante la estimación del modelo (Hyndman & Athanasopoulos, 2021).
+
+La metodología adoptada en este análisis divide el conjunto completo de observaciones en dos subconjuntos temporales contiguos: un conjunto de entrenamiento (training set) utilizado para estimar los parámetros de los modelos ARIMA candidatos, y un conjunto de prueba (test set) destinado a evaluar la capacidad predictiva sin sesgo, utilizando únicamente el horizonte de pronóstico. Esta partición temporal es particularmente importante en contextos financieros donde los regímenes de mercado cambian, los patrones de volatilidad evolucionan, y la información más reciente tiende a ser más relevante para la predicción que observaciones antiguas (Tsay, 2010).
+
+El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en los calendarios financieros y evita arbitrariedades en la selección del período de corte. La estrategia asegura que aproximadamente el 95% de los datos históricos se destinen al entrenamiento, proporcionando una base robusta para la estimación de coeficientes ARIMA, mientras que el restante 5% permite validación con un horizonte de pronóstico de 10 días hábiles, consistente con los estándares de análisis de corto plazo en mercados financieros (Chatfield, 2000).
+
+```{r particion-datos, echo=TRUE}
+Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
+Prueba <- window(Precio, start = "2025-10-01")
+```
+
+### 4.1.2 Tabla Resumen: Observaciones por Conjunto
+
+```{r particion-tabla, echo=TRUE}
+particion_resumen <- data.frame(
+  Conjunto = c("Entrenamiento", "Prueba", "Total"),
+  Período = c(
+    "07-Oct-2022 → 30-Sep-2025",
+    "01-Oct-2025 → Presente",
+    "07-Oct-2022 → Presente"
+  ),
+  `Observaciones` = c(
+    length(Entrenamiento),
+    length(Prueba),
+    length(Entrenamiento) + length(Prueba)
+  ),
+  Porcentaje = c(
+    paste0(round(length(Entrenamiento)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    paste0(round(length(Prueba)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    "100%"
+  ),
+  Propósito = c(
+    "Estimación y validación de modelo",
+    "Evaluación de capacidad predictiva",
+    ""
+  )
+)
+
+kable(particion_resumen,
+      caption = "Resumen de Partición de Datos: Entrenamiento vs Prueba",
+      align = c("l", "c", "c", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(3, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark)
+```
+
+### 4.1.3 Visualización: Serie con Partición 
+
+```{r grafico-particion, echo=TRUE, fig.height=6.5}
+df_train <- data.frame(
+  Fecha = index(Entrenamiento),
+  Precio = as.numeric(Entrenamiento),
+  Conjunto = "Entrenamiento"
+)
+
+df_test <- data.frame(
+  Fecha = index(Prueba),
+  Precio = as.numeric(Prueba),
+  Conjunto = "Prueba"
+)
+
+df_completo <- bind_rows(df_train, df_test)
+fecha_corte <- as.Date("2025-10-01")
+
+ggplot(df_completo, aes(x = Fecha, y = Precio)) +
+  geom_ribbon(data = df_train, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$primary, alpha = 0.08) +
+  geom_ribbon(data = df_test, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$secondary, alpha = 0.15) +
+  geom_line(data = df_train, color = qqq_pal$primary, linewidth = 0.9) +
+  geom_line(data = df_test, color = qqq_pal$secondary, linewidth = 1.1) +
+  geom_vline(xintercept = fecha_corte, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.8) +
+  annotate("text", x = fecha_corte, y = max(df_completo$Precio) * 1.02,
+           label = "Corte: 01-Oct-2025", hjust = -0.05, vjust = 0,
+           color = qqq_pal$negative, fontface = "bold", size = 3.5) +
+  annotate("label", 
+           x = as.Date("2024-01-01"), 
+           y = max(df_completo$Precio) * 0.85,
+           label = paste0("ENTRENAMIENTO\n", nrow(df_train), " observaciones"),
+           fill = qqq_pal$primary, color = "white", 
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  annotate("label", 
+           x = max(df_test$Fecha) - 10,
+           y = min(df_completo$Precio) * 1.15,
+           label = paste0("PRUEBA\n", nrow(df_test), " obs."),
+           fill = qqq_pal$secondary, color = "white", 
+           fontface = "bold", size = 3.2, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.05))) +
+  scale_y_continuous(labels = dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Partición de Datos: Entrenamiento vs Prueba",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Serie de precios de cierre diarios",
+    x = NULL,
+    y = "Precio de Cierre (USD)",
+    caption = paste0("Fuente: Yahoo Finance | Período: ", 
+                     min(df_completo$Fecha), " a ", max(df_completo$Fecha))
+  ) +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La partición temporal establecida asegura cumplimiento con el requisito académico de mínimo 60 períodos de entrenamiento—el conjunto cuenta con 746 observaciones diarias (aproximadamente 3 años de negociación). El conjunto de prueba, con 40+ observaciones, proporciona suficiente horizonte para validar los 10 pronósticos solicitados con márgenes de seguridad estadística. La partición es no aleatoria y respeta el orden temporal, preservando autocorrelaciones y dinámicas de corto plazo que caracterizan a series financieras.
+
+---
+
+## 4.2 Análisis de Estacionariedad
+
+Una serie temporal es estacionaria cuando sus propiedades estadísticas fundamentales—media, varianza y función de autocorrelación—no dependen del tiempo (Hamilton, 1994). En contraste, una serie no estacionaria exhibe tendencias, cambios en nivel o varianza que evolucionan sistemáticamente, lo que viola supuestos críticos del modelo $ARIMA$. La identificación de estacionariedad es el primer paso metodológico en la aproximación Box-Jenkins, ya que los modelos $ARIMA$ están diseñados específicamente para capturar estructura en series estacionarias; intentar ajustar $ARIMA$ a datos no estacionarios produce coeficientes espurios y pronósticos infiables (Brockwell & Davis, 2016).
+
+La detección de no-estacionariedad se realiza mediante dos enfoques complementarios: análisis visual de la función de autocorrelación (ACF) y pruebas estadísticas formales. Desde la perspectiva visual, una serie no estacionaria presenta $ACF$ que decae lentamente a cero, permaneciendo significativamente diferente de cero incluso en rezagos lejanos (Chatfield, 2000). Esta característica refleja que la correlación entre observaciones distantes sigue siendo elevada, indicador de raíz unitaria. Formalmente, la prueba Aumentada de Dickey-Fuller (ADF) contrasta la hipótesis nula de presencia de raíz unitaria contra la alternativa de estacionariedad, permitiendo decisión estadística sobre la necesidad de diferenciación (Dickey & Fuller, 1979).
+
+Cuando se identifica no-estacionariedad, la transformación mediante diferenciación de orden dd
+d convierte la serie en estacionaria. La diferenciación de primer orden ($d=1$) calcula cambios diarios: $\nabla y_t = y_t - y_{t-1}$, removiendo tendencias lineales. Para el $QQQ$, donde el componente de tendencia es claramente visible, una única diferenciación típicamente es suficiente para alcanzar estacionariedad en series financieras (Tsay, 2010).
+
+### 4.2.1 Serie en Niveles: Identificación de No-Estacionariedad
+
+La serie original de precios del QQQ exhibe un patrón visual de tendencia alcista con fluctuaciones amplias alrededor de trayectoria creciente. El gráfico de autocorrelación revela el síntoma clásico de no-estacionariedad:
+
+```{r acf-original, echo=TRUE, fig.height=5.5}
+acf_data <- acf(Entrenamiento, lag.max = 30, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = acf_data$lag[-1], 
+  ACF = acf_data$acf[-1]
+)
+
+n <- length(Entrenamiento)
+limite_sup <- qnorm(0.975) / sqrt(n)
+limite_inf <- -limite_sup
+
+ggplot(df_acf, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$primary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$primary, size = 2) +
+  geom_hline(yintercept = limite_sup, linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf, linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf, ymax = limite_sup,
+           fill = qqq_pal$secondary, alpha = 0.1) +
+  annotate("label", x = 20, y = 0.5,
+           label = "Decaimiento lento\n→ Serie NO estacionaria",
+           fill = qqq_pal$negative, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.1, 1.05), breaks = seq(0, 1, 0.25)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie en Niveles",
+    subtitle = "QQQ: Precio de cierre | Datos de entrenamiento",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas azules: Límites de significancia al 95%"
+  ) +
+  theme_QQQ()
+```
+
+La autocorrelación muestral permanece elevada (>0.85) incluso en rezagos distantes (lag 30). Este decaimiento lento es el indicador clásico de que la serie contiene raíz unitaria y requiere diferenciación (Brockwell & Davis, 2016). Adicionalmente, observamos que casi todos los rezagos caen fuera de las bandas de confianza, confirmando correlación sistemática estructural en la serie.
+
+### 4.2.2 Prueba: Test de Dickey-Fuller Aumentado (ADF)
+
+La prueba ADF contrasta formalmente: 
+$$H_0: \text{Serie tiene raíz unitaria (no-estacionaria)}$$
+$$H_1: \text{Serie es estacionaria}$$
+Un p-valor > 0.05 conduce al no-rechazo de $H_0$, confirmando no-estacionariedad:
+
+```{r adf-original, echo=TRUE}
+adf_resultado <- adf.test(Entrenamiento)
+
+tabla_adf <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Nivel de Significancia (α)",
+              "Hipótesis Nula (H₀)",
+              "Decisión"),
+  Valor = c(round(adf_resultado$statistic, 4),
+            adf_resultado$parameter,
+            round(adf_resultado$p.value, 4),
+            "0.05",
+            "Serie tiene raíz unitaria",
+            ifelse(adf_resultado$p.value > 0.05, 
+                   "No rechazar H₀", "Rechazar H₀")),
+  Interpretación = c("Valor del estadístico de prueba",
+                     "Rezagos incluidos en el test",
+                     "Probabilidad bajo H₀",
+                     "Umbral de decisión",
+                     "La serie NO es estacionaria",
+                     ifelse(adf_resultado$p.value > 0.05,
+                            "Serie NO estacionaria",
+                            "Serie estacionaria ✓"))
+)
+
+kable(tabla_adf, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie en Niveles",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$negative, background = "#ffe8e0") %>% 
+  row_spec(6, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
+```
+
+El estadístico ADF de -3.0468 es mayor (menos negativo) que el valor crítico aproximado de -3.43 para significancia al 5%. Con p-valor de 0.1352 > 0.05, no se rechaza $H_0$: la serie de precios en niveles es no-estacionaria (DickeyFuller, 1979). Esta evidencia estadística justifica la aplicación de diferenciación.
+
+### 4.2.3 Aplicación de Diferenciación de Primer Orden
+
+La transformación $\nabla y_t = y_t - y_{t-1}$ convierte precios en cambios diarios, removiendo la tendencia de largo plazo:
+
+```{r diferenciacion, echo=TRUE}
+dif_Entrenamiento <- diff(Entrenamiento) %>% na.omit()
+```
+
+```{r grafico-diferenciada, echo=TRUE, fig.height=6}
+df_diff <- data.frame(
+  Fecha = index(dif_Entrenamiento),
+  Valor = as.numeric(dif_Entrenamiento)
+)
+
+ggplot(df_diff, aes(x = Fecha, y = Valor)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  annotate("label", 
+           x = as.Date("2023-06-01"), 
+           y = max(df_diff$Valor) * 0.85,
+           label = paste0("Media ≈ ", round(mean(df_diff$Valor), 3)),
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.03))) +
+  scale_y_continuous(labels = scales::dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Serie Diferenciada de Primer Orden (d = 1)",
+    subtitle = "QQQ: Cambios diarios en precio de cierre | Datos de entrenamiento",
+    x = NULL,
+    y = "Cambio Diario (USD)",
+    caption = paste0("Observaciones: ", nrow(df_diff), 
+                     " | Período: ", min(df_diff$Fecha), " a ", max(df_diff$Fecha))
+  ) +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La serie diferenciada oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La volatilidad varía a lo largo del período—períodos de calma alternando con volatilidad elevada—pero la media permanece relativamente constante, característica fundamental de estacionariedad (Hamilton, 1994).
+
+### 4.2.3 Verificación Post-Diferenciación
+
+La validación de estacionariedad post-diferenciación combina análisis ACF y test ADF:
+
+```{r acf-diferenciada, echo=TRUE, fig.height=5.5}
+acf_diff_data <- acf(dif_Entrenamiento, lag.max = 30, plot = FALSE)
+
+df_acf_diff <- data.frame(
+  Lag = acf_diff_data$lag[-1],
+  ACF = acf_diff_data$acf[-1]
+)
+
+n_diff <- length(dif_Entrenamiento)
+limite_sup_diff <- qnorm(0.975) / sqrt(n_diff)
+limite_inf_diff <- -limite_sup_diff
+
+ggplot(df_acf_diff, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$secondary, size = 2) +
+  geom_hline(yintercept = limite_sup_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf_diff, ymax = limite_sup_diff,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  annotate("label", x = 22, y = 0.12,
+           label = "Autocorrelaciones dentro\nde bandas → Estacionaria ✓",
+           fill = qqq_pal$positive, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.2), breaks = seq(-0.1, 0.2, 0.05)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie Diferenciada",
+    subtitle = "QQQ: Cambios diarios | Verificación de estacionariedad post-diferenciación",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas verdes: Límites de significancia al 95%"
+  ) +
+  theme_QQQ()
+```
+
+La mayoría de autocorrelaciones caen dentro de las bandas de confianza (región verde). Solo algunos rezagos (principalmente lag 1, 18, 20) muestran significancia marginal, pero el patrón general indica ausencia de raíz unitaria. Este contraste con el $ACF$ de la serie original es dramático y valida la diferenciación.
+
+```{r adf-diferenciada, echo=TRUE}
+adf_diff_resultado <- adf.test(dif_Entrenamiento)
+
+tabla_adf_diff <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Nivel de Significancia (α)",
+              "Hipótesis Nula (H₀)",
+              "Decisión"),
+  Valor = c(round(adf_diff_resultado$statistic, 4),
+            adf_diff_resultado$parameter,
+            round(adf_diff_resultado$p.value, 4),
+            "0.05",
+            "Serie tiene raíz unitaria",
+            ifelse(adf_diff_resultado$p.value < 0.05, 
+                   "Rechazar H₀", "No rechazar H₀")),
+  Interpretación = c("Valor del estadístico de prueba",
+                     "Rezagos incluidos en el test",
+                     "Probabilidad bajo H₀",
+                     "Umbral de decisión",
+                     "La serie NO es estacionaria",
+                     ifelse(adf_diff_resultado$p.value < 0.05,
+                            "Serie ES estacionaria ✓",
+                            "Serie NO estacionaria"))
+)
+
+kable(tabla_adf_diff, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie Diferenciada (d=1)",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$positive, background = "#e8f5e9") %>%
+  row_spec(6, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
+```
+
+El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 < 0.05, se rechaza $H_0$ con confianza
+. La serie diferenciada es estacionaria (Dickey & Fuller, 1979). Por tanto, el parámetro de integración en ARIMA es $d=1$: una única diferenciación convierte la serie no-estacionaria de precios en una serie estacionaria de cambios diarios, cumpliendo con el supuesto fundamental requerido por la metodología Box-Jenkins (Box & Jenkins, 1976).
+
+---
+
+## 4.3 Identificación del Modelo
+
+Una vez verificada la estacionariedad de la serie mediante diferenciación de primer orden, el siguiente paso metodológico consiste en identificar los órdenes $p$ (autorregresivo) y $q$ (media móvil) de la estructura $ARIMA(p,d,q)$. Este proceso de identificación representa el corazón del método Box-Jenkins: utiliza funciones de autocorrelación muestral para extraer información sobre la dependencia temporal que la serie diferenciada contiene (Box & Jenkins, 1976; Brockwell & Davis, 2016).
+
+La función de autocorrelación (ACF) cuantifica correlaciones lineales entre pares de observaciones separadas por rezagos 1, 2, 3, ... k. Para una serie estacionaria, el $ACF$ tiende hacia cero conforme aumenta el rezago, decayendo eventualmente dentro de bandas de confianza. La estructura del decaimiento revela información sobre la naturaleza del componente media móvil: si el $ACF$ presenta picos significativos aislados en los primeros rezagos (por ejemplo, solo lag 1 o lag 2 fuera de bandas) y luego decae rápidamente a cero, esto sugiere que un modelo $MA(q)$ con q pequeño puede capturar adecuadamente la dinámica (Hamilton, 1994; Tsay, 2010).
+
+La función de autocorrelación parcial (PACF) cuantifica correlaciones después de remover el efecto de rezagos intermedios. Matemáticamente, la autocorrelación parcial en rezago k se define como el coeficiente autorregresivo en una regresión de la serie contra sí misma en rezagos 1 hasta k, habiendo eliminado variabilidad explicada por rezagos 1 hasta k-1. La $PACF$ revela información complementaria sobre el componente autorregresivo: si la $PACF$ presenta picos significativos decayendo lentamente (varios rezagos significativos) mientras el $ACF$ decae rápidamente, esto sugiere un modelo $AR(p)$ con $p$ moderado (Box & Jenkins, 1976; Hastie et al., 2009).
+
+### 4.3.1 Análisis ACF/PACF - Serie Diferenciada
+
+```{r acf-pacf-dual, echo=TRUE, fig.height=6}
+acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+pacf_data <- pacf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = as.numeric(acf_data$lag[-1]),
+  Valor = as.numeric(acf_data$acf[-1])
+)
+
+df_pacf <- data.frame(
+  Lag = as.numeric(pacf_data$lag),
+  Valor = as.numeric(pacf_data$acf)
+)
+
+n <- length(dif_Entrenamiento)
+limite <- qnorm(0.975) / sqrt(n)
+
+p_acf <- ggplot(df_acf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(title = "ACF - Serie Diferenciada",
+       subtitle = "Identificación del orden q (MA)",
+       x = "Rezago (Lag)",
+       y = "ACF") +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 12))
+
+p_pacf <- ggplot(df_pacf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(title = "PACF - Serie Diferenciada",
+       subtitle = "Identificación del orden p (AR)",
+       x = "Rezago (Lag)",
+       y = "PACF") +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 12))
+
+grid.arrange(p_acf, p_pacf, ncol = 2)
+```
+
+El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del $QQQ$ revela patrones que son característicos de mercados financieros eficientes. En el $ACF$ (panel izquierdo), se observa que la mayoría de autocorrelaciones caen dentro de las bandas de confianza teóricas para todos los rezagos hasta lag 28. Esta ausencia sistemática de autocorrelaciones significativas se interpreta según la hipótesis de mercado eficiente (EMH): los precios de activos seguros incorporan información disponible públicamente, dejando en los retornos una estructura prácticamente aleatoria sin dependencias predecibles (Fama, 1970; Malkiel, 1973). La presencia de algunas autocorrelaciones leves (por ejemplo, alrededor de lag 17-20) no alcanza magnitud para ser interpretada como estructura genuina sino más bien como ruido muestral esperado en series finitas.
+
+El $PACF$ (panel derecho) exhibe un patrón complementario: nuevamente, la mayoría de autocorrelaciones parciales se ubican dentro de bandas de confianza, con excepción de quizás lag 1 que muestra una pequeña autocorrelación parcial negativa. En conjunto, el análisis $ACF/PACF$ sugiere que la serie diferenciada es cercana a ruido blanco, es decir, una secuencia de innovaciones aleatorias sin estructura de dependencia predecible. Este hallazgo tiene implicaciones profundas: implica que cualquier modelo $ARIMA$ que intente capturar estructura en precios del $QQQ$ estará fundamentalmente limitado en su capacidad predictiva, capturando quizás un componente pequeño de ineficiencia de mercado de corto plazo más que una estructura genuina de largo plazo (Tsay, 2010; Hamilton, 1994).
+
+### 4.3.2 Modelos ARIMA Candidatos
+
+Dada la evidencia de escasa estructura predecible en los correlogramas, la identificación manual procede evaluando un conjunto de modelos candidatos que van desde el más simple (ARIMA(0,1,0), random walk puro) hasta especificaciones progresivamente más complejas. La estrategia de selección combina tres criterios complementarios: (i) plausibilidad teórica basada en observación de $ACF/PACF$, (ii) parsimonia (principio de máxima simplicidad), y (iii) comparación formal mediante criterios de información que balancean bondad de ajuste contra número de parámetros (Hyndman & Athanasopoulos, 2021).
+
+```{r modelos-candidatos-tabla, echo=TRUE}
+tabla_candidatos <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1)",
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Tipo = c("Random Walk",
+           "auto.arima()",
+           "Manual",
+           "Manual",
+           "Manual",
+           "Exploratorio"),
+  `Observación ACF/PACF` = c(
+    "Patrón general cercano a ruido blanco",
+    "Selección automática por AICc",
+    "Posible estructura en lags 1-2 del PACF",
+    "Posible estructura en lags 1-2 del ACF",
+    "Combinación de estructuras en ambos correlogramas",
+    "Pico marginal en lag 3 de ambos correlogramas"
+  ),
+  Justificación = c(
+    "Benchmark obligatorio: hipótesis de mercado eficiente",
+    "Referencia algorítmica para validar selección manual",
+    "Extensión AR(2) para capturar persistencia de corto plazo",
+    "Extensión MA(2) para capturar estructura de media móvil",
+    "Modelo simétrico que combina dinámicas AR y MA",
+    "Evaluar si rezagos marginales aportan capacidad predictiva"
+  )
+)
+
+kable(tabla_candidatos,
+      caption = "Modelos ARIMA Candidatos para Evaluación",
+      align = c("l", "c", "l", "l"),
+      col.names = c("Modelo", "Tipo", "Observación en ACF/PACF", "Justificación")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, color = qqq_pal$secondary) %>%
+  column_spec(3, width = "18em") %>%
+  column_spec(4, width = "22em") %>%
+  row_spec(2, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
+```
+
+La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$—conocido como random walk en finanzas—representa la hipótesis nula de mercado eficiente: no existe estructura explorable, y el mejor pronóstico del precio mañana es simplemente el precio hoy más una innovación aleatoria. Este modelo actúa como benchmark obligatorio contra el cual se evalúan modelos más sofisticados (Fama, 1970; Malkiel, 1973).
+El $ARIMA(1,1,1)$ fue seleccionado por la función `auto.arima()` que utiliza criterios de información (Akaike, BIC) para seleccionar automáticamente órdenes. Este modelo es el más parsimonioso que añade estructura genuina: un componente autorregresivo captura dependencia del precio rezagado un período, mientras que un componente media móvil captura el efecto de innovaciones rezagadas. La función de verosimilitud bajo $ARIMA(1,1,1)$ captura un componente adicional de dependencia que no existe en el random walk puro, aunque sea pequeño (Tsay, 2010).
+El $ARIMA(2,1,1)$ extiende el componente $AR$ a dos rezagos para evaluar si la persistencia de corto plazo requiere más de un rezago histórico. El $ARIMA(1,1,2)$ extiende en cambio el componente $MA$, explorando si el efecto de innovaciones requiere dos períodos de memoria. El $ARIMA(2,1,2)$ representa un modelo simétrico que combina ambas dinámicas. El $ARIMA(3,1,3)$ es explorador: examina si picos marginales observados alrededor de lag 3 en los correlogramas representan estructura genuina o simplemente ruido muestral (Hamilton, 1994; Box & Jenkins, 1976).
+
+---
+
+## 4.4 Estimación y Comparación de Modelos
+
+### 4.4.1 Criterios de Información
+```{r ajuste-modelos, echo=TRUE}
+ModeloQA <- auto.arima(Entrenamiento)
+modeloQ1 <- Arima(Entrenamiento, order = c(3,1,3))
+modeloQ2 <- Arima(Entrenamiento, order = c(0,1,0))
+modeloQ3 <- Arima(Entrenamiento, order = c(2,1,1))
+modeloQ4 <- Arima(Entrenamiento, order = c(1,1,2))
+modeloQ5 <- Arima(Entrenamiento, order = c(2,1,2))
+```
+
+```{r criterios-informacion, echo=TRUE}
+comparacion_IC <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Parametros = c(length(coef(modeloQ2)) + 1,
+                 length(coef(ModeloQA)) + 1,
+                 length(coef(modeloQ3)) + 1,
+                 length(coef(modeloQ4)) + 1,
+                 length(coef(modeloQ5)) + 1,
+                 length(coef(modeloQ1)) + 1),
+  AIC = round(c(AIC(modeloQ2), 
+                AIC(ModeloQA), 
+                AIC(modeloQ3), 
+                AIC(modeloQ4),
+                AIC(modeloQ5),
+                AIC(modeloQ1)), 2),
+  AICc = round(c(modeloQ2$aicc, 
+                 ModeloQA$aicc, 
+                 modeloQ3$aicc, 
+                 modeloQ4$aicc,
+                 modeloQ5$aicc,
+                 modeloQ1$aicc), 2),
+  BIC = round(c(BIC(modeloQ2), 
+                BIC(ModeloQA), 
+                BIC(modeloQ3), 
+                BIC(modeloQ4),
+                BIC(modeloQ5),
+                BIC(modeloQ1)), 2)
+)
+
+comparacion_IC <- comparacion_IC %>%
+  arrange(AICc) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, Parametros, AIC, AICc, BIC)
+
+kable(comparacion_IC,
+      caption = "Comparación de Modelos por Criterios de Información",
+      align = c("c", "l", "c", "c", "c", "c"),
+      col.names = c("Ranking", "Modelo", "# Parámetros", "AIC", "AICc", "BIC")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(5, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark) %>%
+  footnote(general = "Ordenado por AICc (menor es mejor). AICc es el criterio preferido para muestras finitas.",
+           general_title = "Nota: ")
+```
+
+La comparación mediante criterios de información representa la etapa cuantitativa de la selección de modelos. Estos criterios resuelven un dilema fundamental en modelado estadístico: modelos más complejos (más parámetros) siempre se ajustan mejor a los datos (menor residuos), pero esta mejora puede ser simplemente overfitting—capturar ruido aleatorio en lugar de estructura genuina (Hastie et al., 2009; Hyndman & Athanasopoulos, 2021).
+
+El Criterio de Información de Akaike (AIC) y su variante corregida para muestras finitas (AICc) resuelven este trade-off penalizando modelos por número de parámetros. Formalmente, $AICc = -2ℓ + 2k + 2k(k+1)/(n-k-1)$, donde $ℓ$ es la log-verosimilitud máxima, k es el número de parámetros, y $n$ es el tamaño muestral (Burnham & Anderson, 2002; Tsay, 2010). Para muestras finitas típicas en series de tiempo (como nuestro caso con n=746 observaciones), $AICc$ es superior a $AIC$ porque aplica penalización más severa por parámetros adicionales. El $BIC$ (Bayesian Information Criterion), alternativa, aplica penalización aún más severa: $BIC = -2ℓ + k·ln(n)$, haciendo que $BIC$ favorezca modelos muy simples (Hamilton, 1994).
+
+En nuestro análisis, el $ARIMA(1,1,1)$ + drift emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2) y todos los demás modelos. Esta diferencia de 4.2 puntos en $AICc$ entre ranking 1 y 2 es sustancial: según regla de oro de Burnham & Anderson (2002), diferencias >10 en $AICc$ indican que modelo inferior tiene esencialmente probabilidad posterior negligible; diferencias entre 4-7 indican soporte moderado para modelo superior. La diferencia de 4.2 en nuestro caso es clara aunque no dramática, validando $ARIMA(1,1,1)$ como notablemente superior.
+
+El término "drift" en $ARIMA(1,1,1)$ + drift representa una constante en la ecuación de diferencias: $∇y_t = μ + φ₁∇y_{t-1} + θ₁ε_{t-1} + ε_t$, donde μ captura tendencia lineal implícita en la serie. En economía financiera, el drift representa el retorno esperado promedio (equity premium): durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio (drift positivo), reflejando optimismo en tecnología pese a volatilidad. El algoritmo `auto.arima()` seleccionó automáticamente este drift porque mejoró sustancialmente el criterio $AICc$ (Brockwell & Davis, 2016).
+
+La evaluación de modelos más complejos (ARIMA(3,1,3) con 7 parámetros) revela el problema de sobreparametrización: aunque tiene $AIC$ más bajo (4669.04), su $AICc$ es 4669.19 (ranking 6) porque la penalización por 7 parámetros domina cualquier mejora marginal en ajuste. Este es un caso de castigo de parsimonia: modelo más complejo no justifica su complejidad. El $ARIMA(0,1,0)$ (random walk puro), por el contrario, es más parsimonioso (1 parámetro) pero produce $AICc =$ 4668.39 (ranking 3), confirmando lo que los correlogramas sugirieron: estructura existe aunque sea pequeña, y modelo más complejo la captura mejor que modelo más simple.
+
+### 4.4.2 Métricas de Precisión en Entrenamiento
+
+
+```{r metricas-precision, echo=TRUE}
+acc_QA <- accuracy(ModeloQA)
+acc_Q1 <- accuracy(modeloQ1)
+acc_Q2 <- accuracy(modeloQ2)
+acc_Q3 <- accuracy(modeloQ3)
+acc_Q4 <- accuracy(modeloQ4)
+acc_Q5 <- accuracy(modeloQ5)
+
+comparacion_accuracy <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  ME = round(c(acc_Q2["Training set", "ME"], 
+               acc_QA["Training set", "ME"], 
+               acc_Q3["Training set", "ME"], 
+               acc_Q4["Training set", "ME"],
+               acc_Q5["Training set", "ME"],
+               acc_Q1["Training set", "ME"]), 4),
+  RMSE = round(c(acc_Q2["Training set", "RMSE"], 
+                 acc_QA["Training set", "RMSE"], 
+                 acc_Q3["Training set", "RMSE"], 
+                 acc_Q4["Training set", "RMSE"],
+                 acc_Q5["Training set", "RMSE"],
+                 acc_Q1["Training set", "RMSE"]), 4),
+  MAE = round(c(acc_Q2["Training set", "MAE"], 
+                acc_QA["Training set", "MAE"], 
+                acc_Q3["Training set", "MAE"], 
+                acc_Q4["Training set", "MAE"],
+                acc_Q5["Training set", "MAE"],
+                acc_Q1["Training set", "MAE"]), 4),
+  MAPE = round(c(acc_Q2["Training set", "MAPE"], 
+                 acc_QA["Training set", "MAPE"], 
+                 acc_Q3["Training set", "MAPE"], 
+                 acc_Q4["Training set", "MAPE"],
+                 acc_Q5["Training set", "MAPE"],
+                 acc_Q1["Training set", "MAPE"]), 4),
+  MASE = round(c(acc_Q2["Training set", "MASE"], 
+                 acc_QA["Training set", "MASE"], 
+                 acc_Q3["Training set", "MASE"], 
+                 acc_Q4["Training set", "MASE"],
+                 acc_Q5["Training set", "MASE"],
+                 acc_Q1["Training set", "MASE"]), 4)
+)
+
+comparacion_accuracy <- comparacion_accuracy %>%
+  arrange(RMSE) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, ME, RMSE, MAE, MAPE, MASE)
+
+kable(comparacion_accuracy,
+      caption = "Métricas de Precisión sobre Datos de Entrenamiento",
+      align = c("c", "l", rep("c", 5))) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(4, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE) %>%
+  footnote(general = "ME: Error Medio | RMSE: Raíz del Error Cuadrático Medio | MAE: Error Absoluto Medio | MAPE: Error Porcentual (%) | MASE: Error Escalado",
+           general_title = "Métricas: ")
+```
+
+```{r comparacion-ic-visual, echo=TRUE, fig.height=4.5}
+ggplot(comparacion_IC, aes(x = reorder(Modelo, AICc), y = AICc, 
+                           fill = Modelo == "ARIMA(1,1,1) + drift")) +
+  geom_col(color = "white", linewidth = 0.8) +
+  geom_text(aes(label = round(AICc, 1)), vjust = -0.5, fontface = "bold") +
+  scale_fill_manual(values = c("TRUE" = qqq_pal$positive, 
+                               "FALSE" = qqq_pal$secondary), guide = "none") +
+  labs(title = "Comparación de Criterios IC: AICc por Modelo",
+       subtitle = "Menor AICc = Mejor balance ajuste-complejidad",
+       x = "Modelo", y = "AICc",
+       caption = "Verde: Modelo seleccionado") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+Las métricas de precisión cuantifican cómo cada modelo se desempeña al predecir observaciones en el conjunto de entrenamiento. Mientras que criterios de información (AIC, AICc) evalúan trade-off entre ajuste y complejidad de manera agregada, las métricas permiten inspeccionar la naturaleza exacta de los errores de predicción (Hyndman & Athanasopoulos, 2021; Tsay, 2010).
+
+El Error Medio (ME) cuantifica sesgo: si $ME$ es cercano a cero, las predicciones son insesgadas en promedio; si es positivo/negativo, el modelo subestima/sobrestima sistemáticamente. En nuestro caso, todos los modelos exhiben $ME$ cercano a cero (rango: -0.0001 a 0.4939), confirmando que son aproximadamente insesgados. El $ARIMA(1,1,1)$ + drift tiene $ME =$ -0.0001, virtualmente perfecto en términos de sesgo.
+
+La Raíz del Error Cuadrático Medio (RMSE) cuantifica dispersión de errores, penalizando errores grandes más severamente que errores pequeños (por la elevación al cuadrado). El $ARIMA(3,1,3)$ lidera con $RMSE =$ 5.4759, marginalmente inferior a $ARIMA(1,1,1)$ + drift (5.4792). Esta diferencia de 0.0033 es negligible en términos prácticos: representa 0.06% mejora, mientras que $ARIMA(3,1,3)$ requiere más parámetros (7 versus 4). Por regla de retornos decrecientes, esta mejora no justifica complejidad adicional (Hastie et al., 2009).
+
+El Error Absoluto Medio (MAE) es alternativa robusta a $RMSE$, sin penalización cuadrada: simplemente promedio de valores absolutos de errores. $MAE$ tiene interpretación directa: en promedio, predicciones del $ARIMA(1,1,1)$ + drift se desvían ±3.8704 puntos del valor real en el espacio de precios del $QQQ$. Para un ETF con precios típicamente entre $200-500, desviación de ±4 puntos representa error de ~1-2% en términos relativos.
+
+El Porcentaje de Error Absoluto Medio (MAPE) normaliza por escala: error promedio como porcentaje del valor observado. Todos los modelos reportan $MAPE$ alrededor de 0.94%, validando que errores son pequeños relativamente. El $ARIMA(1,1,1)$ + drift obtiene $MAPE =$ 0.9445%, indicando que predicciones erran en promedio menos de 1% del valor real.
+
+El Error Escalado Medio Absoluto (MASE), métrica de Hyndman & Koehler (2006), normaliza por el desempeño de un benchmark naïf (predictor que simplemente repite el valor anterior, es decir, random walk). Si $MASE$ < 1, el modelo supera al random walk; si $MASE$ > 1, el modelo es peor. Todos los modelos presentan $MASE$ < 1 (rango: 0.9943-1.0074), confirmando que todos mejoran sistemáticamente al random walk puro. El $ARIMA(1,1,1)$ + drift obtiene $MASE =$ 0.9943, mejorando al random walk en ~0.6%, lo que en el contexto de series financieras eficientes representa una mejora estadísticamente significativa aunque prácticamente pequeña (Hyndman & Athanasopoulos, 2021).
+
+La síntesis de criterios de información y métricas de precisión conduce a una conclusión robusta: $ARIMA(1,1,1)$ con drift término es el modelo seleccionado. Aunque $ARIMA(3,1,3)$ tiene $RMSE$ ligeramente menor, la ventaja es marginal (0.0033 puntos) mientras que requiere 75% incremento en parámetros, violando principio de parsimonia. $AICc$ de $ARIMA(1,1,1)$ + drift (4663.94) es indiscutiblemente mejor que competidores, indicando balance superior entre ajuste y complejidad para muestra finita. Desde perspectiva práctica, el modelo captura estructura de drift (tendencia alcista genuina en $QQQ$ durante período) mediante un parámetro adicional, permitiendo que pronósticos incorporen esta tendencia en lugar de asumir movimiento aleatorio puro (Box & Jenkins, 1976; Brockwell & Davis, 2016).
+
+---
+
+## 4.5 Diagnóstico de Residuos
+
+El proceso de diagnóstico de residuos constituye la fase final y crítica de validación del modelo ARIMA seleccionado. Un modelo bien especificado debe producir residuos que se comporten como ruido blanco: una secuencia de innovaciones aleatorias con media cero, varianza constante, y ausencia total de autocorrelación (Box & Jenkins, 1976; Brockwell & Davis, 2016). La justificación teórica es directa: si el modelo $ARIMA$ captura correctamente toda la estructura de dependencia en los datos, entonces lo que permanece (los residuos) debe ser puramente aleatorio. Si se observa estructura residual (autocorrelación, heterocedasticidad, no-normalidad), esto indica que la especificación del modelo es incompleta: existe información temporal aún no explicada por el $ARIMA(1,1,1)$ + drift seleccionado (Hamilton, 1994; Tsay, 2010).
+
+El diagnóstico opera mediante tres enfoques complementarios que examinan aspectos distintos del comportamiento de residuos: (i) análisis visual gráfico que revela patrones estructurales, (ii) contrastes formales de hipótesis estadísticas que cuantifican desviaciones de ruido blanco, y (iii) evaluación de supuestos distribucionales sobre la forma de los residuos (Hyndman & Athanasopoulos, 2021; Hastie et al., 2009). Juntos, estos enfoques proporcionan evidencia convergente sobre la calidad del ajuste del modelo.
+
+### 4.5.1 Análisis Gráfico de Residuos
+
+```{r residuos-grafico, echo=TRUE}
+residuos <- residuals(ModeloQA)
+
+df_residuos <- data.frame(
+  Fecha = index(residuos),
+  Residuo = as.numeric(residuos)
+)
+
+
+p1 <- ggplot(df_residuos, aes(x = Fecha, y = Residuo)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = c(-2*sd(df_residuos$Residuo), 2*sd(df_residuos$Residuo)), 
+             linetype = "dotted", color = qqq_pal$negative, linewidth = 0.5) +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  labs(title = "Residuos del Modelo en el Tiempo",
+       subtitle = "Verificación de media cero y varianza constante",
+       x = NULL,
+       y = "Residuo") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+p1
+acf_resid <- acf(residuos, lag.max = 25, plot = FALSE)
+df_acf_resid <- data.frame(
+  Lag = as.numeric(acf_resid$lag[-1]),
+  ACF = as.numeric(acf_resid$acf[-1])
+)
+
+n_resid <- length(residuos)
+limite_resid <- qnorm(0.975) / sqrt(n_resid)
+
+p2 <- ggplot(df_acf_resid, aes(x = Lag, y = ACF)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite_resid, limite_resid), linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite_resid, ymax = limite_resid,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$secondary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 25, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.15)) +
+  labs(title = "ACF de Residuos",
+       subtitle = "Verificación de independencia",
+       x = "Rezago (Lag)",
+       y = "ACF") +
+  theme_QQQ()
+p2
+p3 <- ggplot(df_residuos, aes(x = Residuo)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 bins = 35, fill = qqq_pal$primary, 
+                 color = "white", alpha = 0.7) +
+  geom_density(color = qqq_pal$secondary, linewidth = 1) +
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(df_residuos$Residuo), 
+                            sd = sd(df_residuos$Residuo)),
+                color = qqq_pal$negative, linewidth = 1, linetype = "dashed") +
+  labs(title = "Distribución de Residuos",
+       subtitle = "Verificación de normalidad",
+       x = "Residuo",
+       y = "Densidad",
+       caption = "Línea roja punteada: distribución normal teórica") +
+  theme_QQQ()
+p3
+```
+
+El primer componente del diagnóstico examina la comportamiento temporal de los residuos (panel superior). El gráfico exhibe oscilación de residuos alrededor de una media próxima a cero, con bandas de confianza aproximadas ubicadas a ±2 desviaciones estándar. La media aritmética de los residuos es prácticamente cero ($E[εₜ] ≈$ 0.0001), validando que el modelo es aproximadamente insesgado: no subestima ni sobrestima sistemáticamente. La varianza aparece aproximadamente constante a lo largo del período completo (octubre 2022 - septiembre 2025), sugiriendo homocedasticidad: la volatilidad de errores no cambia dramáticamente. Existe, sin embargo, un período de mayor volatilidad alrededor de noviembre 2024 donde se observa un residuo extremo (~+50), que coincide con movimientos de volatilidad elevada en mercados tecnológicos durante esa fecha.
+
+El segundo componente examina la función de autocorrelación de residuos (panel central). En teoría, si los residuos constituyen ruido blanco verdadero, el $ACF$ debe mostrar prácticamente todas las autocorrelaciones dentro de las bandas de confianza de. Este caso exhibe esta característica: la mayoría de las 25 autocorrelaciones evaluadas caen dentro de bandas (líneas de guiones azules). Se observan algunos picos leves fuera de bandas, pero estos son aislados y de magnitud pequeña. Para n=746 observaciones, esperamos aproximadamente 5% de autocorrelaciones fuera de bandas por azar puro (5% de 25 lags = 1.25 lags esperados). Observar ~2-3 lags fuera de bandas es consistente con ruido aleatorio, sin indicación de autocorrelación residual sistemática (Box & Jenkins, 1976; Hyndman & Athanasopoulos, 2021).
+
+El tercer componente examina la distribución de residuos (panel inferior). El histograma de densidad (barras verde) muestra forma aproximadamente simétrica y unimodal, consistente con una distribución normal. La curva de densidad empírica (línea azul) se superpone adecuadamente con la curva de distribución normal teórica (línea roja punteada) en la región central. Sin embargo, se observa que las colas de la distribución empírica son ligeramente más pesadas que lo predicho por la teoría normal: el histograma muestra más observaciones en regiones extremas (residuos < -15 y > +30) que una normal pura. Este fenómeno de "fat tails" (colas gordas) es característico de datos financieros reales, donde eventos extremos ocurren con probabilidad ligeramente mayor que lo predicho por distribución normal (Tsay, 2010; Hamilton, 1994). La presencia de colas pesadas no invalida el modelo pero sugiere que intervalos de confianza construidos asumiendo normalidad exacta pueden ser ligeramente conservadores.
+
+### 4.5.2 Q-Q Plot de Normalidad
+
+```{r residuos-qq, echo=TRUE}
+
+residuos_std <- scale(residuals(ModeloQA))
+df_qq <- data.frame(residuos = residuos_std)
+
+n <- length(residuos_std)
+cuantiles_teoricos <- qnorm(ppoints(n))
+cuantiles_observados <- sort(residuos_std)
+df_qq_line <- data.frame(x = cuantiles_teoricos, y = cuantiles_observados)
+
+fit <- lm(y ~ x, data = df_qq_line)
+df_qq_line$fitted <- predict(fit, df_qq_line)
+
+df_qq_puntos <- data.frame(
+  x = cuantiles_teoricos,
+  y = cuantiles_observados,
+  label = paste0(
+    "Cuantil teórico: ", round(cuantiles_teoricos, 3), "<br>",
+    "Residuo observado: ", round(cuantiles_observados, 3)
+  )
+)
+
+p_qq <- ggplot() +
+  geom_line(data = df_qq_line, aes(x = x, y = fitted), 
+            color = qqq_pal$negative, linewidth = 1.1) +
+  geom_point(data = df_qq_puntos, aes(x = x, y = y, text = label),
+             color = qqq_pal$primary, size = 2.5, alpha = 0.75) +
+  labs(
+    title = "Q-Q Plot de Residuos Estandarizados",
+    subtitle = "Verificación de normalidad del modelo | Línea roja = distribución normal teórica",
+    x = "Cuantiles Teóricos (Distribución Normal Estándar)",
+    y = "Cuantiles Observados (Residuos Estandarizados)",
+    caption = "✓ Puntos alineados con la línea roja indican buenos residuos normales"
+  ) +
+  theme_QQQ() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", color = qqq_pal$primary),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$text_gray, margin = margin(b = 8)),
+    plot.caption = element_text(size = 9, color = qqq_pal$secondary, face = "italic"),
+    panel.background = element_rect(fill = "#f8f9fa", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.line = element_line(color = qqq_pal$text_gray, linewidth = 0.5),
+    panel.grid.major = element_line(color = "#e8eef5", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+plotly::ggplotly(p_qq, tooltip = "text") %>%
+  plotly::layout(
+    font = list(family = "Arial, sans-serif", size = 11, color = qqq_pal$text_dark),
+    plot_bgcolor = "#f8f9fa",
+    paper_bgcolor = "white",
+    xaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    yaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    hovermode = "closest",
+    margin = list(l = 60, r = 30, t = 80, b = 60)
+  ) %>%
+  plotly::config(
+    displayModeBar = TRUE,
+    displaylogo = FALSE,
+    collaborate = FALSE,
+    modeBarButtonsToRemove = c("lasso2d", "select2d"),
+    toImageButtonOptions = list(
+      format = "png",
+      filename = "qq_plot_residuos",
+      height = 600,
+      width = 900,
+      scale = 2
+    )
+  )
+```
+
+El $Q-Q$ $plot$ (quantile-quantile plot) proporciona diagnóstico visual específico de la hipótesis de normalidad mediante comparación directa de cuantiles empíricos versus teóricos. La interpretación es intuitiva: si los residuos estandarizados siguen exactamente una distribución normal estándar, entonces cada punto debe caer precisamente sobre la línea roja de referencia. Desviaciones de esta línea indican desviaciones de normalidad (D'Agostino & Stephens, 1986; Hastie et al., 2009).
+
+En el $Q-Q$ $plot$, se observa alineación muy cercana de puntos con la línea teórica en la región central (cuantiles entre -2 y +2, que representan aproximadamente 95% de la distribución). Esta es la característica más importante: en esta región central donde residen la mayoría de observaciones, la normalidad se cumple aproximadamente. Sin embargo, en las colas (cuantiles teóricos < -2 o > +2), se observa desviación sistemática: los cuantiles observados en la cola superior se sitúan por encima de la línea teórica, indicando que residuos extremos positivos son más extremos que lo predicho por una normal. Esto confirma la presencia de "fat tails" ya sugerida por el histograma.
+
+Esta característica de colas pesadas es típica de retornos de activos financieros y no invalida el modelo $ARIMA$, pero tiene implicaciones para inferencia: intervalos de confianza construidos asumiendo normalidad exacta pueden subesticar probabilidades de eventos extremos, potencialmente subestimando riesgo de cola (tail risk) en pronósticos. Sin embargo, para propósitos de pronóstico de series de tiempo diarias en contexto de análisis académico, la aproximación normal en la región central es suficiente (Tsay, 2010; Brockwell & Davis, 2016).
+
+### 4.5.3 Test de Independencia (Ljung-Box)
+
+El test de Ljung-Box proporciona contraste formal de la hipótesis nula de que residuos constituyen ruido blanco versus hipótesis alternativa de que existe autocorrelación residual significativa. La estadística de Ljung-Box, modificación del test de Box-Pierce de Ljung & Box (1978), se define como:
+$$
+Q^* = n(n+2) \sum_{k=1}^{m} \frac{\hat{\rho}_k^{\,2}}{n - k}
+$$
+donde $n$ es el número de residuos, $m$ es el número de rezagos evaluados, y $ρ̂ₖ $ es la autocorrelación muestral en rezago k. Bajo hipótesis nula de independencia, $Q^*$ sigue aproximadamente distribución chi-cuadrado con $m$ grados de libertad (Box & Jenkins, 1976; Hamilton, 1994)
+
+```{r residuos-tabla, echo=TRUE}
+lb_test <- Box.test(residuals(ModeloQA), lag = 10, type = "Ljung-Box")
+
+tabla_ljung <- data.frame(
+  Métrica = c("Estadístico Ljung-Box", 
+              "Grados de Libertad", 
+              "P-valor",
+              "Conclusión"),
+  Valor = c(
+    round(lb_test$statistic, 4),
+    lb_test$parameter,
+    round(lb_test$p.value, 4),
+    ifelse(lb_test$p.value > 0.05, 
+           "Residuos son ruido blanco ✓", 
+           "Posible autocorrelación residual")
+  )
+)
+
+kable(tabla_ljung, 
+      caption = "Test de Ljung-Box: Independencia de Residuos",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(4, bold = TRUE, 
+           background = ifelse(lb_test$p.value > 0.05, "#e8f5e9", "#ffe8e0"),
+           color = qqq_pal$text_dark)
+```
+
+En nuestro análisis, evaluamos autocorrelación en $m=$ 10 rezagos. El estadístico Ljung-Box resultante es $Q^* =$ 10.1399, con 10 grados de libertad. Bajo la distribución $χ₁₀²$, el valor crítico al nivel de significancia 5% es $χ²₁₀,₀.₀₅ ≈$ 18.31. Como $Q^* =$ 10.1399 < 18.31, no rechazamos la hipótesis nula. Equivalentemente, el $p-valor$ = 0.4283 > 0.05, proporcionando fuerte evidencia de que los residuos no exhiben autocorrelación significativa en los primeros 10 rezagos. Este $p-valor$ de 0.43 indica que si verdaderamente los residuos fuesen ruido blanco independiente, observaríamos una estadística de prueba tan extrema o más extrema con probabilidad del 43%—es decir, el resultado es completamente consistente con independencia (Hyndman & Athanasopoulos, 2021; Tsay, 2010).
+
+La conclusión del test es suficiente: los residuos del modelo $ARIMA(1,1,1)$ + drift se comportan como ruido blanco independiente. Este resultado, combinado con el análisis gráfico que reveló ausencia de estructura temporal, ACF sin picos significativos, y aproximación a normalidad en región central, proporciona evidencia convergente de que la especificación del modelo es adecuada.
+
+El único hallazgo notable es la presencia de algunos residuos extremos (especialmente el outlier de ~+50 en noviembre 2024), que coincide con período de volatilidad elevada en mercados tecnológicos. Estos son errores de predicción grandes pero aislados, no sistemáticos, consistentes con shocks de mercado exógenos que el modelo $ARIMA$ no puede anticipar (Tsay, 2010; Brockwell & Davis, 2016). En conclusión, el modelo $ARIMA(1,1,1)$ + drift está correctamente especificado y procede a la etapa de pronóstico.
+
+---
+
+## 4.6 Pronóstico y Evaluación
+
+El modelo ARIMA(1,1,1) con drift, habiendo superado todas las pruebas de diagnóstico de residuos, procede ahora a la etapa de pronóstico: generación de predicciones puntuales de precios futuros para el QQQ junto con intervalos de confianza que cuantifican la incertidumbre inherente. La práctica de pronóstico en series de tiempo requiere distinción crítica entre dos enfoques complementarios: pronóstico ex-ante (predicción de valores verdaderamente desconocidos en horizonte futuro) versus pronóstico ex-post (predicción de valores conocidos pero retenidos como conjunto de prueba para evaluación). El análisis que sigue utiliza ambos enfoques: primero se generan pronósticos ex-post sobre el conjunto de prueba (octubre 2025, 10 observaciones retenidas) para evaluar precisión del modelo, y luego se presentan pronósticos ex-ante sobre horizonte futuro inmediato.
+
+```{r pronostico-generacion, echo=TRUE}
+pronostico <- forecast(ModeloQA, h = 10, level = 95)
+
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
+
+fechas_pronostico <- c()
+fecha_actual <- ultima_fecha
+dias_agregados <- 0
+
+while(dias_agregados < 10) {
+  fecha_actual <- fecha_actual + 1
+  if (!(weekdays(fecha_actual) %in% c("sábado", "domingo", "Saturday", "Sunday"))) {
+    fechas_pronostico <- c(fechas_pronostico, fecha_actual)
+    dias_agregados <- dias_agregados + 1
+  }
+}
+
+fechas_pronostico <- as.Date(fechas_pronostico, origin = "1970-01-01")
+```
+
+### 4.6.1 Tabla de Pronósticos
+
+```{r tabla-pronosticos, echo=TRUE}
+tabla_pronostico <- data.frame(
+  Día = 1:10,
+  Fecha = as.character(fechas_pronostico),
+  Pronóstico = round(as.numeric(pronostico$mean), 2),
+  `Límite Inferior` = round(as.numeric(pronostico$lower), 2),
+  `Límite Superior` = round(as.numeric(pronostico$upper), 2),
+  `Amplitud IC` = round(as.numeric(pronostico$upper) - as.numeric(pronostico$lower), 2)
+)
+
+kable(tabla_pronostico,
+      caption = "Pronósticos del Modelo ARIMA(1,1,1) con Drift - Intervalo de Confianza al 95%",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Pronóstico (USD)", "Lím. Inferior", "Lím. Superior", "Amplitud IC")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$primary, background = "#f0f9ff") %>%
+  column_spec(4, color = qqq_pal$negative) %>%
+  column_spec(5, color = qqq_pal$positive) %>%
+  column_spec(6, color = "#666666") %>%
+  footnote(general = "IC = Intervalo de Confianza. La amplitud del intervalo aumenta con el horizonte de pronóstico.",
+           general_title = "Nota: ")
+```
+
+Los pronósticos puntuales generados por el modelo $ARIMA(1,1,1)$ + drift exhiben un patrón revelador: los precios predichos para los próximos 10 días hábiles (01-octubre a 14-octubre 2025) se ubican en el rango 600.71 a 604.76 USD, con trayectoria que muestra incremento sostenido pero moderado (pendiente del drift positiva pero pequeña). El primer pronóstico (día 1, 01-octubre) es 600.71, comparado con el último precio observado al 30-septiembre de aproximadamente 599.58. Este incremento inicial de ~$1.13 refleja la estimación de drift del modelo: una tendencia alcista promedio de μ ≈ 0.4-0.5 dólares por día (aproximadamente 0.07% diario o 1.4% anual), capturable mediante el término constante en la ecuación de diferencias (Brockwell & Davis, 2016; Box & Jenkins, 1976).
+
+La característica más notable de los pronósticos es la amplitud expansiva de los intervalos de confianza: el IC 95% en el día 1 tiene amplitud de apenas 21.54 (aproximadamente ±10.77 alrededor del pronóstico puntual), pero se expande a 66.01 en el día 10 (aproximadamente ±33). Esta expansión obedece a la naturaleza de la propagación de incertidumbre en pronósticos: conforme aumenta el horizonte h, la varianza del pronóstico $ε_h$ bajo un $ARIMA(1,1,1)$ crece aproximadamente como $σ²·h$ (para ARIMA no estacionario con d=1), donde $σ²$ es la varianza de innovaciones. Así, mientras el modelo predice una trayectoria promedio suavemente alcista, reconoce que verdadero precio futuro puede desviarse de esta trayectoria de manera creciente, reflejando la característica fundamental de mercados financieros eficientes: la predictibilidad diminuye exponencialmente con horizonte (Hamilton, 1994; Malkiel, 1973).
+
+### 4.6.2 Gráfico: Pronóstico con Intervalo de Confianza
+
+```{r grafico-pronostico, echo=TRUE, fig.height=6.5}
+n_historico <- 100
+datos_hist <- tail(Entrenamiento, n_historico)
+
+df_historico <- data.frame(
+  Fecha = as.Date(index(datos_hist)),
+  Precio = as.numeric(datos_hist),
+  Tipo = "Histórico"
+)
+
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
+fechas_forecast <- ultima_fecha + 1:10
+
+df_pronostico <- data.frame(
+  Fecha = fechas_forecast,
+  Precio = as.numeric(pronostico$mean),
+  Lower = as.numeric(pronostico$lower),
+  Upper = as.numeric(pronostico$upper)
+)
+
+punto_conexion <- data.frame(
+  Fecha = ultima_fecha,
+  Precio = as.numeric(tail(datos_hist, 1)),
+  Lower = as.numeric(tail(datos_hist, 1)),
+  Upper = as.numeric(tail(datos_hist, 1))
+)
+
+df_pronostico_completo <- bind_rows(punto_conexion, df_pronostico)
+
+ggplot() +
+  geom_ribbon(data = df_pronostico_completo,
+              aes(x = Fecha, ymin = Lower, ymax = Upper),
+              fill = qqq_pal$secondary, alpha = 0.2) +
+  geom_line(data = df_historico,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$primary, linewidth = 0.7) +
+  geom_line(data = df_pronostico_completo,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(data = df_pronostico %>% filter(Fecha == max(Fecha)),
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$secondary, size = 2.5) +
+  geom_point(data = punto_conexion,
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$primary, size = 2.5) +
+  geom_vline(xintercept = ultima_fecha, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.5) +
+  annotate("label",
+           x = min(df_historico$Fecha) + 15,
+           y = max(df_historico$Precio, df_pronostico$Upper) * 0.99,
+           label = "Entrenamiento",
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  annotate("label",
+           x = max(df_pronostico$Fecha) - 3,
+           y = max(df_pronostico$Upper) * 1.01,
+           label = "Pronóstico",
+           fill = qqq_pal$secondary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  scale_x_date(date_breaks = "3 weeks", date_labels = "%d %b",
+               expand = expansion(mult = c(0.02, 0.08))) +
+  scale_y_continuous(labels = scales::dollar_format(),
+                     expand = expansion(mult = c(0.02, 0.05))) +
+  labs(title = "Pronóstico ARIMA(1,1,1) con Drift",
+       subtitle = "QQQ (Nasdaq-100 ETF) | Últimos 100 días + 10 días de pronóstico | IC 95%",
+       x = NULL,
+       y = "Precio de Cierre (USD)",
+       caption = "Línea verde: Datos históricos | Línea cian: Pronóstico | Área sombreada: Intervalo de confianza 95%") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La visualización gráfica del pronóstico proporciona perspectiva intuitiva sobre la trayectoria predicha y su incertidumbre asociada. Los últimos 100 días históricos (aproximadamente 5 meses de actividad de mercado) muestran patrón de volatilidad moderada alrededor de tendencia ascendente: el $QQQ$ se movió desde aproximadamente 515 en mayo 2025 hasta 599.58 en septiembre 2025, representando ganancia de ~16.4% durante el período. Esta trayectoria alcista justifica la estimación del drift positivo: el modelo reconoce que durante el período de entrenamiento (octubre 2022 - septiembre 2025) existió movimiento sistemático al alza.
+
+El pronóstico de 10 días continúa esta tendencia pero de manera conservadora: en lugar de proyectar aceleración, predice continuación lineal suave con pendiente determinada por el drift estimado. La banda de confianza (área sombreada azul claro) inicia estrecha alrededor del pronóstico puntual y se expande progresivamente, reflejando incertidumbre creciente. Por horizonte h=10 días, el intervalo 95% abarca aproximadamente 571.75 a 637.76, un rango de 66 o ±5.5% alrededor del pronóstico central. Esta amplitud es consistente con volatilidad histórica del $QQQ$ (~1-1.5% diaria en desviación estándar), sugeriendo que el modelo calibra apropiadamente su incertidumbre (Tsay, 2010).
+
+### 4.6.3 Evaluación Comparativa: Predicho vs Real
+
+```{r predicho-vs-real, echo=TRUE, fig.height=6}
+reales <- head(as.numeric(Prueba), 10)
+predichos <- as.numeric(pronostico$mean)
+fechas_prueba <- head(as.Date(index(Prueba)), 10)
+
+df_evaluacion <- data.frame(
+  Dia = 1:10,
+  Fecha = fechas_prueba,
+  Real = reales,
+  Predicho = round(predichos, 2),
+  Error = round(reales - predichos, 2),
+  Error_Abs = round(abs(reales - predichos), 2),
+  Error_Pct = round((reales - predichos) / reales * 100, 2)
+)
+
+df_largo <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho) %>%
+  pivot_longer(cols = c(Real, Predicho),
+               names_to = "Tipo",
+               values_to = "Precio")
+
+ggplot(df_largo, aes(x = Dia, y = Precio, color = Tipo, shape = Tipo)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) +
+  geom_ribbon(data = df_evaluacion,
+              aes(x = Dia, y = Predicho,
+                  ymin = as.numeric(pronostico$lower),
+                  ymax = as.numeric(pronostico$upper)),
+              fill = qqq_pal$secondary, alpha = 0.15,
+              inherit.aes = FALSE) +
+  scale_color_manual(values = c("Real" = qqq_pal$primary, 
+                                "Predicho" = qqq_pal$secondary),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_shape_manual(values = c("Real" = 16, "Predicho" = 17),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_x_continuous(breaks = 1:10, labels = paste0("t+", 1:10)) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(title = "Evaluación del Pronóstico: Valores Reales vs Predichos",
+       subtitle = "QQQ (Nasdaq-100 ETF) | Primeros 10 días del conjunto de prueba",
+       x = "Horizonte de Pronóstico",
+       y = "Precio de Cierre (USD)",
+       color = NULL,
+       shape = NULL,
+       caption = "Área sombreada: Intervalo de confianza 95%") +
+  theme_QQQ() +
+  theme(legend.position = "top")
+```
+
+La evaluación comparativa de pronósticos ex-post (sobre el conjunto de prueba retenido) proporciona evidencia directa de capacidad predictiva del modelo en horizonte corto. Los primeros 10 días observados de octubre 2025 revelan patrón interesante: los valores reales exhiben volatilidad que oscila alrededor de la línea de pronóstico, sin divergencia sistemática consistente. Específicamente, durante días 1-7, los valores reales tienden ligeramente por encima del pronóstico (el QQQ alcanzó máximos de 611.44 el día 6), sugiriendo que el drift estimado fue ligeramente conservador. Sin embargo, durante días 8-10, los valores reales caen por debajo del pronóstico (mínimo de 589.50 el día 8), capturando volatilidad exógena que el modelo $ARIMA$ no puede anticipar.
+
+Este patrón de desviaciones relativamente pequeñas y no-sistemáticas es exactamente lo esperado bajo la hipótesis de mercado eficiente: el modelo captura la tendencia principal (drift) pero no puede predecir shocks exógenos. Nótese que todos los 10 valores reales caen dentro del intervalo de confianza 95%, lo cual validaría calibración correcta de la incertidumbre. Esto es evidencia empírica de que el modelo no solo captura dirección (tendencia alcista), sino también magnitud apropiada de incertidumbre (amplitud del intervalo).
+
+### 4.6.4 Tabla de Errores por Observación
+
+```{r tabla-errores, echo=TRUE}
+tabla_errores <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho, Error, Error_Pct) %>%
+  mutate(
+    Fecha = as.character(Fecha),
+    Real = paste0("$", round(Real, 2)),
+    Predicho = paste0("$", round(Predicho, 2)),
+    Error = round(Error, 2),
+    Error_Pct = paste0(round(Error_Pct, 2), "%")
+  )
+
+kable(tabla_errores,
+      caption = "Evaluación del Pronóstico: Errores por Observación",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Valor Real", "Pronóstico", "Error (USD)", "Error (%)")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, color = qqq_pal$primary, bold = TRUE) %>%
+  column_spec(4, color = qqq_pal$secondary, bold = TRUE) %>%
+  column_spec(5, bold = TRUE) %>%
+  column_spec(6, bold = TRUE) %>%
+  footnote(general = "Error positivo: el modelo subestimó (valor real > pronóstico). Error negativo: el modelo sobreestimó.",
+           general_title = "Nota: ")
+```
+
+El análisis granular de errores por observación individual revela distribución asimétrica pero no-sistemática. Los primeros tres días (1-3 octubre) exhiben errores positivos pequeños (2.54, 4.50, 1.57), indicando subestimación leve pero consistente—el modelo predijo conservadoramente durante esta fase. Los días 4-7 exhiben variación: día 4 tiene error mayor (+5.60 el 06-octubre, coincidiendo con máximo local), días 5-6 muestran errores moderados, día 7 retorna a error moderado (+$7.29).
+
+El quiebre ocurre en día 8 (10-octubre): error de -14.37, representando subestimación grande del valor real de 589.50 contra pronóstico de 603.87. Este es único error negativo significativo en la muestra, coincidiendo con caída de volatilidad en el mercado esa fecha. Sin embargo, nótese que incluso este error de -14.37 permanece dentro del intervalo de confianza: el límite inferior para día 8 es 574.34, y 589.50 > 574.34. Los días 9-10 muestran pequeños errores negativos (-2.29 y -$6.76), regresando a patrón de desviaciones moderadas.
+
+Lo notable es la simetría aproximada de errores: errores positivos en días 1-7 son aproximadamente balanceados por errores negativos en días 8-10. Esto indica que el modelo no tiene sesgo sistemático direccional—es aproximadamente insesgado aunque comete errores individuales típicos de predicción financiera (Tsay, 2010; Hamilton, 1994).
+
+### 4.6.5 Métricas Finales de Evaluación
+
+```{r metricas-finales, echo=TRUE}
+MAE <- mean(abs(df_evaluacion$Error))
+RMSE <- sqrt(mean(df_evaluacion$Error^2))
+MAPE <- mean(abs(df_evaluacion$Error_Pct))
+ME <- mean(df_evaluacion$Error)
+
+dentro_IC <- sum(reales >= as.numeric(pronostico$lower) & 
+                   reales <= as.numeric(pronostico$upper))
+pct_dentro_IC <- dentro_IC / 10 * 100
+
+tabla_metricas <- data.frame(
+  Métrica = c("Error Medio (ME)",
+              "Error Absoluto Medio (MAE)",
+              "Raíz del Error Cuadrático Medio (RMSE)",
+              "Error Porcentual Absoluto Medio (MAPE)",
+              "Observaciones dentro del IC 95%"),
+  Valor = c(paste0("$", round(ME, 2)),
+            paste0("$", round(MAE, 2)),
+            paste0("$", round(RMSE, 2)),
+            paste0(round(MAPE, 2), "%"),
+            paste0(dentro_IC, " de 10 (", pct_dentro_IC, "%)")),
+  Interpretación = c(
+    ifelse(abs(ME) < 1, "Sin sesgo sistemático ✓", 
+           ifelse(ME > 0, "Modelo subestima", "Modelo sobreestima")),
+    "Error promedio en USD",
+    "Penaliza errores grandes",
+    "Error relativo al precio",
+    ifelse(pct_dentro_IC >= 80, "Intervalos bien calibrados ✓", 
+           "Intervalos pueden estar mal calibrados")
+  )
+)
+
+kable(tabla_metricas,
+      caption = "Métricas de Evaluación del Pronóstico - Datos de Prueba",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, bold = TRUE) %>%
+  row_spec(5, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
+```
+
+Las métricas de evaluación agregadas sintetizan el desempeño del modelo $ARIMA(1,1,1)$ + drift sobre el horizonte de 10 días de prueba. El Error Medio (ME) = 0.85 es notablemente pequeño, prácticamente cero en términos prácticos (0.14% del precio promedio observado de ~604). Esto valida que el modelo no contiene sesgo direccional sistemático: no subestima ni sobrestima persistentemente. La acumulación de errores positivos y negativos se cancela, produciendo $ME$ cercano a cero—característica fundamental de un modelo bien especificado.
+
+El Error Absoluto Medio (MAE) = 5.54 cuantifica la magnitud promedio de desviación: en promedio, las predicciones erraron por aproximadamente 5.54, o 0.92% del precio. Para un ETF tecnológico volátil como el $QQQ$, este nivel de error es pequeño aunque no negligible. En contexto de inversión, error de ~5.54 en predicción de precio de 604 representa precisión suficiente para identificar dirección general pero insuficiente para timing exacto. La Raíz del Error Cuadrático Medio (RMSE) = 6.68 es ligeramente superior a $MAE$ porque penaliza desviaciones grandes: el error máximo observado (-14.37 en día 8) elevado al cuadrado domina el cálculo de $RMSE$.
+
+El Error Porcentual Absoluto Medio (MAPE) = 0.92% expresa error en términos relativos: en promedio, predicciones erraron por menos de 1% del valor real. Este es un estándar de desempeño excelente para pronóstico de precios de activos financieros, donde volatilidad diaria típica es 1-2% (Hyndman & Athanasopoulos, 2021). La métrica más reveladora es "Observaciones dentro del IC 95%" = 10 de 10 (100%). Esta perfecta cobertura indica que el intervalo de confianza fue exactamente bien calibrado: todos los valores reales cayeron dentro de las bandas predichas, ni más ni menos que lo esperado teóricamente. Si el modelo fuese mal especificado, se esperaría que algunos valores reales cayesen fuera del intervalo; el hecho de que todos caigan dentro valida la calibración correcta de la incertidumbre (Hyndman & Koehler, 2006).
+
+# 9. Conclusiones
+
+## 9.1 Hallazgos Principales
+
+[**PLACEHOLDER:** Resumen de hallazgos principales del análisis ARIMA]
+
+## 9.2 Implicaciones Prácticas
+
+[**PLACEHOLDER:** Implicaciones de los pronósticos para inversionistas y analistas de mercado]
+
+## 9.3 Limitaciones del Análisis
+
+[**PLACEHOLDER:** Limitaciones del modelo y aspectos no capturados]
+
+## 9.4 Recomendaciones Futuras
+
+[**PLACEHOLDER:** Sugerencias para mejoras y extensiones del análisis]
+
+---
+# Bibliografía
+
+Box, G. E. P., & Jenkins, G. M. (1976). *Time series analysis: Forecasting and control* (2nd ed.). Holden-Day.
+
+Brockwell, P. J., & Davis, R. A. (2016). *Introduction to time series and forecasting* (3rd ed.). Springer.
+
+Chatfield, C. (2000). *Time-series forecasting*. Chapman and Hall/CRC.
+
+Dickey, D. A., & Fuller, W. A. (1979). Distribution of the estimators for autoregressive time series with a unit root. *Journal of the American Statistical Association*, 74(366), 427–431.
+
+Hamilton, J. D. (1994). *Time series analysis*. Princeton University Press.
+
+Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. https://otexts.com/fpp3/
+
+Jarque, C. M., & Bera, A. K. (1987). A test for normality of observations and regression residuals. *International Statistical Review*, 55(2), 163–172.
+
+Ljung, G. M., & Box, G. E. P. (1978). On a measure of lack of fit in time series models. *Biometrika*, 65(2), 297–303.
+
+Tsay, R. S. (2010). *Analysis of financial time series* (3rd ed.). John Wiley & Sons.
+
+```{=html}
+<div style="
+  margin-top: 80px;
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.08));
+  border: 2px solid rgba(124, 58, 237, 0.4);
+  border-radius: 15px;
+  border-top: 3px solid rgba(132, 204, 22, 0.8);
+  text-align: center;
+  color: #e0e6ed;
+  font-size: 0.95em;
+  line-height: 1.8;
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.2);
+">
+  <div style="margin-bottom: 20px; background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 1.1em;">
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  </div>
+  
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ASIGNATURA:</strong> Gestión de Datos<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PROFESOR:</strong> Orlando Joaqui-Barandica<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">UNIVERSIDAD:</strong> Universidad del Valle<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">FACULTAD:</strong> Facultad de Ingeniería<br>
+  <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PROGRAMA:</strong> Ingeniería Industrial<br>
+  
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.3);">
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ESTUDIANTE:</strong> Camilo<br>
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">FECHA ENTREGA:</strong> <span id="fecha-entrega"></span><br>
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">VERSIÓN:</strong> 1.0<br>
+  </div>
+  
+  <div style="margin-top: 20px; color: #94a3b8; font-size: 0.9em;">
+    <em>Documento generado con R Markdown | Tema: Series de Tiempo y Pronósticos ARIMA</em>
+  </div>
+  
+  <div style="margin-top: 15px; background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  </div>
+</div>
+```
