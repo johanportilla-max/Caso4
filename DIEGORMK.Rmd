@@ -3017,6 +3017,23 @@ Thaler, R. H. (1987). Movimientos estacionales en los precios de los valores II:
 
 Tsay, R. S. (2010). Análisis de series de tiempo financieras (3.ª ed.). John Wiley & Sons.
 
+Box, G. E. P., & Jenkins, G. M. (1976). *Time series analysis: Forecasting and control* (2nd ed.). Holden-Day.
+
+Brockwell, P. J., & Davis, R. A. (2016). *Introduction to time series and forecasting* (3rd ed.). Springer.
+
+Chatfield, C. (2000). *Time-series forecasting*. Chapman and Hall/CRC.
+
+Dickey, D. A., & Fuller, W. A. (1979). Distribution of the estimators for autoregressive time series with a unit root. *Journal of the American Statistical Association*, 74(366), 427–431.
+
+Hamilton, J. D. (1994). *Time series analysis*. Princeton University Press.
+
+Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. https://otexts.com/fpp3/
+
+Jarque, C. M., & Bera, A. K. (1987). A test for normality of observations and regression residuals. *International Statistical Review*, 55(2), 163–172.
+
+Ljung, G. M., & Box, G. E. P. (1978). On a measure of lack of fit in time series models. *Biometrika*, 65(2), 297–303.
+
+
 ```{=html}
 
 <div style="
