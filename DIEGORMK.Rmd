@@ -800,7 +800,7 @@ La capacidad de anticipar el comportamiento futuro de los precios en los mercado
 
 El Invesco $QQQ Trust$ (QQQ) es uno de los fondos cotizados en bolsa (ETF) más negociados a nivel mundial, con activos bajo gestión superiores a los 400 mil millones de dólares. Este instrumento replica el índice $Nasdaq-100$, compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con una fuerte concentración en el sector tecnológico que incluye líderes como $Apple$, $Microsoft$, $NVIDIA$, $Amazon$ y $Alphabet$. Entre 2009 y 2019, el $QQQ$ se benefició significativamente de las economías de escala en software, el auge de los smartphones y el desarrollo de ecosistemas tecnológicos integrados. Esta composición convierte al $QQQ$ en un referente para analizar el comportamiento del sector tecnológico estadounidense y, por extensión, las tendencias de innovación que impulsan la economía global.
 
-La importancia de modelar series de precios como la del QQQ radica en múltiples factores. En primer lugar, los pronósticos financieros juegan un papel fundamental en la formación de expectativas de mercado e influyen directamente en las decisiones de inversión, la asignación de activos y la evaluación de riesgos. En segundo lugar, el análisis cuantitativo de series temporales permite identificar patrones y comportamientos que proporcionan información valiosa para diseñar estrategias de inversión más fundamentadas. La predicción específica del $QQQ$ es particularmente importante porque replica el índice $Nasdaq-100$, concentrado en empresas tecnológicas líderes en desarrollo de inteligencia artificial, computación en la nube y ecosistemas digitales innovadores. Dado que el sector tecnológico representa uno de los mercados emergentes y con mayor potencial de crecimiento en la economía global, predecir el comportamiento del $QQQ$ permite anticipar tendencias en innovación, evaluar correctamente la valuación de activos tecnológicos y gestionar la exposición al riesgo en un sector de alta volatilidad que impulsa transformaciones estructurales en la economía mundial.
+La importancia de modelar series de precios como la del $QQQ$ radica en múltiples factores. En primer lugar, los pronósticos financieros juegan un papel fundamental en la formación de expectativas de mercado e influyen directamente en las decisiones de inversión, la asignación de activos y la evaluación de riesgos. En segundo lugar, el análisis cuantitativo de series temporales permite identificar patrones y comportamientos que proporcionan información valiosa para diseñar estrategias de inversión más fundamentadas. La predicción específica del $QQQ$ es particularmente importante porque replica el índice $Nasdaq-100$, concentrado en empresas tecnológicas líderes en desarrollo de inteligencia artificial, computación en la nube y ecosistemas digitales innovadores. Dado que el sector tecnológico representa uno de los mercados emergentes y con mayor potencial de crecimiento en la economía global, predecir el comportamiento del $QQQ$ permite anticipar tendencias en innovación, evaluar correctamente la valuación de activos tecnológicos y gestionar la exposición al riesgo en un sector de alta volatilidad que impulsa transformaciones estructurales en la economía mundial.
 
 En este contexto, los modelos $ARIMA$ (AutoRegressive Integrated Moving Average) se han consolidado como uno de los enfoques más utilizados para el pronóstico de series de tiempo, junto con los modelos de suavizado exponencial. Mientras que los modelos de suavizado exponencial se basan en una descripción de la tendencia y la estacionalidad en los datos, los modelos $ARIMA$ tienen como objetivo describir las autocorrelaciones presentes en la serie. Estos modelos integran tres componentes fundamentales: el componente autorregresivo (AR), que pronostica la variable de interés utilizando una combinación lineal de sus valores pasados; el componente de integración (I), que transforma series no estacionarias en estacionarias mediante la aplicación de diferencias sucesivas; y el componente de media móvil (MA), que utiliza errores de pronóstico pasados en un modelo similar a la regresión.
 
@@ -820,7 +820,7 @@ La metodología adoptada sigue el procedimiento estándar de modelamiento de ser
 
 ## 2.1 Base de Datos
 
-La base de datos utilizada proviene de Yahoo Finance, plataforma reconocida globalmente para obtención de datos financieros históricos de alta calidad y frecuencia diaria. Se extrajo información del ETF Invesco QQQ Trust (símbolo: QQQ), el cual replica el índice Nasdaq-100 compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con fuerte concentración en sector tecnológico (Apple, Microsoft, NVIDIA, Amazon, Alphabet, Tesla, Meta).
+La base de datos utilizada proviene de Yahoo Finance, plataforma reconocida globalmente para obtención de datos financieros históricos de alta calidad y frecuencia diaria. Se extrajo información del ETF Invesco $QQQ$ Trust (símbolo: QQQ), el cual replica el índice Nasdaq-100 compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con fuerte concentración en sector tecnológico (Apple, Microsoft, NVIDIA, Amazon, Alphabet, Tesla, Meta).
 
 La extracción se realizó mediante la función `getSymbols()` del paquete `quantmod` de R, automatizando la descarga directa desde fuente oficial. El período de estudio abarca desde 7 de octubre de 2022 hasta 2 de diciembre de 2025, capturando 791 observaciones diarias de precios de cierre. Este período es particularmente informativo, debido a que incluye recuperación post-crisis 2022, impulso del rally de inteligencia artificial (2023-2025), cambios en política monetaria de la Reserva Federal, y volatilidad estructural del sector tecnológico.
 
@@ -845,7 +845,7 @@ La elección del precio de cierre se fundamenta en que; primero, refleja el cons
 
 En análisis de series temporales, la partición de datos debe respetar el orden cronológico, diferenciándose fundamentalmente de validación cruzada aleatoria. La estrategia implementada divide la serie en dos subconjuntos contiguos:
 
--   **Conjunto de Entrenamiento:** Comprende la mayoría de observaciones históricas (aproximadamente 95% de datos), utilizado para identificar parámetros óptimos del modelo ARIMA, estimar coeficientes y evaluar criterios de información.
+-   **Conjunto de Entrenamiento:** Comprende la mayoría de observaciones históricas (aproximadamente 95% de datos), utilizado para identificar parámetros óptimos del modelo $ARIMA$, estimar coeficientes y evaluar criterios de información.
 
 -   **Conjunto de Prueba:** Representa período posterior no utilizado durante ajuste (aproximadamente 5% de datos), destinado a evaluar capacidad predictiva en escenario realista de pronóstico.
 
@@ -855,9 +855,9 @@ Esta metodología es esencial porque evita "fuga de información" (data leakage)
 
 ## 2.4 Marco Conceptual: Modelos ARIMA(p,d,q)
 
-Los modelos ARIMA (AutoRegressive Integrated Moving Average), desarrollados por Box y Jenkins en 1970, constituyen metodología sistemática y robusta para análisis y pronóstico de series temporales. Se fundamentan en la idea de que el valor actual de una serie puede explicarse mediante sus valores históricos (componente autorregresivo), transformaciones que alcancen estacionariedad (componente integrador), o errores de pronóstico pasados (componente de media móvil).
+Los modelos $ARIMA$ (AutoRegressive Integrated Moving Average), desarrollados por Box y Jenkins en 1970, constituyen metodología sistemática y robusta para análisis y pronóstico de series temporales. Se fundamentan en la idea de que el valor actual de una serie puede explicarse mediante sus valores históricos (componente autorregresivo), transformaciones que alcancen estacionariedad (componente integrador), o errores de pronóstico pasados (componente de media móvil).
 
-A diferencia de modelos de regresión que requieren variables explicativas externas, los modelos ARIMA son **univariados**, extrayendo toda información predictiva de la propia historia de la serie. Esta característica los hace especialmente valiosos en contextos financieros donde no se dispone de predictores externos confiables, o donde el objetivo es capturar dinámicas intrínsecas de evolución temporal.
+A diferencia de modelos de regresión que requieren variables explicativas externas, los modelos $ARIMA$ son **univariados**, extrayendo toda información predictiva de la propia historia de la serie. Esta característica los hace especialmente valiosos en contextos financieros donde no se dispone de predictores externos confiables, o donde el objetivo es capturar dinámicas intrínsecas de evolución temporal.
 
 ### 2.4.1 Componente Autorregresivo AR(p)
 
@@ -897,7 +897,7 @@ El parámetro $d$ indica número de diferencias necesarias para que serie se vue
 
 ### 2.4.4 Formulación Compacta con Operador de Rezago
 
-Combinando los tres componentes, el modelo ARIMA(p,d,q) se expresa compactamente usando operador de rezago $B$ (donde $B y_t = y_{t-1}$):
+Combinando los tres componentes, el modelo $ARIMA(p,d,q)$ se expresa compactamente usando operador de rezago $B$ (donde $B y_t = y_{t-1}$):
 
 $$\Phi(B)(1-B)^d y_t = c + \Theta(B) \varepsilon_t$$
 
@@ -907,7 +907,7 @@ Esta representación facilita análisis teórico y derivación de propiedades es
 
 ### 2.4.5 Supuestos Fundamentales del Modelo
 
-Para que inferencias y pronósticos derivados de ARIMA sean válidos y confiables, deben cumplirse supuestos sobre naturaleza de serie y sus residuos:
+Para que inferencias y pronósticos derivados de $ARIMA$ sean válidos y confiables, deben cumplirse supuestos sobre naturaleza de serie y sus residuos:
 
 1.  **Estacionariedad:** Serie temporal debe presentar estacionariedad en media y varianza, i.e., propiedades estadísticas permanecen aproximadamente constantes en tiempo. Esto asegura que relaciones identificadas entre observaciones son estables y predecibles, en lugar de resultado de tendencias determinísticas no modeladas.
 
@@ -923,7 +923,7 @@ Para que inferencias y pronósticos derivados de ARIMA sean válidos y confiable
 
 ### 2.5.1 Prueba Aumentada de Dickey-Fuller (ADF)
 
-La estacionariedad es requisito previo fundamental antes de modelización ARIMA. Una serie no-estacionaria produciría inferencias engañosas y pronósticos poco confiables.
+La estacionariedad es requisito previo fundamental antes de modelización $ARIMA$. Una serie no-estacionaria produciría inferencias engañosas y pronósticos poco confiables.
 
 La **Prueba Aumentada de Dickey-Fuller (ADF)** es contraste estadístico estándar para evaluación formal. Contrasta: - $H_0$: Serie tiene raíz unitaria (no-estacionaria) - $H_1$: Serie es estacionaria
 
@@ -931,7 +931,7 @@ El resultado de esta prueba determina el orden de integración $d$: si serie ori
 
 ### 2.5.2 Funciones de Autocorrelación: ACF y PACF
 
-Las funciones de autocorrelación proporcionan **diagnóstico visual** fundamental para entender patrones de dependencia temporal y sugerir especificaciones ARIMA iniciales.
+Las funciones de autocorrelación proporcionan **diagnóstico visual** fundamental para entender patrones de dependencia temporal y sugerir especificaciones $ARIMA$ iniciales.
 
 **Función de Autocorrelación (ACF):** Cuantifica correlación lineal entre observaciones separadas por rezagos 1, 2, ..., k. Su comportamiento es diagnóstico: - En series estacionarias: ACF decae gradualmente hacia cero - En series no-estacionarias: ACF persiste en valores altos durante muchos rezagos
 
@@ -949,13 +949,13 @@ Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede 
 
 ### 2.5.4 Criterios de Selección del Modelo: AICc
 
-Cuando múltiples especificaciones ARIMA son candidatas, es necesario criterio objetivo para elegir entre ellas. Los **criterios de información** cumplen este rol al balancear calidad del ajuste con complejidad del modelo.
+Cuando múltiples especificaciones $ARIMA$ son candidatas, es necesario criterio objetivo para elegir entre ellas. Los **criterios de información** cumplen este rol al balancear calidad del ajuste con complejidad del modelo.
 
-El **AICc (Criterio de Información de Akaike Corregido)** es criterio más utilizado en práctica para selección de modelos ARIMA. Evalúa verosimilitud del modelo (qué tan bien se ajusta a datos) y aplica penalización por agregar parámetros adicionales, reduciendo tendencia al sobreajuste. Su fórmula es:
+El **AICc (Criterio de Información de Akaike Corregido)** es criterio más utilizado en práctica para selección de modelos $ARIMA$. Evalúa verosimilitud del modelo (qué tan bien se ajusta a datos) y aplica penalización por agregar parámetros adicionales, reduciendo tendencia al sobreajuste. Su fórmula es:
 
 $$\text{AICc} = \text{AIC} + \frac{2(p+q+k+1)(p+q+k+2)}{T-p-q-k-2}$$
 
-donde: - $T$ es número de observaciones - $p$ y $q$ son órdenes del modelo ARIMA - $k$ es número de parámetros adicionales (como constante)
+donde: - $T$ es número de observaciones - $p$ y $q$ son órdenes del modelo $ARIMA$ - $k$ es número de parámetros adicionales (como constante)
 
 El término adicional respecto al AIC clásico corrige sesgo que ocurre en muestras pequeñas. **Especificaciones con menor AICc son preferibles**, indicando mejor balance entre ajuste y parsimonia.
 
@@ -963,7 +963,7 @@ Criterios de información no son aplicables para seleccionar orden de diferencia
 
 ### 2.5.5 Diagnóstico de Residuos: Prueba de Ljung-Box
 
-Después de ajustar modelo ARIMA específico, es necesario verificar que modelo haya capturado adecuadamente estructura temporal.
+Después de ajustar modelo $ARIMA$ específico, es necesario verificar que modelo haya capturado adecuadamente estructura temporal.
 
 La **Prueba de Ljung-Box** es contraste estadístico que evalúa si existe autocorrelación significativa en residuos. Contrasta: - $H_0$: Residuos son ruido blanco independiente (sin autocorrelación) - $H_1$: Residuos contienen autocorrelación significativa
 
@@ -987,7 +987,7 @@ Se examinan gráficos de autocorrelación para serie potencialmente diferenciada
 
 ### Paso 3: Identificación de Modelos Candidatos
 
-Se identifican especificaciones ARIMA plausibles basadas en: - Análisis visual de ACF/PACF - Búsqueda automática mediante `auto.arima()` - Consideraciones de parsimonia (preferir modelos simples) - Teoría económica/financiera sobre comportamiento de variable
+Se identifican especificaciones $ARIMA$ plausibles basadas en: - Análisis visual de ACF/PACF - Búsqueda automática mediante `auto.arima()` - Consideraciones de parsimonia (preferir modelos simples) - Teoría económica/financiera sobre comportamiento de variable
 
 Se ajustan múltiples modelos candidatos con diferentes combinaciones de $(p,d,q)$.
 
@@ -1011,7 +1011,7 @@ Una vez validado modelo, se procede a: - Pronósticos puntuales sobre conjunto d
 
 ## 2.7 Métricas de Evaluación del Desempeño Predictivo
 
-Para evaluar objetivamente precisión de pronósticos generados por modelo ARIMA en conjunto de prueba, se emplean métricas cuantitativas estándar:
+Para evaluar objetivamente precisión de pronósticos generados por modelo $ARIMA$ en conjunto de prueba, se emplean métricas cuantitativas estándar:
 
 **RMSE (Root Mean Squared Error):**
 
@@ -1163,9 +1163,9 @@ En primer lugar, la volatilidad muestra una variabilidad significativa a lo larg
 
 El retorno total anual refuerza esta lectura. El índice presenta años de crecimiento excepcional, como 2013 (30.05 %), 2019 (32.08 %), 2020 (38.91 %) y especialmente 2023 (43.04 %), que representan momentos de expansión intensa impulsados por la aceleración tecnológica y el ciclo alcista post-pandemia. Sin embargo, también registra episodios correctivos severos, destacándose 2022 con un -40.15 %, el peor desempeño del periodo, directamente asociado al endurecimiento de la política monetaria y la contracción de las valoraciones tecnológicas. Este contraste entre años extremadamente positivos y años profundamente negativos evidencia la naturaleza altamente cíclica del sector tecnológico y su dependencia de expectativas de crecimiento futuro.
 
-El Máx Drawdown —una medida crítica para evaluar riesgo extremo— muestra caídas que alcanzan niveles superiores al 30 % en años como 2020 (-30.54 %) y 2022 (-38.50 %), confirmando que, aunque el QQQ ha experimentado ganancias notables, estas han venido acompañadas de episodios de deterioro rápido y profundo. Incluso en años con retornos positivos, como 2025 o 2021, los drawdowns interanuales superiores al 10 % muestran que la trayectoria alcista no ha sido lineal, sino marcada por correcciones frecuentes dentro de tendencias más amplias.
+El Máx Drawdown —una medida crítica para evaluar riesgo extremo— muestra caídas que alcanzan niveles superiores al 30 % en años como 2020 (-30.54 %) y 2022 (-38.50 %), confirmando que, aunque el $QQQ$ ha experimentado ganancias notables, estas han venido acompañadas de episodios de deterioro rápido y profundo. Incluso en años con retornos positivos, como 2025 o 2021, los drawdowns interanuales superiores al 10 % muestran que la trayectoria alcista no ha sido lineal, sino marcada por correcciones frecuentes dentro de tendencias más amplias.
 
-En conjunto, estas métricas revelan que el comportamiento del QQQ entre 2010 y 2025 está dominado por fases amplias de expansión acompañadas de episodios de alta volatilidad, con drawdowns significativos que reflejan la vulnerabilidad del sector tecnológico frente a cambios en tasas de interés, expectativas de crecimiento y shocks globales. La combinación de retornos anuales muy elevados y caídas súbitas evidencia un patrón típico de activos con alto potencial de apreciación, pero también expuestos a riesgo considerable durante transiciones de ciclo.
+En conjunto, estas métricas revelan que el comportamiento del $QQQ$ entre 2010 y 2025 está dominado por fases amplias de expansión acompañadas de episodios de alta volatilidad, con drawdowns significativos que reflejan la vulnerabilidad del sector tecnológico frente a cambios en tasas de interés, expectativas de crecimiento y shocks globales. La combinación de retornos anuales muy elevados y caídas súbitas evidencia un patrón típico de activos con alto potencial de apreciación, pero también expuestos a riesgo considerable durante transiciones de ciclo.
 
 ## 3.1.3 División sectorial
 
@@ -1421,7 +1421,7 @@ ggplot(ret_df, aes(x = Retorno)) +
 
 ```
 
-La distribución de los rendimientos diarios del QQQ revela una estructura estadística coherente con la arquitectura altamente concentrada del portafolio descrita en los apartados anteriores. Como muestra el gráfico, la curva de densidad presenta un pico pronunciado alrededor de cero y colas más gruesas de lo que predeciría una distribución normal, rasgo típico de activos dominados por empresas de gran capitalización fuertemente correlacionadas entre sí.
+La distribución de los rendimientos diarios del $QQQ$ revela una estructura estadística coherente con la arquitectura altamente concentrada del portafolio descrita en los apartados anteriores. Como muestra el gráfico, la curva de densidad presenta un pico pronunciado alrededor de cero y colas más gruesas de lo que predeciría una distribución normal, rasgo típico de activos dominados por empresas de gran capitalización fuertemente correlacionadas entre sí.
 
 Este patrón leptocúrtico —evidenciado visualmente por la altura central desproporcionada y la presencia de observaciones extremas (tanto positivas como negativas) en los márgenes— es consistente con el comportamiento de un índice no diversificado de manera homogénea, sino fuertemente dependiente de unos pocos motores de crecimiento. En efecto, la concentración estructural en NVDA, AAPL, MSFT y AVGO expuesta en el diagrama de empaquetamiento circular se manifiesta directamente en la forma de la distribución:
 
@@ -1506,7 +1506,7 @@ ggplot(ret_anual_df, aes(x = factor(Año), y = Retorno, fill = Tipo)) +
   )
 ```
 
-La secuencia de retornos anuales entre 2010 y 2025 muestra de manera clara cómo el comportamiento del QQQ combina una tendencia alcista de largo plazo con episodios puntuales de extrema volatilidad. Durante la década 2010–2019 predominan los resultados positivos, con solo una corrección leve en 2018 (-0.97%). Este patrón coincide con el periodo de expansión tecnológica posterior a la Crisis Financiera, donde la acumulación de retornos se desarrolló de forma progresiva y relativamente estable (Tsay, 2010).
+La secuencia de retornos anuales entre 2010 y 2025 muestra de manera clara cómo el comportamiento del $QQQ$ combina una tendencia alcista de largo plazo con episodios puntuales de extrema volatilidad. Durante la década 2010–2019 predominan los resultados positivos, con solo una corrección leve en 2018 (-0.97%). Este patrón coincide con el periodo de expansión tecnológica posterior a la Crisis Financiera, donde la acumulación de retornos se desarrolló de forma progresiva y relativamente estable (Tsay, 2010).
 
 La presencia de años sobresalientes —como 2013 (30.05%), 2017 (27.36%) o 2019 (32.08%)— confirma que buena parte del crecimiento del índice ocurrió en impulsos discretos, más que en un aumento lineal. Estos episodios de fuerte apreciación son característicos de los activos con exposición tecnológica, donde la adopción de nuevas plataformas y ciclos de innovación generan ondas de crecimiento acelerado (Malkiel, 2003).
 
@@ -1537,7 +1537,7 @@ ggplot(dd_df, aes(x = Fecha, y = Drawdown)) +
 
 El gráfico revela de manera clara la profundidad y duración de las pérdidas relativas del índice respecto a sus máximos previos durante el período 2010-2025, permitiendo evaluar no solo la volatilidad, sino también la resiliencia del mercado tecnológico a lo largo de estos quince años.
 
-Entre 2010 y 2019, el QQQ experimenta drawdowns moderados y controlados. El año más desafiante de esta década fue 2011, con un máximo drawdown de -16.81%, seguido por 2015-2016 con -16.88%, representando correcciones breves pero significativas. Sin embargo, estos episodios fueron de corta duración, caracterizados por recuperaciones relativamente rápidas. Este comportamiento coincide con la fase de crecimiento sostenido observada en los retornos anuales, impulsada por la expansión de las grandes empresas tecnológicas, avances en inteligencia artificial temprana, comercio digital y servicios en la nube. El patrón es coherente con estudios que evidencian la creciente madurez y resistencia del sector tecnológico durante esta década. En este período, las caídas existen, pero ninguna se aproxima a niveles catastróficos, indicando una solidez estructural progresiva del índice.
+Entre 2010 y 2019, el $QQQ$ experimenta drawdowns moderados y controlados. El año más desafiante de esta década fue 2011, con un máximo drawdown de -16.81%, seguido por 2015-2016 con -16.88%, representando correcciones breves pero significativas. Sin embargo, estos episodios fueron de corta duración, caracterizados por recuperaciones relativamente rápidas. Este comportamiento coincide con la fase de crecimiento sostenido observada en los retornos anuales, impulsada por la expansión de las grandes empresas tecnológicas, avances en inteligencia artificial temprana, comercio digital y servicios en la nube. El patrón es coherente con estudios que evidencian la creciente madurez y resistencia del sector tecnológico durante esta década. En este período, las caídas existen, pero ninguna se aproxima a niveles catastróficos, indicando una solidez estructural progresiva del índice.
 
 El gráfico también evidencia un drawdown significativo durante la pandemia de $COVID-19 en 2020$, alcanzando -30.54%. Aunque de severidad notable, fue de corta duración. A diferencia de crisis prolongadas, el $QQQ$ experimentó una caída rápida seguida de una recuperación igual de acelerada, fenómeno asociado a la digitalización abrupta de la economía que impulsó fuertemente la demanda por empresas tecnológicas. Este comportamiento refuerza la idea de que el $QQQ$ posee una estructura sectorial que se beneficia de shocks que incrementan la dependencia digital, lo que explica la rápida salida del drawdown. La recuperación en 2021, con drawdown de solo -11.10%, confirma que el mercado absorbió rápidamente el shock de la pandemia.
 
@@ -1547,7 +1547,7 @@ Los datos más recientes (2024-2025) muestran estabilización. El máximo drawdo
 
 En conjunto, el análisis del drawdown en el período 2010-2025 confirma una narrativa de progresión y maduración del mercado tecnológico. El índice $QQQ$ es un activo con potencial de crecimiento extraordinario, como evidencian los retornos anuales acumulados positivos en la mayoría de los años. Sin embargo, es susceptible a episodios de caídas significativas, particularmente cuando se enfrentan cambios estructurales en política monetaria (como en 2022) o shocks sistémicos (como COVID-19 en 2020). Lo que distingue este período de crisis históricas anteriores (como la burbuja punto-com) es la rapidez de recuperación: mientras que los drawdowns de 2000-2002 tardaron casi una década en recuperarse completamente, los episodios de 2020 y 2022 se recuperaron en meses a un par de años, reflejando una mayor eficiencia de mercado, mejor comprensión de valoraciones y una base económica más sólida en el sector tecnológico.
 
-Este comportamiento hace evidente la naturaleza no estacionaria y heterocedástica de la serie QQQ, caracterizada por volatilidad que se agrupa en períodos específicos de estrés macroeconómico. Este patrón justifica el uso de modelos ARIMA para capturar tendencias y dinámicas temporales, y de modelos GARCH para describir la volatilidad condicional que cambia en el tiempo. El drawdown, por tanto, complementa los análisis anteriores al mostrar no solo cuán profunda es la caída del índice, sino también cuánto tiempo tarda en recuperarse—un factor crítico en la gestión del riesgo financiero y fundamental para cualquier evaluación prospectiva del desempeño de este instrumento.
+Este comportamiento hace evidente la naturaleza no estacionaria y heterocedástica de la serie $QQQ$, caracterizada por volatilidad que se agrupa en períodos específicos de estrés macroeconómico. Este patrón justifica el uso de modelos $ARIMA$ para capturar tendencias y dinámicas temporales, y de modelos GARCH para describir la volatilidad condicional que cambia en el tiempo. El drawdown, por tanto, complementa los análisis anteriores al mostrar no solo cuán profunda es la caída del índice, sino también cuánto tiempo tarda en recuperarse—un factor crítico en la gestión del riesgo financiero y fundamental para cualquier evaluación prospectiva del desempeño de este instrumento.
 
 ## 3.2.1 Métricas Financieras
 
@@ -1583,15 +1583,15 @@ El presente conjunto de Métricas Financieras ofrece una visión sintética y cu
 
 El **Retorno Acumulado de 852.76%** y la **Tasa de Crecimiento Anual Compuesto (CAGR) de 15.23%** validan el extraordinario potencial de apreciación del activo, una característica consistente con la fase de crecimiento sostenido del sector tecnológico observada durante este período. Estas cifras de rendimiento total confirman que, a pesar de los episodios de riesgo extremo como la corrección de 2022, el $QQQ$ posee una capacidad sustancial y demostrada para generar riqueza a largo plazo. Un inversor que hubiera mantenido posición durante los 15 años habría multiplicado su capital más de 9 veces.
 
-Sin embargo, las métricas ajustadas al riesgo revelan información más matizada sobre la eficiencia del rendimiento. El **Ratio de Sharpe de 0.789** es razonablemente bueno, situándose en el rango 0.5-1.0 considerado aceptable a bueno. Esto sugiere que el QQQ ha generado retorno excesivo en proporción moderada a la volatilidad asumida. A diferencia de períodos históricos que incluyen la burbuja punto-com, el período 2010-2025 muestra una eficiencia riesgo-ajustada decente, indicando que los retornos no han sido completamente consumidos por la dispersión.
+Sin embargo, las métricas ajustadas al riesgo revelan información más matizada sobre la eficiencia del rendimiento. El **Ratio de Sharpe de 0.789** es razonablemente bueno, situándose en el rango 0.5-1.0 considerado aceptable a bueno. Esto sugiere que el $QQQ$ ha generado retorno excesivo en proporción moderada a la volatilidad asumida. A diferencia de períodos históricos que incluyen la burbuja punto-com, el período 2010-2025 muestra una eficiencia riesgo-ajustada decente, indicando que los retornos no han sido completamente consumidos por la dispersión.
 
-Más revelador aún es el **Ratio de Sortino de 0.069**, que específicamente penaliza el riesgo de cola negativo (downside risk). Un valor tan bajo indica que el riesgo de caída ha sido desproporcionadamente alto en relación con el rendimiento generado. Este hallazgo se alinea directamente con los eventos identificados en los análisis de drawdown, particularmente el colapso de -39.0% en 2022. El Sortino bajo refleja que aunque el QQQ sube mucho en períodos alcistas, también cae profundamente en períodos de estrés, lo que penaliza a inversores con baja tolerancia al downside.
+Más revelador aún es el **Ratio de Sortino de 0.069**, que específicamente penaliza el riesgo de cola negativo (downside risk). Un valor tan bajo indica que el riesgo de caída ha sido desproporcionadamente alto en relación con el rendimiento generado. Este hallazgo se alinea directamente con los eventos identificados en los análisis de drawdown, particularmente el colapso de -39.0% en 2022. El Sortino bajo refleja que aunque el $QQQ$ sube mucho en períodos alcistas, también cae profundamente en períodos de estrés, lo que penaliza a inversores con baja tolerancia al downside.
 
 El indicador de riesgo extremo, el **Max Drawdown de 39.0%**, es significativo pero no catastrófico comparado con crisis históricas. Esta cifra es la manifestación cuantitativa del ajuste de valoraciones provocado por el ciclo de aumentos de tasas de 2022, y subraya que aunque el sector tecnológico es resiliente, sigue siendo sensible a cambios estructurales en política monetaria. Desde la perspectiva de la gestión de riesgo, este valor define el peor escenario del período 2010-2025. No obstante, el time to recovery fue mucho más rápido que en crisis pasadas: de -39% en 2022 a recuperación parcial en 2023-2024, demostrando mayor eficiencia de mercado.
 
 Finalmente, el **Ratio Calmar de 0.39** relaciona el rendimiento anualizado (15.23%) con el Max Drawdown (39.0%). Un valor de 0.39, aunque moderado (el umbral de "bueno" es 0.5), es coherente con un activo que generó rendimiento significativo pero experimentó correcciones profundas. Si 2022 no hubiera ocurrido, el Calmar sería más alto. Este ratio sugiere que existen oportunidades para mejorar la eficiencia riesgo-ajustada mediante diversificación adicional o estrategias defensivas durante ciclos de endurecimiento monetario.
 
-En conclusión, el análisis de las métricas confirma una narrativa de progresión: el $QQQ$ ofrece potencial de crecimiento extraordinario, evidenciado por el CAGR de 15.23% y retorno acumulado de $852.76%$, lo que lo convierte en un activo atractivo para inversores de largo plazo. Sin embargo, lo hace asumiendo un costo de riesgo moderado-alto, manifestado en el Max Drawdown de 39.0% y Sortino bajo. Las métricas sugieren que el perfil de riesgo del $QQQ$ está caracterizado por volatilidad concentrada en episodios de estrés (2022) más que por variabilidad constante. Para inversores con horizonte de 10+ años y tolerancia al riesgo moderada-alta, el perfil riesgo-retorno es favorable; para inversores conservadores u horizontes cortos, requiere consideraciones de hedging o diversificación adicional. El modelado y la gestión de este activo deben necesariamente considerar la asimetría y la volatilidad heterocedástica inherentes a su comportamiento, lo que justifica el uso de modelos GARCH para capturar volatilidad condicional y ARIMA para tendencias.
+En conclusión, el análisis de las métricas confirma una narrativa de progresión: el $QQQ$ ofrece potencial de crecimiento extraordinario, evidenciado por el CAGR de 15.23% y retorno acumulado de $852.76%$, lo que lo convierte en un activo atractivo para inversores de largo plazo. Sin embargo, lo hace asumiendo un costo de riesgo moderado-alto, manifestado en el Max Drawdown de 39.0% y Sortino bajo. Las métricas sugieren que el perfil de riesgo del $QQQ$ está caracterizado por volatilidad concentrada en episodios de estrés (2022) más que por variabilidad constante. Para inversores con horizonte de 10+ años y tolerancia al riesgo moderada-alta, el perfil riesgo-retorno es favorable; para inversores conservadores u horizontes cortos, requiere consideraciones de hedging o diversificación adicional. El modelado y la gestión de este activo deben necesariamente considerar la asimetría y la volatilidad heterocedástica inherentes a su comportamiento, lo que justifica el uso de modelos GARCH para capturar volatilidad condicional y $ARIMA$ para tendencias.
 
 ## 3.2.2 Volatilidad
 
@@ -1651,7 +1651,7 @@ La corrección de tasas de 2022 produce un patrón distintivo: el año aparece c
 
 La recuperación de 2023-2024, visible en las franjas superiores naranjas, confirma la resiliencia del índice y su capacidad para retomar momentum alcista tras períodos de ajuste. Noviembre y diciembre históricos también muestran colores cálidos frecuentes, coherentes con el efecto fin de año y rebalanceo pre-navideño.
 
-En conjunto, el heatmap demuestra que el riesgo del $QQQ$ no se distribuye uniformemente a lo largo del año, sino que se concentra en ventanas específicas. Septiembre emerge como mes vulnerables, mientras enero, noviembre y diciembre exhiben sesgo alcista recurrente. Esta estructura estacional tiene relevancia limitada para pronósticos ARIMA de frecuencia diaria (como en este análisis), pero es importante para decisiones de asignación táctica o rebalanceo de portafolios en horizonte mensual.
+En conjunto, el heatmap demuestra que el riesgo del $QQQ$ no se distribuye uniformemente a lo largo del año, sino que se concentra en ventanas específicas. Septiembre emerge como mes vulnerables, mientras enero, noviembre y diciembre exhiben sesgo alcista recurrente. Esta estructura estacional tiene relevancia limitada para pronósticos $ARIMA$ de frecuencia diaria (como en este análisis), pero es importante para decisiones de asignación táctica o rebalanceo de portafolios en horizonte mensual.
 
 ## 3.2.4 Comparación rendimientos
 
@@ -1732,11 +1732,11 @@ plotly::ggplotly(p_comp, tooltip = c("x", "y", "colour")) %>%
   config(displayModeBar = FALSE)
 ```
 
-La comparación normalizada del retorno acumulado entre el QQQ (Nasdaq-100) y los principales índices de referencia —SPY (S&P 500), DIA (Dow Jones Industrial Average) e IWM (Russell 2000 / Small Caps) durante el período 2010-2025 evidencia un desacople estructural en la generación de valor bursátil. Visualmente, la trayectoria del $QQQ$ (línea roja prominente) se separa del clúster de mercado general a partir de 2015, confirmando que la exposición al factor tecnológico ha funcionado como el motor primario de apreciación de capital en la economía moderna.
+La comparación normalizada del retorno acumulado entre el $QQQ$ (Nasdaq-100) y los principales índices de referencia —SPY (S&P 500), DIA (Dow Jones Industrial Average) e IWM (Russell 2000 / Small Caps) durante el período 2010-2025 evidencia un desacople estructural en la generación de valor bursátil. Visualmente, la trayectoria del $QQQ$ (línea roja prominente) se separa del clúster de mercado general a partir de 2015, confirmando que la exposición al factor tecnológico ha funcionado como el motor primario de apreciación de capital en la economía moderna.
 
 El período 2010-2014 muestra un desempeño relativo moderado del $QQQ$ frente a SPY y DIA, con trayectorias aproximadamente paralelas. Este comportamiento refleja que en la fase inicial de recuperación post-Crisis Financiera, los diferentes sectores generaron retornos homogéneos bajo estímulo monetario expansivo. El IWM, aunque presente, mostró sensibilidad mayor a la volatilidad cíclica.
 
-La verdadera bifurcación se consolida post-2015 y se acelera verticalmente tras el shock pandémico de 2020. El QQQ se dispara mientras el IWM lucha por mantener el ritmo, penalizado por el entorno de altas tasas de interés que afecta desproporcionadamente a empresas de menor capitalización. El SPY y DIA crecen consistentemente pero a ritmo inferior, reflejando que la dilución del factor tecnológico en índices amplios limita su exposición al crecimiento acelerado de mega-caps.
+La verdadera bifurcación se consolida post-2015 y se acelera verticalmente tras el shock pandémico de 2020. El $QQQ$ se dispara mientras el IWM lucha por mantener el ritmo, penalizado por el entorno de altas tasas de interés que afecta desproporcionadamente a empresas de menor capitalización. El SPY y DIA crecen consistentemente pero a ritmo inferior, reflejando que la dilución del factor tecnológico en índices amplios limita su exposición al crecimiento acelerado de mega-caps.
 
 La brecha masiva visible en 2025, donde el retorno acumulado del $QQQ$ alcanza niveles significativamente superiores (852.76%) frente a SPY y DIA (aproximadamente 400-500%), demuestra la eficiencia superior de la concentración tecnológica durante períodos de expansión digital e inteligencia artificial. Este desempeño diferencial no es aleatorio, sino consecuencia directa de la estructura del $QQQ$: 53.6% en Tecnología, frente a \~30% del SPY, y \<5% del DIA.
 
@@ -1782,7 +1782,7 @@ Este comportamiento confirma la hipótesis de una ruptura estructural (structura
 
 Esta narrativa explica la aceleración visible entre 2023-2025, el $QQQ$ ha generado retornos extraordinarios mientras la economía real permaneció bajo presión de altas tasas. El desacople es precisamente lo que cabría esperar si el mercado antecipase beneficios de largo plazo de la IA, independientes de ciclos macroeconómicos de corto plazo. La hegemonía de NVIDIA (9.33% del portafolio) y Microsoft (7.69%) refuerza esta tesis: ambas empresas son centrales en la infraestructura y aplicación de LLMs (Large Language Models).
 
-En consecuencia, el gráfico demuestra que el mercado ha transicionado de un esquema de "valoración por descuento de flujos" (sensible a tasas) a un esquema de "valoración por crecimiento potencial" (sensible a adopción de IA). Cualquier estrategia de modelado predictivo debe reconocer que el período 2023-2025 representa una nueva fase estocástica caracterizada por momentum idiosincrático derivado de la revolución de los Grandes Modelos de Lenguaje, distinta de la dinámica pre-2022. El modelo ARIMA calibrado en esta ventana temporal captura correctamente esta nueva estructura, mientras que su aplicación a horizontes muy largos (décadas) estaría sujeta a riesgo de cambio de régimen futuro.
+En consecuencia, el gráfico demuestra que el mercado ha transicionado de un esquema de "valoración por descuento de flujos" (sensible a tasas) a un esquema de "valoración por crecimiento potencial" (sensible a adopción de IA). Cualquier estrategia de modelado predictivo debe reconocer que el período 2023-2025 representa una nueva fase estocástica caracterizada por momentum idiosincrático derivado de la revolución de los Grandes Modelos de Lenguaje, distinta de la dinámica pre-2022. El modelo $ARIMA$ calibrado en esta ventana temporal captura correctamente esta nueva estructura, mientras que su aplicación a horizontes muy largos (décadas) estaría sujeta a riesgo de cambio de régimen futuro.
 
 ## 3.2.6 Inteligencia artificial linea de tiempo
 
@@ -1881,7 +1881,7 @@ Finalmente, basándose en la evidencia visual y fundamental de la ruptura estruc
 
 ### 4.1.1 Estrategia Train/Test
 
-La aplicación de la estrategia de partición temporal al conjunto de datos del QQQ divide el período de análisis (octubre 2022 - presente) en dos subconjuntos contiguos que respetan el orden cronológico. El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en calendarios financieros y evita arbitrariedades en la selección del período de corte.
+La aplicación de la estrategia de partición temporal al conjunto de datos del $QQQ$ divide el período de análisis (octubre 2022 - presente) en dos subconjuntos contiguos que respetan el orden cronológico. El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en calendarios financieros y evita arbitrariedades en la selección del período de corte.
 
 El conjunto de entrenamiento comprende observaciones desde el 7 de octubre de 2022 hasta el 30 de septiembre de 2025, proporcionando una base robusta para estimación de coeficientes $ARIMA$, mientras que el conjunto de prueba abarca desde el 1 de octubre de 2025 hasta el 1 de diciembre del mismo año, permitiendo validación con un horizonte de pronóstico consistente con estándares de análisis de corto plazo en mercados financieros (Hyndman & Athanasopoulos, 2021).
 
@@ -2002,7 +2002,7 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
 
 ## 4.2 Análisis de Estacionariedad
 
-La serie de precios del QQQ exhibe visualmente una tendencia alcista pronunciada con fluctuaciones amplias alrededor de una trayectoria creciente durante el período de entrenamiento (octubre 2022 - septiembre 2025). El gráfico de autocorrelación de la serie en niveles revela el síntoma clásico de no-estacionariedad:
+La serie de precios del $QQQ$ exhibe visualmente una tendencia alcista pronunciada con fluctuaciones amplias alrededor de una trayectoria creciente durante el período de entrenamiento (octubre 2022 - septiembre 2025). El gráfico de autocorrelación de la serie en niveles revela el síntoma clásico de no-estacionariedad:
 
 ```{r acf-original, echo=TRUE, fig.height=5.5}
 acf_data <- acf(Entrenamiento, lag.max = 30, plot = FALSE)
@@ -2076,7 +2076,7 @@ kable(tabla_adf,
   row_spec(5, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
 ```
 
-Con p-valor de 0.1352 \> 0.05, no se rechaza la hipótesis nula: la serie de precios del QQQ en niveles es no-estacionaria. Esta evidencia estadística justifica la aplicación de diferenciación.
+Con p-valor de 0.1352 \> 0.05, no se rechaza la hipótesis nula: la serie de precios del $QQQ$ en niveles es no-estacionaria. Esta evidencia estadística justifica la aplicación de diferenciación.
 
 ### 4.2.3 Aplicación de Diferenciación de Primer Orden
 
@@ -2116,7 +2116,7 @@ ggplot(df_diff, aes(x = Fecha, y = Valor)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-La serie diferenciada del QQQ oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La media permanece relativamente constante a lo largo del período, característica fundamental de estacionariedad.
+La serie diferenciada del $QQQ$ oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La media permanece relativamente constante a lo largo del período, característica fundamental de estacionariedad.
 
 ### 4.2.4 Verificación Post-Diferenciación
 
@@ -2189,13 +2189,13 @@ kable(tabla_adf_diff,
   row_spec(4, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
 ```
 
-El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 \< 0.05, se rechaza $H_0$. La serie diferenciada del QQQ es estacionaria. Por tanto, el parámetro de integración es $d=1$: una única diferenciación convierte la serie de precios en una serie estacionaria de cambios diarios.
+El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 \< 0.05, se rechaza $H_0$. La serie diferenciada del $QQQ$ es estacionaria. Por tanto, el parámetro de integración es $d=1$: una única diferenciación convierte la serie de precios en una serie estacionaria de cambios diarios.
 
 ------------------------------------------------------------------------
 
 ## 4.3 Identificación del Modelo
 
-El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del QQQ revela patrones característicos de mercados financieros eficientes:
+El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del $QQQ$ revela patrones característicos de mercados financieros eficientes:
 
 ```{r acf-pacf-dual, echo=TRUE, fig.height=6}
 acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
@@ -2295,7 +2295,7 @@ kable(tabla_candidatos,
   row_spec(2, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
 ```
 
-La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$ (random walk) representa la hipótesis nula de mercado eficiente: no existe estructura explorable. El $ARIMA(1,1,1)$ fue seleccionado automáticamente por `auto.arima()` y es el más parsimonioso que añade estructura genuina. Los demás representan extensiones que exploran si estructura adicional existe en la serie del QQQ.
+La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$ (random walk) representa la hipótesis nula de mercado eficiente: no existe estructura explorable. El $ARIMA(1,1,1)$ fue seleccionado automáticamente por `auto.arima()` y es el más parsimonioso que añade estructura genuina. Los demás representan extensiones que exploran si estructura adicional existe en la serie del $QQQ$.
 
 ------------------------------------------------------------------------
 
@@ -2366,7 +2366,7 @@ kable(comparacion_IC,
            general_title = "Nota: ")
 ```
 
-El $ARIMA(1,1,1)$ + drift del QQQ emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2). La diferencia de 4.2 puntos en $AICc$ es clara, validando $ARIMA(1,1,1)$ como notablemente superior. Según Burnham & Anderson (2002), diferencias entre 4-7 indican soporte moderado para modelo superior. El término "drift" representa una constante en la ecuación de diferencias que captura la tendencia lineal implícita: durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio, reflejando optimismo en tecnología pese a volatilidad (Brockwell & Davis, 2016).
+El $ARIMA(1,1,1)$ + drift del $QQQ$ emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2). La diferencia de 4.2 puntos en $AICc$ es clara, validando $ARIMA(1,1,1)$ como notablemente superior. Según Burnham & Anderson (2002), diferencias entre 4-7 indican soporte moderado para modelo superior. El término "drift" representa una constante en la ecuación de diferencias que captura la tendencia lineal implícita: durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio, reflejando optimismo en tecnología pese a volatilidad (Brockwell & Davis, 2016).
 
 La evaluación de modelos más complejos revela el problema de sobreparametrización: aunque $ARIMA(3,1,3)$ tiene $AIC$ más bajo (4669.04), su $AICc$ es 4669.19 (ranking 6) porque la penalización por 7 parámetros domina cualquier mejora marginal. El $ARIMA(0,1,0)$ (random walk puro) produce $AICc =$ 4668.39 (ranking 3), confirmando que estructura existe aunque sea pequeña.
 
@@ -2651,7 +2651,7 @@ El estadístico Ljung-Box de $Q^*$ = 10.1399 con 10 grados de libertad produce p
 
 ## 4.6 Pronóstico y Evaluación
 
-Una vez validado que el modelo $ARIMA(1,1,1)$ + drift produce residuos que se comportan como ruido blanco, procede la etapa de pronóstico: generación de predicciones puntuales para el QQQ junto con intervalos de confianza que cuantifican incertidumbre.
+Una vez validado que el modelo $ARIMA(1,1,1)$ + drift produce residuos que se comportan como ruido blanco, procede la etapa de pronóstico: generación de predicciones puntuales para el $QQQ$ junto con intervalos de confianza que cuantifican incertidumbre.
 
 ```{r pronostico-generacion, echo=TRUE}
 pronostico <- forecast(ModeloQA, h = 10, level = 95)
@@ -2918,11 +2918,11 @@ La métrica más reveladora es "Observaciones dentro del IC 95%" = 10 de 10 (100
 
 ## 5.1 Resumen de los Hallazgos Principales
 
-El análisis exhaustivo del ETF QQQ mediante la metodología Box-Jenkins permitió identificar, estimar y validar un modelo ARIMA óptimo para el pronóstico de precios de cierre diarios del índice Nasdaq-100. Los hallazgos principales se organizan en torno a cuatro aspectos fundamentales del proceso de modelización.
+El análisis exhaustivo del ETF $QQQ$ mediante la metodología Box-Jenkins permitió identificar, estimar y validar un modelo $ARIMA$ óptimo para el pronóstico de precios de cierre diarios del índice Nasdaq-100. Los hallazgos principales se organizan en torno a cuatro aspectos fundamentales del proceso de modelización.
 
-En primer lugar, la caracterización de la serie temporal reveló que los precios del QQQ son no-estacionarios en niveles, evidenciado tanto gráficamente por el decaimiento lento de la función de autocorrelación como estadísticamente mediante la prueba Aumentada de Dickey-Fuller, que arrojó un estadístico de -1.8913 con p-valor de 0.1352. La aplicación de diferenciación de primer orden logró estacionariedad confirmada con un estadístico ADF de -8.6831 y p-valor de 0.01, estableciendo que una única diferencia es suficiente para transformar la serie de precios en cambios diarios estacionarios. Este resultado es consistente con la literatura sobre series financieras, donde los precios típicamente exhiben comportamiento de caminata aleatoria con drift.
+En primer lugar, la caracterización de la serie temporal reveló que los precios del $QQQ$ son no-estacionarios en niveles, evidenciado tanto gráficamente por el decaimiento lento de la función de autocorrelación como estadísticamente mediante la prueba Aumentada de Dickey-Fuller, que arrojó un estadístico de -1.8913 con p-valor de 0.1352. La aplicación de diferenciación de primer orden logró estacionariedad confirmada con un estadístico ADF de -8.6831 y p-valor de 0.01, estableciendo que una única diferencia es suficiente para transformar la serie de precios en cambios diarios estacionarios. Este resultado es consistente con la literatura sobre series financieras, donde los precios típicamente exhiben comportamiento de caminata aleatoria con drift.
 
-En segundo lugar, la selección del modelo óptimo se realizó comparando seis especificaciones candidatas mediante criterios de información. El modelo ARIMA(1,1,1) con drift emergió como la especificación óptima con un AICc de 4663.94, superando al ARIMA(2,1,2) por 4.2 unidades y al random walk puro ARIMA(0,1,0) por 4.45 unidades. La inclusión del término drift, estimado en aproximadamente 0.44 USD diarios, captura la tendencia alcista promedio del QQQ durante el período 2022-2025, reflejando el optimismo del mercado hacia el sector tecnológico impulsado por el auge de la inteligencia artificial generativa. Es importante destacar que modelos más complejos como el ARIMA(3,1,3) no mejoraron significativamente el ajuste, siendo penalizados por sobreparametrización.
+En segundo lugar, la selección del modelo óptimo se realizó comparando seis especificaciones candidatas mediante criterios de información. El modelo $ARIMA$(1,1,1) con drift emergió como la especificación óptima con un AICc de 4663.94, superando al $ARIMA$(2,1,2) por 4.2 unidades y al random walk puro $ARIMA$(0,1,0) por 4.45 unidades. La inclusión del término drift, estimado en aproximadamente 0.44 USD diarios, captura la tendencia alcista promedio del $QQQ$ durante el período 2022-2025, reflejando el optimismo del mercado hacia el sector tecnológico impulsado por el auge de la inteligencia artificial generativa. Es importante destacar que modelos más complejos como el $ARIMA$(3,1,3) no mejoraron significativamente el ajuste, siendo penalizados por sobreparametrización.
 
 En tercer lugar, la validación diagnóstica confirmó que los residuos del modelo seleccionado satisfacen los supuestos de ruido blanco. El error medio resultó prácticamente cero (-0.0001), la varianza se mantuvo constante a lo largo del tiempo, y la prueba de Ljung-Box confirmó ausencia de autocorrelación significativa con un estadístico de 10.14 y p-valor de 0.4283. El análisis Q-Q reveló una aproximación razonable a normalidad con presencia moderada de colas pesadas, característica típica de series financieras que no invalida el modelo pero tiene implicaciones para la calibración de intervalos de confianza en eventos extremos.
 
@@ -2930,7 +2930,7 @@ Finalmente, el desempeño predictivo evaluado sobre 10 días hábiles del conjun
 
 ## 5.2 Implicaciones de los Pronósticos en el Contexto de la Serie
 
-Los pronósticos generados por el modelo ARIMA(1,1,1) con drift deben interpretarse considerando las características particulares de los mercados financieros eficientes y la naturaleza del sector tecnológico. La implicación más inmediata es que el horizonte temporal útil del modelo está inherentemente limitado. Los intervalos de confianza se expanden progresivamente con el horizonte de pronóstico, desde aproximadamente 21.54 USD en el día 1 hasta 66.01 USD en el día 10. Esta expansión es consecuencia directa del componente de integración, donde la varianza crece proporcional al horizonte temporal. En términos prácticos, la utilidad predictiva se concentra en ventanas de 1 a 5 días hábiles; más allá de dos semanas, los intervalos aportan información limitada para decisiones de inversión.
+Los pronósticos generados por el modelo $ARIMA$(1,1,1) con drift deben interpretarse considerando las características particulares de los mercados financieros eficientes y la naturaleza del sector tecnológico. La implicación más inmediata es que el horizonte temporal útil del modelo está inherentemente limitado. Los intervalos de confianza se expanden progresivamente con el horizonte de pronóstico, desde aproximadamente 21.54 USD en el día 1 hasta 66.01 USD en el día 10. Esta expansión es consecuencia directa del componente de integración, donde la varianza crece proporcional al horizonte temporal. En términos prácticos, la utilidad predictiva se concentra en ventanas de 1 a 5 días hábiles; más allá de dos semanas, los intervalos aportan información limitada para decisiones de inversión.
 
 Los resultados son consistentes con la Hipótesis de Mercado Eficiente en su forma débil. El análisis ACF y PACF de la serie diferenciada reveló autocorrelaciones prácticamente indistinguibles de ruido blanco, indicando que la información histórica ya está incorporada en el precio actual. Los coeficientes AR(1) y MA(1) estimados casi se cancelan entre sí, produciendo residuos muy similares a la serie diferenciada original. En mercados donde miles de participantes procesan información continuamente, cualquier patrón predecible tiende a ser arbitrajado antes de poder explotarse sistemáticamente.
 
@@ -2942,13 +2942,13 @@ Finalmente, los intervalos de confianza bien calibrados, con cobertura del 100% 
 
 El presente análisis presenta limitaciones inherentes que deben reconocerse para contextualizar apropiadamente los resultados.
 
-La naturaleza univariada del modelo ignora variables exógenas relevantes para la valoración de activos tecnológicos, como tasas de interés de la Reserva Federal, índices de volatilidad implícita como el VIX, y flujos de fondos hacia ETFs. Esta limitación es particularmente relevante para el QQQ dada su alta sensibilidad documentada a cambios en política monetaria. Adicionalmente, el supuesto de homocedasticidad del modelo ARIMA contrasta con el fenómeno de agrupamiento de volatilidad observado en el análisis descriptivo, lo cual puede producir intervalos de confianza mal calibrados en períodos de estrés de mercado.
+La naturaleza univariada del modelo ignora variables exógenas relevantes para la valoración de activos tecnológicos, como tasas de interés de la Reserva Federal, índices de volatilidad implícita como el VIX, y flujos de fondos hacia ETFs. Esta limitación es particularmente relevante para el $QQQ$ dada su alta sensibilidad documentada a cambios en política monetaria. Adicionalmente, el supuesto de homocedasticidad del modelo $ARIMA$ contrasta con el fenómeno de agrupamiento de volatilidad observado en el análisis descriptivo, lo cual puede producir intervalos de confianza mal calibrados en períodos de estrés de mercado.
 
 El modelo tampoco captura cambios de régimen. El período 2022-2025 atravesó múltiples estados de mercado: corrección severa, rally de recuperación, consolidación y nuevo impulso. Los parámetros constantes estimados promedian estos regímenes sin detectar transiciones entre ellos. Finalmente, la evaluación sobre 45 observaciones representa un período relativamente corto que puede no capturar la variabilidad completa del desempeño bajo diferentes condiciones.
 
-Para futuros estudios se identifican extensiones prometedoras: modelos ARIMAX que incorporen variables exógenas como tasas de interés y volatilidad implícita; especificaciones ARIMA-GARCH que modelen heterocedasticidad condicional produciendo intervalos que se expandan en períodos turbulentos; modelos Markov-Switching que identifiquen automáticamente transiciones entre regímenes de mercado; y esquemas de validación cruzada temporal extendida que evalúen el desempeño sobre múltiples períodos de prueba.
+Para futuros estudios se identifican extensiones prometedoras: modelos $ARIMAX$ que incorporen variables exógenas como tasas de interés y volatilidad implícita; especificaciones $ARIMA-GARCH$ que modelen heterocedasticidad condicional produciendo intervalos que se expandan en períodos turbulentos; modelos Markov-Switching que identifiquen automáticamente transiciones entre regímenes de mercado; y esquemas de validación cruzada temporal extendida que evalúen el desempeño sobre múltiples períodos de prueba.
 
-En síntesis, el modelo ARIMA(1,1,1) con drift constituye una especificación estadísticamente válida y parsimoniosa para el pronóstico de corto plazo del QQQ. Sus limitaciones delimitan su alcance como herramienta de pronóstico puntual, no como sistema de trading automatizado. Las mejoras propuestas representan extensiones naturales que podrían incrementar la precisión y aplicabilidad práctica en contextos de inversión real.
+En síntesis, el modelo $ARIMA$(1,1,1) con drift constituye una especificación estadísticamente válida y parsimoniosa para el pronóstico de corto plazo del $QQQ$. Sus limitaciones delimitan su alcance como herramienta de pronóstico puntual, no como sistema de trading automatizado. Las mejoras propuestas representan extensiones naturales que podrían incrementar la precisión y aplicabilidad práctica en contextos de inversión real.
 
 
 ## 6 Bibliografia
