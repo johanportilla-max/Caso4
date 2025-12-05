@@ -370,18 +370,19 @@ donde la incertidumbre es inherente y los patrones de precios reflejan
 complejas dinámicas de oferta y demanda, el desarrollo de modelos
 predictivos robustos cobra particular relevancia para inversionistas,
 analistas financieros y gestores de cartera.</p>
-<p>El Invesco QQQ Trust (QQQ) es uno de los fondos cotizados en bolsa
-(ETF) más negociados a nivel mundial, con activos bajo gestión
-superiores a los 400 mil millones de dólares. Este instrumento replica
-el índice Nasdaq-100, compuesto por las 100 empresas no financieras de
-mayor capitalización bursátil listadas en el mercado Nasdaq, con una
-fuerte concentración en el sector tecnológico que incluye líderes como
-Apple, Microsoft, NVIDIA, Amazon y Alphabet. Entre 2009 y 2019, el QQQ
-se benefició significativamente de las economías de escala en software,
-el auge de los smartphones y el desarrollo de ecosistemas tecnológicos
-integrados. Esta composición convierte al QQQ en un referente para
-analizar el comportamiento del sector tecnológico estadounidense y, por
-extensión, las tendencias de innovación que impulsan la economía
+<p>El Invesco <span class="math inline">\(QQQ Trust\)</span> (QQQ) es
+uno de los fondos cotizados en bolsa (ETF) más negociados a nivel
+mundial, con activos bajo gestión superiores a los 400 mil millones de
+dólares. Este instrumento replica el índice <span class="math inline">\(Nasdaq-100\)</span>, compuesto por las 100
+empresas no financieras de mayor capitalización bursátil listadas en el
+mercado Nasdaq, con una fuerte concentración en el sector tecnológico
+que incluye líderes como <span class="math inline">\(Apple\)</span>,
+<span class="math inline">\(Microsoft\)</span>, <span class="math inline">\(NVIDIA\)</span>, <span class="math inline">\(Amazon\)</span> y <span class="math inline">\(Alphabet\)</span>. Entre 2009 y 2019, el <span class="math inline">\(QQQ\)</span> se benefició significativamente de
+las economías de escala en software, el auge de los smartphones y el
+desarrollo de ecosistemas tecnológicos integrados. Esta composición
+convierte al <span class="math inline">\(QQQ\)</span> en un referente
+para analizar el comportamiento del sector tecnológico estadounidense y,
+por extensión, las tendencias de innovación que impulsan la economía
 global.</p>
 <p>La importancia de modelar series de precios como la del QQQ radica en
 múltiples factores. En primer lugar, los pronósticos financieros juegan
@@ -391,64 +392,67 @@ activos y la evaluación de riesgos. En segundo lugar, el análisis
 cuantitativo de series temporales permite identificar patrones y
 comportamientos que proporcionan información valiosa para diseñar
 estrategias de inversión más fundamentadas. La predicción específica del
-QQQ es particularmente importante porque replica el índice Nasdaq-100,
-concentrado en empresas tecnológicas líderes en desarrollo de
-inteligencia artificial, computación en la nube y ecosistemas digitales
-innovadores. Dado que el sector tecnológico representa uno de los
-mercados emergentes y con mayor potencial de crecimiento en la economía
-global, predecir el comportamiento del QQQ permite anticipar tendencias
-en innovación, evaluar correctamente la valuación de activos
-tecnológicos y gestionar la exposición al riesgo en un sector de alta
-volatilidad que impulsa transformaciones estructurales en la economía
-mundial.</p>
-<p>En este contexto, los modelos ARIMA (AutoRegressive Integrated Moving
+<span class="math inline">\(QQQ\)</span> es particularmente importante
+porque replica el índice <span class="math inline">\(Nasdaq-100\)</span>, concentrado en empresas
+tecnológicas líderes en desarrollo de inteligencia artificial,
+computación en la nube y ecosistemas digitales innovadores. Dado que el
+sector tecnológico representa uno de los mercados emergentes y con mayor
+potencial de crecimiento en la economía global, predecir el
+comportamiento del <span class="math inline">\(QQQ\)</span> permite
+anticipar tendencias en innovación, evaluar correctamente la valuación
+de activos tecnológicos y gestionar la exposición al riesgo en un sector
+de alta volatilidad que impulsa transformaciones estructurales en la
+economía mundial.</p>
+<p>En este contexto, los modelos <span class="math inline">\(ARIMA\)</span> (AutoRegressive Integrated Moving
 Average) se han consolidado como uno de los enfoques más utilizados para
 el pronóstico de series de tiempo, junto con los modelos de suavizado
 exponencial. Mientras que los modelos de suavizado exponencial se basan
 en una descripción de la tendencia y la estacionalidad en los datos, los
-modelos ARIMA tienen como objetivo describir las autocorrelaciones
-presentes en la serie. Estos modelos integran tres componentes
-fundamentales: el componente autorregresivo (AR), que pronostica la
-variable de interés utilizando una combinación lineal de sus valores
-pasados; el componente de integración (I), que transforma series no
-estacionarias en estacionarias mediante la aplicación de diferencias
-sucesivas; y el componente de media móvil (MA), que utiliza errores de
-pronóstico pasados en un modelo similar a la regresión.</p>
-<p>Un aspecto fundamental previo al ajuste de modelos ARIMA es la
-verificación de la estacionariedad de la serie temporal. Una serie
-estacionaria es aquella cuyas propiedades no dependen del momento en que
-se observa; es decir, presenta media aproximadamente horizontal,
-varianza constante y no muestra patrones predecibles a largo plazo. Las
-series temporales con tendencias o estacionalidad no son estacionarias.
-Para identificar series no estacionarias, se emplean tanto herramientas
-gráficas (la función de autocorrelación ACF de datos no estacionarios
-decrece lentamente) como pruebas estadísticas formales, entre las que
-destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula
-establece que los datos son no estacionarios.</p>
-<p>El presente estudio emplea datos históricos del ETF QQQ obtenidos de
-Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de
-2022 y el 2 de diciembre de 2025, con un total de 791 observaciones
-diarias de precios de cierre. Durante este período, el precio del QQQ
-fluctuó entre un mínimo de $260.10 y un máximo de $635.77, con un precio
-promedio de $435.84 y una desviación estándar de $97.95. El rendimiento
-acumulado del período alcanzó un notable 131.14%, reflejando la fuerte
-recuperación del sector tecnológico tras el mercado bajista de 2022 y el
-impulso generado por desarrollos en inteligencia artificial. La
-volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%,
-característica de instrumentos con alta exposición al sector
-tecnológico.</p>
+modelos <span class="math inline">\(ARIMA\)</span> tienen como objetivo
+describir las autocorrelaciones presentes en la serie. Estos modelos
+integran tres componentes fundamentales: el componente autorregresivo
+(AR), que pronostica la variable de interés utilizando una combinación
+lineal de sus valores pasados; el componente de integración (I), que
+transforma series no estacionarias en estacionarias mediante la
+aplicación de diferencias sucesivas; y el componente de media móvil
+(MA), que utiliza errores de pronóstico pasados en un modelo similar a
+la regresión.</p>
+<p>Un aspecto fundamental previo al ajuste de modelos <span class="math inline">\(ARIMA\)</span> es la verificación de la
+estacionariedad de la serie temporal. Una serie estacionaria es aquella
+cuyas propiedades no dependen del momento en que se observa; es decir,
+presenta media aproximadamente horizontal, varianza constante y no
+muestra patrones predecibles a largo plazo. Las series temporales con
+tendencias o estacionalidad no son estacionarias. Para identificar
+series no estacionarias, se emplean tanto herramientas gráficas (la
+función de autocorrelación ACF de datos no estacionarios decrece
+lentamente) como pruebas estadísticas formales, entre las que destaca el
+Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los
+datos son no estacionarios.</p>
+<p>El presente estudio emplea datos históricos del ETF <span class="math inline">\(QQQ\)</span> obtenidos de Yahoo Finance, abarcando
+el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre
+de 2025, con un total de 791 observaciones diarias de precios de cierre.
+Durante este período, el precio del <span class="math inline">\(QQQ\)</span> fluctuó entre un mínimo de $260.10 y
+un máximo de $635.77, con un precio promedio de $435.84 y una desviación
+estándar de $97.95. El rendimiento acumulado del período alcanzó un
+notable 131.14%, reflejando la fuerte recuperación del sector
+tecnológico tras el mercado bajista de 2022 y el impulso generado por
+desarrollos en inteligencia artificial. La volatilidad anualizada de la
+serie se ubicó en aproximadamente 21.12%, característica de instrumentos
+con alta exposición al sector tecnológico.</p>
 <p>El análisis incluye la verificación de supuestos estadísticos
-fundamentales: evaluación de estacionariedad mediante la prueba de
-Dickey-Fuller Aumentada y análisis gráfico de las funciones de
-autocorrelación (ACF) y autocorrelación parcial (PACF), la selección del
-modelo óptimo utilizando criterios de información (AICc), y la
-validación diagnóstica de residuos para confirmar que se comporten como
-ruido blanco. Se comparan múltiples especificaciones ARIMA, incluyendo
-el modelo seleccionado automáticamente mediante la función auto.arima y
-configuraciones alternativas sugeridas por el análisis de los gráficos
-ACF y PACF, reconociendo que aunque la automatización es útil,
-“cualquier cosa automatizada puede ser un poco peligrosa, y vale la pena
-entender algo sobre el comportamiento de los modelos”.</p>
+fundamentales: evaluación de estacionariedad mediante la prueba de <span class="math inline">\(Dickey-Fuller\)</span> Aumentada y análisis
+gráfico de las funciones de autocorrelación (ACF) y autocorrelación
+parcial (PACF), la selección del modelo óptimo utilizando criterios de
+información (AICc), y la validación diagnóstica de residuos para
+confirmar que se comporten como ruido blanco. Se comparan múltiples
+especificaciones <span class="math inline">\(ARIMA\)</span>, incluyendo
+el modelo seleccionado automáticamente mediante la función
+<code>auto.arima</code> y configuraciones alternativas sugeridas por el
+análisis de los gráficos <span class="math inline">\(ACF\)</span> y
+<span class="math inline">\(PACF\)</span>, reconociendo que aunque la
+automatización es útil, “cualquier cosa automatizada puede ser un poco
+peligrosa, y vale la pena entender algo sobre el comportamiento de los
+modelos”.</p>
 <hr />
 </div>
 <div id="metodología" class="section level1">

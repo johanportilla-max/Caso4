@@ -1347,21 +1347,6 @@ kable(comparacion_accuracy,
            general_title = "Métricas: ")
 ```
 
-```{r comparacion-ic-visual, echo=TRUE, fig.height=4.5}
-ggplot(comparacion_IC, aes(x = reorder(Modelo, AICc), y = AICc, 
-                           fill = Modelo == "ARIMA(1,1,1) + drift")) +
-  geom_col(color = "white", linewidth = 0.8) +
-  geom_text(aes(label = round(AICc, 1)), vjust = -0.5, fontface = "bold") +
-  scale_fill_manual(values = c("TRUE" = qqq_pal$positive, 
-                               "FALSE" = qqq_pal$secondary), guide = "none") +
-  labs(title = "Comparación de Criterios IC: AICc por Modelo",
-       subtitle = "Menor AICc = Mejor balance ajuste-complejidad",
-       x = "Modelo", y = "AICc",
-       caption = "Verde: Modelo seleccionado") +
-  theme_QQQ() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
 Las métricas de precisión cuantifican cómo cada modelo se desempeña al predecir observaciones en el conjunto de entrenamiento. Mientras que criterios de información (AIC, AICc) evalúan trade-off entre ajuste y complejidad de manera agregada, las métricas permiten inspeccionar la naturaleza exacta de los errores de predicción (Hyndman & Athanasopoulos, 2021; Tsay, 2010).
 
 El Error Medio (ME) cuantifica sesgo: si $ME$ es cercano a cero, las predicciones son insesgadas en promedio; si es positivo/negativo, el modelo subestima/sobrestima sistemáticamente. En nuestro caso, todos los modelos exhiben $ME$ cercano a cero (rango: -0.0001 a 0.4939), confirmando que son aproximadamente insesgados. El $ARIMA(1,1,1)$ + drift tiene $ME =$ -0.0001, virtualmente perfecto en términos de sesgo.
