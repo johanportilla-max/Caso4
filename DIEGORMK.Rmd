@@ -1441,7 +1441,7 @@ kable(resumen,
 
 ```
 
-La volatilidad anualizada del 20.80% sintetiza, en un único indicador, el nivel de riesgo que ha acompañado la trayectoria del QQQ durante el periodo analizado. Este valor es coherente con un activo que, aunque mantiene una tendencia alcista sostenida, experimenta episodios concentrados de inestabilidad propios de un índice fuertemente expuesto al sector tecnológico.
+La volatilidad anualizada del 20.71% sintetiza, en un único indicador, el nivel de riesgo que ha acompañado la trayectoria del QQQ durante el periodo analizado. Este valor es coherente con un activo que, aunque mantiene una tendencia alcista sostenida, experimenta episodios concentrados de inestabilidad propios de un índice fuertemente expuesto al sector tecnológico.
 
 Un nivel de volatilidad cercano al 21% puede considerarse moderado-alto para un ETF de renta variable, y encaja con los patrones ya observados: años de gran expansión seguidos por correcciones abruptas (como en 2020 y 2022), así como periodos de aceleración extraordinaria impulsados por innovaciones tecnológicas recientes. En términos prácticos, esta magnitud implica que las fluctuaciones anuales típicas del precio se mueven alrededor de ese rango, lo que coincide con la dispersión vista en los drawdowns y en las amplitudes anuales de retornos.
 
