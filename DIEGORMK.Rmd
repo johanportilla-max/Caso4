@@ -1,7 +1,7 @@
 ---
 title: "Aplicación de Modelos ARIMA y Análisis de Series de Tiempo para la Predicción de Precios de Cierre del ETF QQQ (2022-2025)"
 subtitle: "Evaluación de la volatilidad, tendencias del sector tecnológico y proyecciones estocásticas de corto plazo"
-author: "Barros Rayo Alejandro (2415837), Muñoz Portela Diego Fernando (2415620), Portilla Aguirre Johan Camilo (2422468)"
+author: "Portilla Aguirre Johan Camilo (2422468), Barros Rayo Alejandro (2415837), Muñoz Portela Diego Fernando (2415620) "
 date: "`r format(Sys.Date(), '%d de %B de %Y')`"
 output:
   html_document:
@@ -794,7 +794,7 @@ theme_tesla <- function() {
 
 ------------------------------------------------------------------------
 
-# 1. Introducción
+## 1. Introducción
 
 La capacidad de anticipar el comportamiento futuro de los precios en los mercados financieros constituye uno de los elementos centrales para la toma de decisiones de inversión estratégicas y la gestión eficiente de portafolios. En el contexto de los mercados bursátiles globales, donde la incertidumbre es inherente y los patrones de precios reflejan complejas dinámicas de oferta y demanda, el desarrollo de modelos predictivos robustos cobra particular relevancia para inversionistas, analistas financieros y gestores de cartera.
 
@@ -804,7 +804,7 @@ La importancia de modelar series de precios como la del $QQQ$ radica en múltipl
 
 En este contexto, los modelos $ARIMA$ (AutoRegressive Integrated Moving Average) se han consolidado como uno de los enfoques más utilizados para el pronóstico de series de tiempo, junto con los modelos de suavizado exponencial. Mientras que los modelos de suavizado exponencial se basan en una descripción de la tendencia y la estacionalidad en los datos, los modelos $ARIMA$ tienen como objetivo describir las autocorrelaciones presentes en la serie. Estos modelos integran tres componentes fundamentales: el componente autorregresivo (AR), que pronostica la variable de interés utilizando una combinación lineal de sus valores pasados; el componente de integración (I), que transforma series no estacionarias en estacionarias mediante la aplicación de diferencias sucesivas; y el componente de media móvil (MA), que utiliza errores de pronóstico pasados en un modelo similar a la regresión.
 
-Un aspecto fundamental previo al ajuste de modelos $ARIMA$ es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación $ACF$ de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
+Un aspecto fundamental previo al ajuste de modelos $ARIMA$ es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación ACF de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
 
 El presente estudio emplea datos históricos del ETF $QQQ$ obtenidos de Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre de 2025, con un total de 791 observaciones diarias de precios de cierre. Durante este período, el precio del $QQQ$ fluctuó entre un mínimo de \$260.10 y un máximo de \$635.77, con un precio promedio de \$435.84 y una desviación estándar de \$97.95. El rendimiento acumulado del período alcanzó un notable 131.14%, reflejando la fuerte recuperación del sector tecnológico tras el mercado bajista de 2022 y el impulso generado por desarrollos en inteligencia artificial. La volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%, característica de instrumentos con alta exposición al sector tecnológico.
 
@@ -812,7 +812,7 @@ El análisis incluye la verificación de supuestos estadísticos fundamentales: 
 
 ------------------------------------------------------------------------
 
-# 2. Metodología
+## 2. Metodología
 
 La metodología adoptada sigue el procedimiento estándar de modelamiento de series temporales propuesto en la literatura Box-Jenkins: se particiona el conjunto de datos en un conjunto de entrenamiento destinado a la estimación de parámetros y validación de modelos candidatos, y un conjunto de prueba para evaluar la capacidad predictiva fuera de muestra. Este diseño respeta la naturaleza secuencial de datos financieros, evitando la fuga de información que comprometería la validez de los pronósticos.
 
@@ -933,19 +933,19 @@ El resultado de esta prueba determina el orden de integración $d$: si serie ori
 
 Las funciones de autocorrelación proporcionan **diagnóstico visual** fundamental para entender patrones de dependencia temporal y sugerir especificaciones $ARIMA$ iniciales.
 
-**Función de Autocorrelación (ACF):** Cuantifica correlación lineal entre observaciones separadas por rezagos 1, 2, ..., k. Su comportamiento es diagnóstico: - En series estacionarias: $ACF$ decae gradualmente hacia cero - En series no-estacionarias: $ACF$ persiste en valores altos durante muchos rezagos
+**Función de Autocorrelación (ACF):** Cuantifica correlación lineal entre observaciones separadas por rezagos 1, 2, ..., k. Su comportamiento es diagnóstico: - En series estacionarias: ACF decae gradualmente hacia cero - En series no-estacionarias: ACF persiste en valores altos durante muchos rezagos
 
-Para identificación de modelo, $ACF$ es especialmente útil para distinguir procesos MA(q): un corte abrupto después de rezago $q$ (i.e., autocorrelaciones significativas hasta lag $q$ luego caen a cero dentro de bandas) sugiere componente MA(q).
+Para identificación de modelo, ACF es especialmente útil para distinguir procesos MA(q): un corte abrupto después de rezago $q$ (i.e., autocorrelaciones significativas hasta lag $q$ luego caen a cero dentro de bandas) sugiere componente MA(q).
 
 **Función de Autocorrelación Parcial (PACF):** Elimina influencia de rezagos intermedios, aislando efecto directo de cada rezago sobre presente. Es especialmente informativa para identificar procesos AR(p): un corte abrupto después de rezago $p$ sugiere componente AR(p).
 
-El análisis combinado de $ACF$ y $PACF$ proporciona indicios valiosos sobre especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
+El análisis combinado de ACF y PACF proporciona indicios valiosos sobre especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
 
 ### 2.5.3 Búsqueda Automática: Función auto.arima()
 
 En práctica moderna, la función `auto.arima()` automatiza gran parte del proceso de identificación mediante algoritmos de búsqueda sistemática. Realiza búsqueda sobre rango especificado de valores para $p$, $d$ y $q$, evaluando cada combinación mediante criterios de información como AICc.
 
-Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por ello, resulta valioso complementar búsqueda automática con análisis visual de $ACF/PACF$, permitiendo que teoría económica y conocimiento del dominio del problema informen especificación final.
+Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por ello, resulta valioso complementar búsqueda automática con análisis visual de ACF/PACF, permitiendo que teoría económica y conocimiento del dominio del problema informen especificación final.
 
 ### 2.5.4 Criterios de Selección del Modelo: AICc
 
@@ -977,17 +977,17 @@ La metodología Box-Jenkins propone proceso iterativo sistemático para modeliza
 
 ### Paso 1: Determinación del Orden de Integración (d)
 
-Se evalúa estacionariedad de serie mediante pruebas formales (ADF) y análisis visual de $ACF$. Se identifica número de diferencias necesarias para que serie se vuelva estacionaria: - Si serie original es estacionaria: $d=0$ - Si primera diferencia es estacionaria: $d=1$ - Si segunda diferencia es estacionaria: $d=2$
+Se evalúa estacionariedad de serie mediante pruebas formales (ADF) y análisis visual de ACF. Se identifica número de diferencias necesarias para que serie se vuelva estacionaria: - Si serie original es estacionaria: $d=0$ - Si primera diferencia es estacionaria: $d=1$ - Si segunda diferencia es estacionaria: $d=2$
 
 El parámetro $d$ es determinado independientemente de $p$ y $q$, antes de cualquier comparación de criterios de información.
 
 ### Paso 2: Análisis Exploratorio de ACF y PACF
 
-Se examinan gráficos de autocorrelación para serie potencialmente diferenciada, obteniendo sugerencias preliminares sobre órdenes $p$ y $q$: - Si $ACF$ corta abruptamente en lag $q$: sugiere MA(q) - Si $PACF$ corta abruptamente en lag $p$: sugiere AR(p) - Si ambos decaen gradualmente: sugiere proceso mixto ARMA(p,q)
+Se examinan gráficos de autocorrelación para serie potencialmente diferenciada, obteniendo sugerencias preliminares sobre órdenes $p$ y $q$: - Si ACF corta abruptamente en lag $q$: sugiere MA(q) - Si PACF corta abruptamente en lag $p$: sugiere AR(p) - Si ambos decaen gradualmente: sugiere proceso mixto ARMA(p,q)
 
 ### Paso 3: Identificación de Modelos Candidatos
 
-Se identifican especificaciones $ARIMA$ plausibles basadas en: - Análisis visual de $ACF/PACF$ - Búsqueda automática mediante `auto.arima()` - Consideraciones de parsimonia (preferir modelos simples) - Teoría económica/financiera sobre comportamiento de variable
+Se identifican especificaciones $ARIMA$ plausibles basadas en: - Análisis visual de ACF/PACF - Búsqueda automática mediante `auto.arima()` - Consideraciones de parsimonia (preferir modelos simples) - Teoría económica/financiera sobre comportamiento de variable
 
 Se ajustan múltiples modelos candidatos con diferentes combinaciones de $(p,d,q)$.
 
@@ -999,7 +999,7 @@ Se selecciona modelo que balancéa mejor ajuste con complejidad.
 
 ### Paso 5: Validación Diagnóstica de Residuos
 
-Se examinan residuos del modelo seleccionado mediante: - Análisis gráfico temporal de residuos (verificar media cero, varianza constante) - Gráfico de $ACF$ de residuos (verificar ausencia de autocorrelación) - Q-Q plot (verificar aproximación a normalidad) - Prueba de Ljung-Box (verificar formalmente que residuos son ruido blanco)
+Se examinan residuos del modelo seleccionado mediante: - Análisis gráfico temporal de residuos (verificar media cero, varianza constante) - Gráfico de ACF de residuos (verificar ausencia de autocorrelación) - Q-Q plot (verificar aproximación a normalidad) - Prueba de Ljung-Box (verificar formalmente que residuos son ruido blanco)
 
 Si residuos no se comportan como ruido blanco, se regresa a Paso 3 para respecificación.
 
@@ -1110,7 +1110,7 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
-Desde 2010, la trayectoria del $QQQ$ ha mantenido una dirección claramente ascendente, reflejando el impulso sostenido del sector tecnológico dentro del mercado estadounidense. El fondo pasó de cotizar por debajo de los $60–70 USD a comienzos de la década a superar con holgura los 600 USD hacia 2025$, un avance que evidencia un crecimiento compuesto fuerte y continuo.
+Desde 2010, la trayectoria del $QQQ$ ha mantenido una dirección claramente ascendente, reflejando el impulso sostenido del sector tecnológico dentro del mercado estadounidense. El fondo pasó de cotizar por debajo de los 60–70 USD a comienzos de la década a superar con holgura los 600 USD hacia 2025, un avance que evidencia un crecimiento compuesto fuerte y continuo.
 
 Aunque la tendencia de fondo es positiva, el gráfico también deja ver fases de tensión que marcan la dinámica del riesgo. La caída de 2020, derivada del choque inicial por la pandemia, destaca por su brusquedad y rápida recuperación, mientras que la corrección de 2022 —relacionada con el ciclo restrictivo de la Reserva Federal— muestra un descenso más prolongado y coherente con un aumento generalizado de la aversión al riesgo. Estos episodios reflejan lo que suele documentarse en la literatura: la volatilidad tiende a agruparse en ciertos periodos y no se distribuye de forma uniforme en el tiempo, lo que justifica complementar el análisis con métricas de drawdown y distribuciones de retornos.
 
@@ -1159,7 +1159,7 @@ kable(
 
 Las estadísticas anuales de volatilidad, retorno total y máximo retroceso permiten caracterizar con claridad la estructura del comportamiento del $QQQ$ entre 2010 y 2025. A diferencia del análisis basado únicamente en niveles de precio, estas métricas capturan la dinámica del riesgo, la intensidad de las variaciones anuales y la magnitud de las caídas dentro de cada ciclo de mercado, proporcionando una visión más completa del desempeño histórico del índice.
 
-En primer lugar, la volatilidad muestra una variabilidad significativa a lo largo del periodo, oscilando entre niveles relativamente bajos —como en 2017 (10.34 %)— y picos pronunciados asociados a episodios de tensión financiera —particularmente 2020 (35.88 %), 2022 (32.17 %) y $2025 (23.96 %)$. Estos aumentos coinciden con periodos de correcciones profundas o con fuertes reacomodaciones del mercado tecnológico, lo que evidencia la sensibilidad del $QQQ$ a shocks macroeconómicos y a ciclos de liquidez global. En conjunto, la serie revela un patrón característico: volatilidad contenida en fases expansivas y picos abruptos en periodos de correcciones fuertes o incertidumbre.
+En primer lugar, la volatilidad muestra una variabilidad significativa a lo largo del periodo, oscilando entre niveles relativamente bajos —como en 2017 (10.34 %)— y picos pronunciados asociados a episodios de tensión financiera —particularmente 2020 (35.88 %), 2022 (32.17 %) y 2025 (23.96 %). Estos aumentos coinciden con periodos de correcciones profundas o con fuertes reacomodaciones del mercado tecnológico, lo que evidencia la sensibilidad del $QQQ$ a shocks macroeconómicos y a ciclos de liquidez global. En conjunto, la serie revela un patrón característico: volatilidad contenida en fases expansivas y picos abruptos en periodos de correcciones fuertes o incertidumbre.
 
 El retorno total anual refuerza esta lectura. El índice presenta años de crecimiento excepcional, como 2013 (30.05 %), 2019 (32.08 %), 2020 (38.91 %) y especialmente 2023 (43.04 %), que representan momentos de expansión intensa impulsados por la aceleración tecnológica y el ciclo alcista post-pandemia. Sin embargo, también registra episodios correctivos severos, destacándose 2022 con un -40.15 %, el peor desempeño del periodo, directamente asociado al endurecimiento de la política monetaria y la contracción de las valoraciones tecnológicas. Este contraste entre años extremadamente positivos y años profundamente negativos evidencia la naturaleza altamente cíclica del sector tecnológico y su dependencia de expectativas de crecimiento futuro.
 
@@ -1220,7 +1220,7 @@ fig_pie
 
 ```
 
-El gráfico de Asignación Sectorial ratifica la identidad del $QQQ$ no como un índice de mercado amplio, sino como un vehículo de inversión temático con un sesgo factorial explícito: el sector $ecnología$ ejerce una hegemonía absoluta sobre la estructura del fondo, acaparando el 53.9% de los activos netos. Esta concentración masiva desborda los límites tradicionales de la diversificación sectorial, convirtiendo al ETF en un instrumento altamente sensible a los ciclos de innovación y a las revisiones de valoración específicas de la industria tecnológica.
+El gráfico de Asignación Sectorial ratifica la identidad del $QQQ$ no como un índice de mercado amplio, sino como un vehículo de inversión temático con un sesgo factorial explícito: el sector tecnología ejerce una hegemonía absoluta sobre la estructura del fondo, acaparando el 53.9% de los activos netos. Esta concentración masiva desborda los límites tradicionales de la diversificación sectorial, convirtiendo al ETF en un instrumento altamente sensible a los ciclos de innovación y a las revisiones de valoración específicas de la industria tecnológica.
 
 Esta preponderancia se ve magnificada por la correlación estratégica de los sectores secundarios: Consumo Discrecional (13.1%) y Servicios de Comunicación (12.7%) ocupan el segundo y tercer lugar respectivamente. Desde una perspectiva fundamental, esta distribución es engañosa, pues gran parte de los componentes de estos sectores (como Amazon en consumo o Alphabet/Meta en comunicación) operan bajo dinámicas digitales similares a las tecnológicas puras. En consecuencia, cerca del 80% del portafolio se encuentra expuesto al factor Growth (Crecimiento), lo que implica una alta sensibilidad a la liquidez del mercado y al apetito por riesgo, distanciándose de la estructura más balanceada que ofrecen índices generalistas como el S&P 500 (MSCI, 2023).
 
@@ -1539,7 +1539,7 @@ El gráfico revela de manera clara la profundidad y duración de las pérdidas r
 
 Entre 2010 y 2019, el $QQQ$ experimenta drawdowns moderados y controlados. El año más desafiante de esta década fue 2011, con un máximo drawdown de -16.81%, seguido por 2015-2016 con -16.88%, representando correcciones breves pero significativas. Sin embargo, estos episodios fueron de corta duración, caracterizados por recuperaciones relativamente rápidas. Este comportamiento coincide con la fase de crecimiento sostenido observada en los retornos anuales, impulsada por la expansión de las grandes empresas tecnológicas, avances en inteligencia artificial temprana, comercio digital y servicios en la nube. El patrón es coherente con estudios que evidencian la creciente madurez y resistencia del sector tecnológico durante esta década. En este período, las caídas existen, pero ninguna se aproxima a niveles catastróficos, indicando una solidez estructural progresiva del índice.
 
-El gráfico también evidencia un drawdown significativo durante la pandemia de $COVID-19 en 2020$, alcanzando -30.54%. Aunque de severidad notable, fue de corta duración. A diferencia de crisis prolongadas, el $QQQ$ experimentó una caída rápida seguida de una recuperación igual de acelerada, fenómeno asociado a la digitalización abrupta de la economía que impulsó fuertemente la demanda por empresas tecnológicas. Este comportamiento refuerza la idea de que el $QQQ$ posee una estructura sectorial que se beneficia de shocks que incrementan la dependencia digital, lo que explica la rápida salida del drawdown. La recuperación en 2021, con drawdown de solo -11.10%, confirma que el mercado absorbió rápidamente el shock de la pandemia.
+El gráfico también evidencia un drawdown significativo durante la pandemia de $COVID-19$ en 2020, alcanzando -30.54%. Aunque de severidad notable, fue de corta duración. A diferencia de crisis prolongadas, el $QQQ$ experimentó una caída rápida seguida de una recuperación igual de acelerada, fenómeno asociado a la digitalización abrupta de la economía que impulsó fuertemente la demanda por empresas tecnológicas. Este comportamiento refuerza la idea de que el $QQQ$ posee una estructura sectorial que se beneficia de shocks que incrementan la dependencia digital, lo que explica la rápida salida del drawdown. La recuperación en 2021, con drawdown de solo -11.10%, confirma que el mercado absorbió rápidamente el shock de la pandemia.
 
 El período 2022-2023 muestra el episodio más desafiante del período 2010-2025. En 2022, el drawdown alcanzó -39.03%, el máximo de toda la ventana de 15 años analizada. Esta caída coincide con el ajuste de valoraciones provocado por el aumento agresivo de tasas de interés de la Reserva Federal, la inflación elevada y la contracción monetaria global. Estos shocks afectan especialmente a activos de crecimiento como los tecnológicos, cuyo valor presente es altamente sensible a cambios en las tasas de descuento, en línea con los argumentos del modelo CAPM y la literatura sobre sensibilidad de activos de crecimiento a tasas de interés. No obstante, a diferencia de crisis anteriores, el drawdown se recupera parcialmente durante el mismo período: en 2023, el máximo drawdown desciende a -38.71%, y en 2024 continúa mejorando hasta -13.85%, demostrando mayor robustez del mercado tecnológico contemporáneo y capacidad de recuperación acelerada.
 
@@ -2932,7 +2932,7 @@ Finalmente, el desempeño predictivo evaluado sobre 10 días hábiles del conjun
 
 Los pronósticos generados por el modelo $ARIMA$(1,1,1) con drift deben interpretarse considerando las características particulares de los mercados financieros eficientes y la naturaleza del sector tecnológico. La implicación más inmediata es que el horizonte temporal útil del modelo está inherentemente limitado. Los intervalos de confianza se expanden progresivamente con el horizonte de pronóstico, desde aproximadamente 21.54 USD en el día 1 hasta 66.01 USD en el día 10. Esta expansión es consecuencia directa del componente de integración, donde la varianza crece proporcional al horizonte temporal. En términos prácticos, la utilidad predictiva se concentra en ventanas de 1 a 5 días hábiles; más allá de dos semanas, los intervalos aportan información limitada para decisiones de inversión.
 
-Los resultados son consistentes con la Hipótesis de Mercado Eficiente en su forma débil. El análisis $ACF$ y $PACF$ de la serie diferenciada reveló autocorrelaciones prácticamente indistinguibles de ruido blanco, indicando que la información histórica ya está incorporada en el precio actual. Los coeficientes AR(1) y MA(1) estimados casi se cancelan entre sí, produciendo residuos muy similares a la serie diferenciada original. En mercados donde miles de participantes procesan información continuamente, cualquier patrón predecible tiende a ser arbitrajado antes de poder explotarse sistemáticamente.
+Los resultados son consistentes con la Hipótesis de Mercado Eficiente en su forma débil. El análisis ACF y PACF de la serie diferenciada reveló autocorrelaciones prácticamente indistinguibles de ruido blanco, indicando que la información histórica ya está incorporada en el precio actual. Los coeficientes AR(1) y MA(1) estimados casi se cancelan entre sí, produciendo residuos muy similares a la serie diferenciada original. En mercados donde miles de participantes procesan información continuamente, cualquier patrón predecible tiende a ser arbitrajado antes de poder explotarse sistemáticamente.
 
 El término drift estimado de aproximadamente 0.44 USD diarios no debe interpretarse como predicción de rendimiento futuro garantizado, sino como captura de la tendencia histórica durante el período específico de entrenamiento, que coincidió con la recuperación posterior a 2022 y el rally impulsado por inteligencia artificial. Cambios en el régimen de mercado invalidarían este supuesto de tendencia constante.
 
@@ -2950,31 +2950,32 @@ Para futuros estudios se identifican extensiones prometedoras: modelos $ARIMAX$ 
 
 En síntesis, el modelo $ARIMA$(1,1,1) con drift constituye una especificación estadísticamente válida y parsimoniosa para el pronóstico de corto plazo del $QQQ$. Sus limitaciones delimitan su alcance como herramienta de pronóstico puntual, no como sistema de trading automatizado. Las mejoras propuestas representan extensiones naturales que podrían incrementar la precisión y aplicabilidad práctica en contextos de inversión real.
 
+
 ## 6 Bibliografia
 
 Bernstein, P. L. (1997). Contra los dioses: La notable historia del riesgo. John Wiley & Sons.
 
-Bollerslev, T. (1986). Heteroscedasticidad condicional autorregresiva generalizada. Journal of Econometrics, 31(3), 307–327. [https://doi.org/10.1016/0304-4076(86)90063-1](https://doi.org/10.1016/0304-4076(86)90063-1){.uri}
+Bollerslev, T. (1986). Heteroscedasticidad condicional autorregresiva generalizada. Journal of Econometrics, 31(3), 307–327. https://doi.org/10.1016/0304-4076(86)90063-1
 
-Eloundou, T., Manning, S., Mishkin, P., & Rock, D. (2023). Los GPT son GPTs: Una primera mirada al impacto potencial de los grandes modelos de lenguaje en el mercado laboral. arXiv preprint. <https://doi.org/10.48550/arXiv.2303.10130>
+Eloundou, T., Manning, S., Mishkin, P., & Rock, D. (2023). Los GPT son GPTs: Una primera mirada al impacto potencial de los grandes modelos de lenguaje en el mercado laboral. arXiv preprint. https://doi.org/10.48550/arXiv.2303.10130
 
-Engle, R. F. (1982). Heteroscedasticidad condicional autorregresiva con estimaciones de la varianza de la inflación del Reino Unido. Econometrica, 50(4), 987–1007. <https://doi.org/10.2307/1912773>
+Engle, R. F. (1982). Heteroscedasticidad condicional autorregresiva con estimaciones de la varianza de la inflación del Reino Unido. Econometrica, 50(4), 987–1007. https://doi.org/10.2307/1912773
 
-Fama, E. F., & French, K. R. (2015). Un modelo de valoración de activos de cinco factores. Journal of Financial Economics, 116(1), 1–22. <https://doi.org/10.1016/j.jfineco.2014.10.010>
+Fama, E. F., & French, K. R. (2015). Un modelo de valoración de activos de cinco factores. Journal of Financial Economics, 116(1), 1–22. https://doi.org/10.1016/j.jfineco.2014.10.010
 
-Invesco Ltd. (2024). Ficha técnica del ETF QQQ. Invesco QQQ Trust. <https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=QQQ>
+Invesco Ltd. (2024). Ficha técnica del ETF QQQ. Invesco QQQ Trust. https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=QQQ
 
-Jegadeesh, N., & Titman, S. (1993). Retornos de comprar ganadores y vender perdedores: Implicaciones para la eficiencia del mercado de valores. The Journal of Finance, 48(1), 65–91. <https://doi.org/10.1111/j.1540-6261.1993.tb04702.x>
+Jegadeesh, N., & Titman, S. (1993). Retornos de comprar ganadores y vender perdedores: Implicaciones para la eficiencia del mercado de valores. The Journal of Finance, 48(1), 65–91. https://doi.org/10.1111/j.1540-6261.1993.tb04702.x
 
 Malkiel, B. G. (2003). Un paseo aleatorio por Wall Street: La estrategia probada en el tiempo para invertir con éxito (8.ª ed.). W.W. Norton & Company.
 
-Mandelbrot, B. (1963). La variación de ciertos precios especulativos. The Journal of Business, 36(4), 394–419. <https://doi.org/10.1086/294632>
+Mandelbrot, B. (1963). La variación de ciertos precios especulativos. The Journal of Business, 36(4), 394–419. https://doi.org/10.1086/294632
 
-Markowitz, H. (1952). Selección de cartera. The Journal of Finance, 7(1), 77–91. <https://doi.org/10.1111/j.1540-6261.1952.tb01525.x>
+Markowitz, H. (1952). Selección de cartera. The Journal of Finance, 7(1), 77–91. https://doi.org/10.1111/j.1540-6261.1952.tb01525.x
 
-MSCI Inc. (2023). Metodología de los Índices de Mercado Invertible Globales de MSCI. <https://www.msci.com/index-methodology>
+MSCI Inc. (2023). Metodología de los Índices de Mercado Invertible Globales de MSCI. https://www.msci.com/index-methodology
 
-Sharpe, W. F. (1964). Precios de los activos de capital: Una teoría del equilibrio del mercado en condiciones de riesgo. The Journal of Finance, 19(3), 425–442. <https://doi.org/10.1111/j.1540-6261.1964.tb02865.x>
+Sharpe, W. F. (1964). Precios de los activos de capital: Una teoría del equilibrio del mercado en condiciones de riesgo. The Journal of Finance, 19(3), 425–442. https://doi.org/10.1111/j.1540-6261.1964.tb02865.x
 
 Thaler, R. H. (1987). Movimientos estacionales en los precios de los valores II: Efectos de fin de semana, festivos, cambio de mes e intradía. En R. H. Thaler (Ed.), Avances en las finanzas conductuales (pp. 56–77). Russell Sage Foundation.
 
@@ -2990,7 +2991,7 @@ Dickey, D. A., & Fuller, W. A. (1979). Distribution of the estimators for autore
 
 Hamilton, J. D. (1994). *Time series analysis*. Princeton University Press.
 
-Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. <https://otexts.com/fpp3/>
+Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. https://otexts.com/fpp3/
 
 Jarque, C. M., & Bera, A. K. (1987). A test for normality of observations and regression residuals. *International Statistical Review*, 55(2), 163–172.
 
