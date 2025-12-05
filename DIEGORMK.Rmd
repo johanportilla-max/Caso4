@@ -1,7 +1,7 @@
 ---
 title: "Aplicación de Modelos ARIMA y Análisis de Series de Tiempo para la Predicción de Precios de Cierre del ETF QQQ (2022-2025)"
 subtitle: "Evaluación de la volatilidad, tendencias del sector tecnológico y proyecciones estocásticas de corto plazo"
-author: "Portilla Aguirre Johan Camilo (2422468), Barros Rayo Alejandro (2415837), Muñoz Portela Diego Fernando (2415620) "
+author: "Barros Rayo Alejandro (2415837), Muñoz Portela Diego Fernando (2415620), Portilla Aguirre Johan Camilo (2422468)"
 date: "`r format(Sys.Date(), '%d de %B de %Y')`"
 output:
   html_document:
@@ -2950,32 +2950,31 @@ Para futuros estudios se identifican extensiones prometedoras: modelos $ARIMAX$ 
 
 En síntesis, el modelo $ARIMA$(1,1,1) con drift constituye una especificación estadísticamente válida y parsimoniosa para el pronóstico de corto plazo del $QQQ$. Sus limitaciones delimitan su alcance como herramienta de pronóstico puntual, no como sistema de trading automatizado. Las mejoras propuestas representan extensiones naturales que podrían incrementar la precisión y aplicabilidad práctica en contextos de inversión real.
 
-
 ## 6 Bibliografia
 
 Bernstein, P. L. (1997). Contra los dioses: La notable historia del riesgo. John Wiley & Sons.
 
-Bollerslev, T. (1986). Heteroscedasticidad condicional autorregresiva generalizada. Journal of Econometrics, 31(3), 307–327. https://doi.org/10.1016/0304-4076(86)90063-1
+Bollerslev, T. (1986). Heteroscedasticidad condicional autorregresiva generalizada. Journal of Econometrics, 31(3), 307–327. [https://doi.org/10.1016/0304-4076(86)90063-1](https://doi.org/10.1016/0304-4076(86)90063-1){.uri}
 
-Eloundou, T., Manning, S., Mishkin, P., & Rock, D. (2023). Los GPT son GPTs: Una primera mirada al impacto potencial de los grandes modelos de lenguaje en el mercado laboral. arXiv preprint. https://doi.org/10.48550/arXiv.2303.10130
+Eloundou, T., Manning, S., Mishkin, P., & Rock, D. (2023). Los GPT son GPTs: Una primera mirada al impacto potencial de los grandes modelos de lenguaje en el mercado laboral. arXiv preprint. <https://doi.org/10.48550/arXiv.2303.10130>
 
-Engle, R. F. (1982). Heteroscedasticidad condicional autorregresiva con estimaciones de la varianza de la inflación del Reino Unido. Econometrica, 50(4), 987–1007. https://doi.org/10.2307/1912773
+Engle, R. F. (1982). Heteroscedasticidad condicional autorregresiva con estimaciones de la varianza de la inflación del Reino Unido. Econometrica, 50(4), 987–1007. <https://doi.org/10.2307/1912773>
 
-Fama, E. F., & French, K. R. (2015). Un modelo de valoración de activos de cinco factores. Journal of Financial Economics, 116(1), 1–22. https://doi.org/10.1016/j.jfineco.2014.10.010
+Fama, E. F., & French, K. R. (2015). Un modelo de valoración de activos de cinco factores. Journal of Financial Economics, 116(1), 1–22. <https://doi.org/10.1016/j.jfineco.2014.10.010>
 
-Invesco Ltd. (2024). Ficha técnica del ETF QQQ. Invesco QQQ Trust. https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=QQQ
+Invesco Ltd. (2024). Ficha técnica del ETF QQQ. Invesco QQQ Trust. <https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=QQQ>
 
-Jegadeesh, N., & Titman, S. (1993). Retornos de comprar ganadores y vender perdedores: Implicaciones para la eficiencia del mercado de valores. The Journal of Finance, 48(1), 65–91. https://doi.org/10.1111/j.1540-6261.1993.tb04702.x
+Jegadeesh, N., & Titman, S. (1993). Retornos de comprar ganadores y vender perdedores: Implicaciones para la eficiencia del mercado de valores. The Journal of Finance, 48(1), 65–91. <https://doi.org/10.1111/j.1540-6261.1993.tb04702.x>
 
 Malkiel, B. G. (2003). Un paseo aleatorio por Wall Street: La estrategia probada en el tiempo para invertir con éxito (8.ª ed.). W.W. Norton & Company.
 
-Mandelbrot, B. (1963). La variación de ciertos precios especulativos. The Journal of Business, 36(4), 394–419. https://doi.org/10.1086/294632
+Mandelbrot, B. (1963). La variación de ciertos precios especulativos. The Journal of Business, 36(4), 394–419. <https://doi.org/10.1086/294632>
 
-Markowitz, H. (1952). Selección de cartera. The Journal of Finance, 7(1), 77–91. https://doi.org/10.1111/j.1540-6261.1952.tb01525.x
+Markowitz, H. (1952). Selección de cartera. The Journal of Finance, 7(1), 77–91. <https://doi.org/10.1111/j.1540-6261.1952.tb01525.x>
 
-MSCI Inc. (2023). Metodología de los Índices de Mercado Invertible Globales de MSCI. https://www.msci.com/index-methodology
+MSCI Inc. (2023). Metodología de los Índices de Mercado Invertible Globales de MSCI. <https://www.msci.com/index-methodology>
 
-Sharpe, W. F. (1964). Precios de los activos de capital: Una teoría del equilibrio del mercado en condiciones de riesgo. The Journal of Finance, 19(3), 425–442. https://doi.org/10.1111/j.1540-6261.1964.tb02865.x
+Sharpe, W. F. (1964). Precios de los activos de capital: Una teoría del equilibrio del mercado en condiciones de riesgo. The Journal of Finance, 19(3), 425–442. <https://doi.org/10.1111/j.1540-6261.1964.tb02865.x>
 
 Thaler, R. H. (1987). Movimientos estacionales en los precios de los valores II: Efectos de fin de semana, festivos, cambio de mes e intradía. En R. H. Thaler (Ed.), Avances en las finanzas conductuales (pp. 56–77). Russell Sage Foundation.
 
@@ -2991,7 +2990,7 @@ Dickey, D. A., & Fuller, W. A. (1979). Distribution of the estimators for autore
 
 Hamilton, J. D. (1994). *Time series analysis*. Princeton University Press.
 
-Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. https://otexts.com/fpp3/
+Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: principles and practice* (3rd ed.). OTexts. <https://otexts.com/fpp3/>
 
 Jarque, C. M., & Bera, A. K. (1987). A test for normality of observations and regression residuals. *International Statistical Review*, 55(2), 163–172.
 
