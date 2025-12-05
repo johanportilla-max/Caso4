@@ -599,7 +599,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Animación Logo Univalle
-  const logos = ["univalle.png", "ingenieria.png"];  
+  const logos = [
+  "https://github.com/diegomunoz2333/imagenes_rpubs/raw/main/univalle.png",
+  "https://github.com/diegomunoz2333/imagenes_rpubs/raw/main/ingenieria.png"
+]; 
+  
   let index = 0;
   const img = document.getElementById("uv-img");
   const btn = document.getElementById("uv-button");
