@@ -683,7 +683,7 @@ La base de datos utilizada proviene de Yahoo Finance, plataforma reconocida glob
 
 La extracción se realizó mediante la función `getSymbols()` del paquete `quantmod` de R, automatizando la descarga directa desde fuente oficial. El período de estudio abarca desde 7 de octubre de 2022 hasta 2 de diciembre de 2025, capturando 791 observaciones diarias de precios de cierre. Este período es particularmente informativo: incluye recuperación post-crisis 2022, impulso del rally de inteligencia artificial (2023-2025), cambios en política monetaria de la Reserva Federal, y volatilidad estructural del sector tecnológico.
 
-```{r cargar-datos, echo=TRUE}
+```{r cargar-dato, echo=TRUE}
 
 serie_QQQ <- getSymbols("QQQ", src="yahoo", auto.assign=FALSE, from="2015-01-01") 
 Precio <- serie_QQQ$`QQQ.Close`
