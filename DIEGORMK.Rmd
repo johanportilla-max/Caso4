@@ -1067,20 +1067,19 @@ datos_qqq <- data.frame(
   Precio = as.numeric(precios)
 )
 datos_qqq <- datos_qqq %>%
-  mutate(Corte = as.Date(Fecha)) 
+  mutate(Corte = as.yearqtr(Fecha)) 
+
 lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
   dt <- datos_qqq[datos_qqq$Corte <= c, ]
-  dt$Frame <- as.character(c) 
+  dt$Frame <- format(c, "%Y-%q")
   return(dt)
 })
 
 datos_animados <- dplyr::bind_rows(lista_frames)
+
 p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
-  
   geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
-  
   geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
-  
   labs(
     title = "Evolución Dinámica del QQQ",
     subtitle = "Crecimiento histórico acumulado",
@@ -1107,7 +1106,6 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
     currentvalue = list(prefix = "Periodo: ") 
   ) %>%
   plotly::config(displayModeBar = FALSE)
-
 ```
 
 Desde 2010, la trayectoria del $QQQ$ ha mantenido una dirección claramente ascendente, reflejando el impulso sostenido del sector tecnológico dentro del mercado estadounidense. El fondo pasó de cotizar por debajo de los 60–70 USD a comienzos de la década a superar con holgura los 600 USD hacia 2025, un avance que evidencia un crecimiento compuesto fuerte y continuo.
