@@ -978,11 +978,9 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 
 ### 4.1.1 Estrategia Train/Test
 
-La aplicación de modelos ARIMA para pronóstico de series temporales financieras requiere una estrategia de partición temporal que respete la naturaleza secuencial de los datos y simule condiciones reales de predicción. A diferencia de problemas de clasificación o regresión donde la validación cruzada aleatoria es apropiada, en series temporales es fundamental mantener el orden cronológico de las observaciones para evitar filtración de información (data leakage) y garantizar que los datos de prueba representen verdaderas predicciones "fuera de muestra" realizadas sobre períodos no observados durante la estimación del modelo (Hyndman & Athanasopoulos, 2021).
+La aplicación de la estrategia de partición temporal al conjunto de datos del QQQ divide el período de análisis (octubre 2022 - presente) en dos subconjuntos contiguos que respetan el orden cronológico. El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en calendarios financieros y evita arbitrariedades en la selección del período de corte.
 
-La metodología adoptada en este análisis divide el conjunto completo de observaciones en dos subconjuntos temporales contiguos: un conjunto de entrenamiento (training set) utilizado para estimar los parámetros de los modelos ARIMA candidatos, y un conjunto de prueba (test set) destinado a evaluar la capacidad predictiva sin sesgo, utilizando únicamente el horizonte de pronóstico. Esta partición temporal es particularmente importante en contextos financieros donde los regímenes de mercado cambian, los patrones de volatilidad evolucionan, y la información más reciente tiende a ser más relevante para la predicción que observaciones antiguas (Tsay, 2010).
-
-El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en los calendarios financieros y evita arbitrariedades en la selección del período de corte. La estrategia asegura que aproximadamente el 95% de los datos históricos se destinen al entrenamiento, proporcionando una base robusta para la estimación de coeficientes ARIMA, mientras que el restante 5% permite validación con un horizonte de pronóstico de 10 días hábiles, consistente con los estándares de análisis de corto plazo en mercados financieros (Chatfield, 2000).
+El conjunto de entrenamiento comprende observaciones desde el 7 de octubre de 2022 hasta el 30 de septiembre de 2025, proporcionando una base robusta para estimación de coeficientes $ARIMA$, mientras que el conjunto de prueba abarca desde el 1 de octubre de 2025 hasta el presente, permitiendo validación con un horizonte de pronóstico consistente con estándares de análisis de corto plazo en mercados financieros (Hyndman & Athanasopoulos, 2021).
 
 ```{r particion-datos, echo=TRUE}
 Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
@@ -1094,16 +1092,10 @@ La partición temporal establecida asegura cumplimiento con el requisito académ
 
 ## 4.2 Análisis de Estacionariedad
 
-Una serie temporal es estacionaria cuando sus propiedades estadísticas fundamentales—media, varianza y función de autocorrelación—no dependen del tiempo (Hamilton, 1994). En contraste, una serie no estacionaria exhibe tendencias, cambios en nivel o varianza que evolucionan sistemáticamente, lo que viola supuestos críticos del modelo $ARIMA$. La identificación de estacionariedad es el primer paso metodológico en la aproximación Box-Jenkins, ya que los modelos $ARIMA$ están diseñados específicamente para capturar estructura en series estacionarias; intentar ajustar $ARIMA$ a datos no estacionarios produce coeficientes espurios y pronósticos infiables (Brockwell & Davis, 2016).
-
-La detección de no-estacionariedad se realiza mediante dos enfoques complementarios: análisis visual de la función de autocorrelación (ACF) y pruebas estadísticas formales. Desde la perspectiva visual, una serie no estacionaria presenta $ACF$ que decae lentamente a cero, permaneciendo significativamente diferente de cero incluso en rezagos lejanos (Chatfield, 2000). Esta característica refleja que la correlación entre observaciones distantes sigue siendo elevada, indicador de raíz unitaria. Formalmente, la prueba Aumentada de Dickey-Fuller (ADF) contrasta la hipótesis nula de presencia de raíz unitaria contra la alternativa de estacionariedad, permitiendo decisión estadística sobre la necesidad de diferenciación (Dickey & Fuller, 1979).
-
-Cuando se identifica no-estacionariedad, la transformación mediante diferenciación de orden dd
-d convierte la serie en estacionaria. La diferenciación de primer orden ($d=1$) calcula cambios diarios: $\nabla y_t = y_t - y_{t-1}$, removiendo tendencias lineales. Para el $QQQ$, donde el componente de tendencia es claramente visible, una única diferenciación típicamente es suficiente para alcanzar estacionariedad en series financieras (Tsay, 2010).
 
 ### 4.2.1 Serie en Niveles: Identificación de No-Estacionariedad
 
-La serie original de precios del QQQ exhibe un patrón visual de tendencia alcista con fluctuaciones amplias alrededor de trayectoria creciente. El gráfico de autocorrelación revela el síntoma clásico de no-estacionariedad:
+La serie de precios del QQQ exhibe visualmente una tendencia alcista pronunciada con fluctuaciones amplias alrededor de una trayectoria creciente durante el período de entrenamiento (octubre 2022 - septiembre 2025). El gráfico de autocorrelación de la serie en niveles revela el síntoma clásico de no-estacionariedad:
 
 ```{r acf-original, echo=TRUE, fig.height=5.5}
 acf_data <- acf(Entrenamiento, lag.max = 30, plot = FALSE)
@@ -1149,11 +1141,6 @@ La autocorrelación muestral permanece elevada (>0.85) incluso en rezagos distan
 
 ### 4.2.2 Prueba: Test de Dickey-Fuller Aumentado (ADF)
 
-La prueba ADF contrasta formalmente: 
-$$H_0: \text{Serie tiene raíz unitaria (no-estacionaria)}$$
-$$H_1: \text{Serie es estacionaria}$$
-Un p-valor > 0.05 conduce al no-rechazo de $H_0$, confirmando no-estacionariedad:
-
 ```{r adf-original, echo=TRUE}
 adf_resultado <- adf.test(Entrenamiento)
 
@@ -1195,8 +1182,6 @@ kable(tabla_adf,
 El estadístico ADF de -3.0468 es mayor (menos negativo) que el valor crítico aproximado de -3.43 para significancia al 5%. Con p-valor de 0.1352 > 0.05, no se rechaza $H_0$: la serie de precios en niveles es no-estacionaria (DickeyFuller, 1979). Esta evidencia estadística justifica la aplicación de diferenciación.
 
 ### 4.2.3 Aplicación de Diferenciación de Primer Orden
-
-La transformación $\nabla y_t = y_t - y_{t-1}$ convierte precios en cambios diarios, removiendo la tendencia de largo plazo:
 
 ```{r diferenciacion, echo=TRUE}
 dif_Entrenamiento <- diff(Entrenamiento) %>% na.omit()
@@ -1326,12 +1311,6 @@ El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crí
 ---
 
 ## 4.3 Identificación del Modelo
-
-Una vez verificada la estacionariedad de la serie mediante diferenciación de primer orden, el siguiente paso metodológico consiste en identificar los órdenes $p$ (autorregresivo) y $q$ (media móvil) de la estructura $ARIMA(p,d,q)$. Este proceso de identificación representa el corazón del método Box-Jenkins: utiliza funciones de autocorrelación muestral para extraer información sobre la dependencia temporal que la serie diferenciada contiene (Box & Jenkins, 1976; Brockwell & Davis, 2016).
-
-La función de autocorrelación (ACF) cuantifica correlaciones lineales entre pares de observaciones separadas por rezagos 1, 2, 3, ... k. Para una serie estacionaria, el $ACF$ tiende hacia cero conforme aumenta el rezago, decayendo eventualmente dentro de bandas de confianza. La estructura del decaimiento revela información sobre la naturaleza del componente media móvil: si el $ACF$ presenta picos significativos aislados en los primeros rezagos (por ejemplo, solo lag 1 o lag 2 fuera de bandas) y luego decae rápidamente a cero, esto sugiere que un modelo $MA(q)$ con q pequeño puede capturar adecuadamente la dinámica (Hamilton, 1994; Tsay, 2010).
-
-La función de autocorrelación parcial (PACF) cuantifica correlaciones después de remover el efecto de rezagos intermedios. Matemáticamente, la autocorrelación parcial en rezago k se define como el coeficiente autorregresivo en una regresión de la serie contra sí misma en rezagos 1 hasta k, habiendo eliminado variabilidad explicada por rezagos 1 hasta k-1. La $PACF$ revela información complementaria sobre el componente autorregresivo: si la $PACF$ presenta picos significativos decayendo lentamente (varios rezagos significativos) mientras el $ACF$ decae rápidamente, esto sugiere un modelo $AR(p)$ con $p$ moderado (Box & Jenkins, 1976; Hastie et al., 2009).
 
 ### 4.3.1 Análisis ACF/PACF - Serie Diferenciada
 
@@ -1516,11 +1495,7 @@ kable(comparacion_IC,
            general_title = "Nota: ")
 ```
 
-La comparación mediante criterios de información representa la etapa cuantitativa de la selección de modelos. Estos criterios resuelven un dilema fundamental en modelado estadístico: modelos más complejos (más parámetros) siempre se ajustan mejor a los datos (menor residuos), pero esta mejora puede ser simplemente overfitting—capturar ruido aleatorio en lugar de estructura genuina (Hastie et al., 2009; Hyndman & Athanasopoulos, 2021).
-
-El Criterio de Información de Akaike (AIC) y su variante corregida para muestras finitas (AICc) resuelven este trade-off penalizando modelos por número de parámetros. Formalmente, $AICc = -2ℓ + 2k + 2k(k+1)/(n-k-1)$, donde $ℓ$ es la log-verosimilitud máxima, k es el número de parámetros, y $n$ es el tamaño muestral (Burnham & Anderson, 2002; Tsay, 2010). Para muestras finitas típicas en series de tiempo (como nuestro caso con n=746 observaciones), $AICc$ es superior a $AIC$ porque aplica penalización más severa por parámetros adicionales. El $BIC$ (Bayesian Information Criterion), alternativa, aplica penalización aún más severa: $BIC = -2ℓ + k·ln(n)$, haciendo que $BIC$ favorezca modelos muy simples (Hamilton, 1994).
-
-En nuestro análisis, el $ARIMA(1,1,1)$ + drift emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2) y todos los demás modelos. Esta diferencia de 4.2 puntos en $AICc$ entre ranking 1 y 2 es sustancial: según regla de oro de Burnham & Anderson (2002), diferencias >10 en $AICc$ indican que modelo inferior tiene esencialmente probabilidad posterior negligible; diferencias entre 4-7 indican soporte moderado para modelo superior. La diferencia de 4.2 en nuestro caso es clara aunque no dramática, validando $ARIMA(1,1,1)$ como notablemente superior.
+En el análisis, el $ARIMA(1,1,1)$ + drift emerge como ganador con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2) y todos los demás modelos. Esta diferencia de 4.2 puntos en $AICc$ entre ranking 1 y 2 es sustancial: según regla de oro de Burnham & Anderson (2002), diferencias >10 en $AICc$ indican que modelo inferior tiene esencialmente probabilidad posterior negligible; diferencias entre 4-7 indican soporte moderado para modelo superior. La diferencia de 4.2 en nuestro caso es clara aunque no dramática, validando $ARIMA(1,1,1)$ como notablemente superior.
 
 El término "drift" en $ARIMA(1,1,1)$ + drift representa una constante en la ecuación de diferencias: $∇y_t = μ + φ₁∇y_{t-1} + θ₁ε_{t-1} + ε_t$, donde μ captura tendencia lineal implícita en la serie. En economía financiera, el drift representa el retorno esperado promedio (equity premium): durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio (drift positivo), reflejando optimismo en tecnología pese a volatilidad. El algoritmo `auto.arima()` seleccionó automáticamente este drift porque mejoró sustancialmente el criterio $AICc$ (Brockwell & Davis, 2016).
 
@@ -1595,27 +1570,17 @@ kable(comparacion_accuracy,
            general_title = "Métricas: ")
 ```
 
-Las métricas de precisión cuantifican cómo cada modelo se desempeña al predecir observaciones en el conjunto de entrenamiento. Mientras que criterios de información (AIC, AICc) evalúan trade-off entre ajuste y complejidad de manera agregada, las métricas permiten inspeccionar la naturaleza exacta de los errores de predicción (Hyndman & Athanasopoulos, 2021; Tsay, 2010).
+El Error Medio (ME) de todos los modelos es cercano a cero (rango: -0.0001 a 0.4939), confirmando que son aproximadamente insesgados. El $ARIMA(1,1,1)$ + drift tiene $ME =$ -0.0001, virtualmente perfecto. El $RMSE$ del $ARIMA(3,1,3)$ lidera con 5.4759, marginalmente inferior al $ARIMA(1,1,1)$ + drift (5.4792), una diferencia de 0.0033 negligible en términos prácticos (0.06% mejora) mientras requiere 75% incremento en parámetros.
 
-El Error Medio (ME) cuantifica sesgo: si $ME$ es cercano a cero, las predicciones son insesgadas en promedio; si es positivo/negativo, el modelo subestima/sobrestima sistemáticamente. En nuestro caso, todos los modelos exhiben $ME$ cercano a cero (rango: -0.0001 a 0.4939), confirmando que son aproximadamente insesgados. El $ARIMA(1,1,1)$ + drift tiene $ME =$ -0.0001, virtualmente perfecto en términos de sesgo.
+El Error Absoluto Medio (MAE) del $ARIMA(1,1,1)$ + drift es 3.8704: en promedio, predicciones desviaron ±3.87 puntos del valor real. El MAPE es 0.9445%, indicando error promedio menos de 1% del valor real. El MASE de todos los modelos es < 1, mejorando al random walk puro. El $ARIMA(1,1,1)$ + drift obtiene $MASE =$ 0.9943, mejorando al random walk en ~0.6%—en contexto de series financieras eficientes, una mejora significativa (Hyndman & Koehler, 2006).
 
-La Raíz del Error Cuadrático Medio (RMSE) cuantifica dispersión de errores, penalizando errores grandes más severamente que errores pequeños (por la elevación al cuadrado). El $ARIMA(3,1,3)$ lidera con $RMSE =$ 5.4759, marginalmente inferior a $ARIMA(1,1,1)$ + drift (5.4792). Esta diferencia de 0.0033 es negligible en términos prácticos: representa 0.06% mejora, mientras que $ARIMA(3,1,3)$ requiere más parámetros (7 versus 4). Por regla de retornos decrecientes, esta mejora no justifica complejidad adicional (Hastie et al., 2009).
-
-El Error Absoluto Medio (MAE) es alternativa robusta a $RMSE$, sin penalización cuadrada: simplemente promedio de valores absolutos de errores. $MAE$ tiene interpretación directa: en promedio, predicciones del $ARIMA(1,1,1)$ + drift se desvían ±3.8704 puntos del valor real en el espacio de precios del $QQQ$. Para un ETF con precios típicamente entre $200-500, desviación de ±4 puntos representa error de ~1-2% en términos relativos.
-
-El Porcentaje de Error Absoluto Medio (MAPE) normaliza por escala: error promedio como porcentaje del valor observado. Todos los modelos reportan $MAPE$ alrededor de 0.94%, validando que errores son pequeños relativamente. El $ARIMA(1,1,1)$ + drift obtiene $MAPE =$ 0.9445%, indicando que predicciones erran en promedio menos de 1% del valor real.
-
-El Error Escalado Medio Absoluto (MASE), métrica de Hyndman & Koehler (2006), normaliza por el desempeño de un benchmark naïf (predictor que simplemente repite el valor anterior, es decir, random walk). Si $MASE$ < 1, el modelo supera al random walk; si $MASE$ > 1, el modelo es peor. Todos los modelos presentan $MASE$ < 1 (rango: 0.9943-1.0074), confirmando que todos mejoran sistemáticamente al random walk puro. El $ARIMA(1,1,1)$ + drift obtiene $MASE =$ 0.9943, mejorando al random walk en ~0.6%, lo que en el contexto de series financieras eficientes representa una mejora estadísticamente significativa aunque prácticamente pequeña (Hyndman & Athanasopoulos, 2021).
-
-La síntesis de criterios de información y métricas de precisión conduce a una conclusión robusta: $ARIMA(1,1,1)$ con drift término es el modelo seleccionado. Aunque $ARIMA(3,1,3)$ tiene $RMSE$ ligeramente menor, la ventaja es marginal (0.0033 puntos) mientras que requiere 75% incremento en parámetros, violando principio de parsimonia. $AICc$ de $ARIMA(1,1,1)$ + drift (4663.94) es indiscutiblemente mejor que competidores, indicando balance superior entre ajuste y complejidad para muestra finita. Desde perspectiva práctica, el modelo captura estructura de drift (tendencia alcista genuina en $QQQ$ durante período) mediante un parámetro adicional, permitiendo que pronósticos incorporen esta tendencia en lugar de asumir movimiento aleatorio puro (Box & Jenkins, 1976; Brockwell & Davis, 2016).
+La síntesis de criterios de información y métricas de precisión conduce a una conclusión robusta: $ARIMA(1,1,1)$ con drift es el modelo seleccionado. Aunque $ARIMA(3,1,3)$ tiene $RMSE$ ligeramente menor, la ventaja es marginal (0.0033 puntos) mientras que requiere 75% incremento en parámetros, violando principio de parsimonia. $AICc$ de $ARIMA(1,1,1)$ + drift (4663.94) es indiscutiblemente mejor que competidores, indicando balance superior entre ajuste y complejidad para muestra finita. Desde perspectiva práctica, el modelo captura estructura de drift (tendencia alcista genuina en $QQQ$ durante período) mediante un parámetro adicional, permitiendo que pronósticos incorporen esta tendencia en lugar de asumir movimiento aleatorio puro (Box & Jenkins, 1976; Brockwell & Davis, 2016).
 
 ---
 
 ## 4.5 Diagnóstico de Residuos
 
-El proceso de diagnóstico de residuos constituye la fase final y crítica de validación del modelo ARIMA seleccionado. Un modelo bien especificado debe producir residuos que se comporten como ruido blanco: una secuencia de innovaciones aleatorias con media cero, varianza constante, y ausencia total de autocorrelación (Box & Jenkins, 1976; Brockwell & Davis, 2016). La justificación teórica es directa: si el modelo $ARIMA$ captura correctamente toda la estructura de dependencia en los datos, entonces lo que permanece (los residuos) debe ser puramente aleatorio. Si se observa estructura residual (autocorrelación, heterocedasticidad, no-normalidad), esto indica que la especificación del modelo es incompleta: existe información temporal aún no explicada por el $ARIMA(1,1,1)$ + drift seleccionado (Hamilton, 1994; Tsay, 2010).
-
-El diagnóstico opera mediante tres enfoques complementarios que examinan aspectos distintos del comportamiento de residuos: (i) análisis visual gráfico que revela patrones estructurales, (ii) contrastes formales de hipótesis estadísticas que cuantifican desviaciones de ruido blanco, y (iii) evaluación de supuestos distribucionales sobre la forma de los residuos (Hyndman & Athanasopoulos, 2021; Hastie et al., 2009). Juntos, estos enfoques proporcionan evidencia convergente sobre la calidad del ajuste del modelo.
+El proceso de diagnóstico valida que el modelo $ARIMA(1,1,1)$ + drift seleccionado produce residuos que se comportan como ruido blanco: secuencia aleatoria con media cero, varianza constante, y ausencia de autocorrelación.
 
 ### 4.5.1 Análisis Gráfico de Residuos
 
@@ -1783,19 +1748,11 @@ plotly::ggplotly(p_qq, tooltip = "text") %>%
   )
 ```
 
-El $Q-Q$ $plot$ (quantile-quantile plot) proporciona diagnóstico visual específico de la hipótesis de normalidad mediante comparación directa de cuantiles empíricos versus teóricos. La interpretación es intuitiva: si los residuos estandarizados siguen exactamente una distribución normal estándar, entonces cada punto debe caer precisamente sobre la línea roja de referencia. Desviaciones de esta línea indican desviaciones de normalidad (D'Agostino & Stephens, 1986; Hastie et al., 2009).
-
 En el $Q-Q$ $plot$, se observa alineación muy cercana de puntos con la línea teórica en la región central (cuantiles entre -2 y +2, que representan aproximadamente 95% de la distribución). Esta es la característica más importante: en esta región central donde residen la mayoría de observaciones, la normalidad se cumple aproximadamente. Sin embargo, en las colas (cuantiles teóricos < -2 o > +2), se observa desviación sistemática: los cuantiles observados en la cola superior se sitúan por encima de la línea teórica, indicando que residuos extremos positivos son más extremos que lo predicho por una normal. Esto confirma la presencia de "fat tails" ya sugerida por el histograma.
 
 Esta característica de colas pesadas es típica de retornos de activos financieros y no invalida el modelo $ARIMA$, pero tiene implicaciones para inferencia: intervalos de confianza construidos asumiendo normalidad exacta pueden subesticar probabilidades de eventos extremos, potencialmente subestimando riesgo de cola (tail risk) en pronósticos. Sin embargo, para propósitos de pronóstico de series de tiempo diarias en contexto de análisis académico, la aproximación normal en la región central es suficiente (Tsay, 2010; Brockwell & Davis, 2016).
 
 ### 4.5.3 Test de Independencia (Ljung-Box)
-
-El test de Ljung-Box proporciona contraste formal de la hipótesis nula de que residuos constituyen ruido blanco versus hipótesis alternativa de que existe autocorrelación residual significativa. La estadística de Ljung-Box, modificación del test de Box-Pierce de Ljung & Box (1978), se define como:
-$$
-Q^* = n(n+2) \sum_{k=1}^{m} \frac{\hat{\rho}_k^{\,2}}{n - k}
-$$
-donde $n$ es el número de residuos, $m$ es el número de rezagos evaluados, y $ρ̂ₖ $ es la autocorrelación muestral en rezago k. Bajo hipótesis nula de independencia, $Q^*$ sigue aproximadamente distribución chi-cuadrado con $m$ grados de libertad (Box & Jenkins, 1976; Hamilton, 1994)
 
 ```{r residuos-tabla, echo=TRUE}
 lb_test <- Box.test(residuals(ModeloQA), lag = 10, type = "Ljung-Box")
@@ -1827,9 +1784,7 @@ kable(tabla_ljung,
            color = qqq_pal$text_dark)
 ```
 
-En nuestro análisis, evaluamos autocorrelación en $m=$ 10 rezagos. El estadístico Ljung-Box resultante es $Q^* =$ 10.1399, con 10 grados de libertad. Bajo la distribución $χ₁₀²$, el valor crítico al nivel de significancia 5% es $χ²₁₀,₀.₀₅ ≈$ 18.31. Como $Q^* =$ 10.1399 < 18.31, no rechazamos la hipótesis nula. Equivalentemente, el $p-valor$ = 0.4283 > 0.05, proporcionando fuerte evidencia de que los residuos no exhiben autocorrelación significativa en los primeros 10 rezagos. Este $p-valor$ de 0.43 indica que si verdaderamente los residuos fuesen ruido blanco independiente, observaríamos una estadística de prueba tan extrema o más extrema con probabilidad del 43%—es decir, el resultado es completamente consistente con independencia (Hyndman & Athanasopoulos, 2021; Tsay, 2010).
-
-La conclusión del test es suficiente: los residuos del modelo $ARIMA(1,1,1)$ + drift se comportan como ruido blanco independiente. Este resultado, combinado con el análisis gráfico que reveló ausencia de estructura temporal, ACF sin picos significativos, y aproximación a normalidad en región central, proporciona evidencia convergente de que la especificación del modelo es adecuada.
+El estadístico Ljung-Box de $Q^*$ = 10.1399 con 10 grados de libertad produce p-valor = 0.4283 > 0.05. No se rechaza la hipótesis nula: los residuos no exhiben autocorrelación significativa en los primeros 10 rezagos. El $p-valor$ de 0.43 indica que si verdaderamente los residuos fuesen ruido blanco independiente, observaríamos una estadística de prueba tan extrema o más extrema con probabilidad del 43%—resultado completamente consistente con independencia (Ljung & Box, 1978).
 
 El único hallazgo notable es la presencia de algunos residuos extremos (especialmente el outlier de ~+50 en noviembre 2024), que coincide con período de volatilidad elevada en mercados tecnológicos. Estos son errores de predicción grandes pero aislados, no sistemáticos, consistentes con shocks de mercado exógenos que el modelo $ARIMA$ no puede anticipar (Tsay, 2010; Brockwell & Davis, 2016). En conclusión, el modelo $ARIMA(1,1,1)$ + drift está correctamente especificado y procede a la etapa de pronóstico.
 
@@ -1837,7 +1792,7 @@ El único hallazgo notable es la presencia de algunos residuos extremos (especia
 
 ## 4.6 Pronóstico y Evaluación
 
-El modelo ARIMA(1,1,1) con drift, habiendo superado todas las pruebas de diagnóstico de residuos, procede ahora a la etapa de pronóstico: generación de predicciones puntuales de precios futuros para el QQQ junto con intervalos de confianza que cuantifican la incertidumbre inherente. La práctica de pronóstico en series de tiempo requiere distinción crítica entre dos enfoques complementarios: pronóstico ex-ante (predicción de valores verdaderamente desconocidos en horizonte futuro) versus pronóstico ex-post (predicción de valores conocidos pero retenidos como conjunto de prueba para evaluación). El análisis que sigue utiliza ambos enfoques: primero se generan pronósticos ex-post sobre el conjunto de prueba (octubre 2025, 10 observaciones retenidas) para evaluar precisión del modelo, y luego se presentan pronósticos ex-ante sobre horizonte futuro inmediato.
+Una vez validado que el modelo $ARIMA(1,1,1)$ + drift produce residuos que se comportan como ruido blanco, procede la etapa de pronóstico: generación de predicciones puntuales para el $QQQ$ junto con intervalos de confianza que cuantifican incertidumbre.
 
 ```{r pronostico-generacion, echo=TRUE}
 pronostico <- forecast(ModeloQA, h = 10, level = 95)
@@ -2057,8 +2012,6 @@ kable(tabla_errores,
 El análisis granular de errores por observación individual revela distribución asimétrica pero no-sistemática. Los primeros tres días (1-3 octubre) exhiben errores positivos pequeños (2.54, 4.50, 1.57), indicando subestimación leve pero consistente—el modelo predijo conservadoramente durante esta fase. Los días 4-7 exhiben variación: día 4 tiene error mayor (+5.60 el 06-octubre, coincidiendo con máximo local), días 5-6 muestran errores moderados, día 7 retorna a error moderado (+$7.29).
 
 El quiebre ocurre en día 8 (10-octubre): error de -14.37, representando subestimación grande del valor real de 589.50 contra pronóstico de 603.87. Este es único error negativo significativo en la muestra, coincidiendo con caída de volatilidad en el mercado esa fecha. Sin embargo, nótese que incluso este error de -14.37 permanece dentro del intervalo de confianza: el límite inferior para día 8 es 574.34, y 589.50 > 574.34. Los días 9-10 muestran pequeños errores negativos (-2.29 y -$6.76), regresando a patrón de desviaciones moderadas.
-
-Lo notable es la simetría aproximada de errores: errores positivos en días 1-7 son aproximadamente balanceados por errores negativos en días 8-10. Esto indica que el modelo no tiene sesgo sistemático direccional—es aproximadamente insesgado aunque comete errores individuales típicos de predicción financiera (Tsay, 2010; Hamilton, 1994).
 
 ### 4.6.5 Métricas Finales de Evaluación
 
