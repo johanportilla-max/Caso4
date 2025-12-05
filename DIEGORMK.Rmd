@@ -959,7 +959,7 @@ donde: - $T$ es número de observaciones - $p$ y $q$ son órdenes del modelo ARI
 
 El término adicional respecto al AIC clásico corrige sesgo que ocurre en muestras pequeñas. **Especificaciones con menor AICc son preferibles**, indicando mejor balance entre ajuste y parsimonia.
 
-**Aspecto crítico:** Criterios de información NO son aplicables para seleccionar orden de diferenciación $d$, pues diferenciación altera escala de datos sobre cual se computa verosimilitud, haciendo valores de AICc no comparables entre modelos con diferente $d$. Por ello, parámetro $d$ se determina primero mediante pruebas de estacionariedad (ADF), y AICc se utiliza posteriormente para optimizar órdenes $p$ y $q$.
+Criterios de información no son aplicables para seleccionar orden de diferenciación $d$, pues diferenciación altera escala de datos sobre cual se computa verosimilitud, haciendo valores de AICc no comparables entre modelos con diferente $d$. Por ello, parámetro $d$ se determina primero mediante pruebas de estacionariedad (ADF), y AICc se utiliza posteriormente para optimizar órdenes $p$ y $q$.
 
 ### 2.5.5 Diagnóstico de Residuos: Prueba de Ljung-Box
 
@@ -1060,6 +1060,7 @@ library(moments)
 library(packcircles)
 library(tidyr)
 library(lubridate)
+
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
 precios <- serie$QQQ.Close
 datos_qqq <- data.frame(
@@ -1886,7 +1887,7 @@ El conjunto de entrenamiento comprende observaciones desde el 7 de octubre de 20
 
 ```{r particion-datos, echo=TRUE}
 Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
-Prueba <- window(Precio, start = "2025-10-01")
+Prueba <- window(Precio, start = "2025-10-01", end="2025-11-30")
 ```
 
 ### 4.1.2 Tabla Resumen: Observaciones por Conjunto
