@@ -804,7 +804,7 @@ La importancia de modelar series de precios como la del $QQQ$ radica en múltipl
 
 En este contexto, los modelos $ARIMA$ (AutoRegressive Integrated Moving Average) se han consolidado como uno de los enfoques más utilizados para el pronóstico de series de tiempo, junto con los modelos de suavizado exponencial. Mientras que los modelos de suavizado exponencial se basan en una descripción de la tendencia y la estacionalidad en los datos, los modelos $ARIMA$ tienen como objetivo describir las autocorrelaciones presentes en la serie. Estos modelos integran tres componentes fundamentales: el componente autorregresivo (AR), que pronostica la variable de interés utilizando una combinación lineal de sus valores pasados; el componente de integración (I), que transforma series no estacionarias en estacionarias mediante la aplicación de diferencias sucesivas; y el componente de media móvil (MA), que utiliza errores de pronóstico pasados en un modelo similar a la regresión.
 
-Un aspecto fundamental previo al ajuste de modelos $ARIMA$ es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación ACF de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
+Un aspecto fundamental previo al ajuste de modelos $ARIMA$ es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación $ACF$ de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
 
 El presente estudio emplea datos históricos del ETF $QQQ$ obtenidos de Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre de 2025, con un total de 791 observaciones diarias de precios de cierre. Durante este período, el precio del $QQQ$ fluctuó entre un mínimo de \$260.10 y un máximo de \$635.77, con un precio promedio de \$435.84 y una desviación estándar de \$97.95. El rendimiento acumulado del período alcanzó un notable 131.14%, reflejando la fuerte recuperación del sector tecnológico tras el mercado bajista de 2022 y el impulso generado por desarrollos en inteligencia artificial. La volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%, característica de instrumentos con alta exposición al sector tecnológico.
 
@@ -933,19 +933,19 @@ El resultado de esta prueba determina el orden de integración $d$: si serie ori
 
 Las funciones de autocorrelación proporcionan **diagnóstico visual** fundamental para entender patrones de dependencia temporal y sugerir especificaciones $ARIMA$ iniciales.
 
-**Función de Autocorrelación (ACF):** Cuantifica correlación lineal entre observaciones separadas por rezagos 1, 2, ..., k. Su comportamiento es diagnóstico: - En series estacionarias: ACF decae gradualmente hacia cero - En series no-estacionarias: ACF persiste en valores altos durante muchos rezagos
+**Función de Autocorrelación (ACF):** Cuantifica correlación lineal entre observaciones separadas por rezagos 1, 2, ..., k. Su comportamiento es diagnóstico: - En series estacionarias: $ACF$ decae gradualmente hacia cero - En series no-estacionarias: $ACF$ persiste en valores altos durante muchos rezagos
 
-Para identificación de modelo, ACF es especialmente útil para distinguir procesos MA(q): un corte abrupto después de rezago $q$ (i.e., autocorrelaciones significativas hasta lag $q$ luego caen a cero dentro de bandas) sugiere componente MA(q).
+Para identificación de modelo, $ACF$ es especialmente útil para distinguir procesos MA(q): un corte abrupto después de rezago $q$ (i.e., autocorrelaciones significativas hasta lag $q$ luego caen a cero dentro de bandas) sugiere componente MA(q).
 
 **Función de Autocorrelación Parcial (PACF):** Elimina influencia de rezagos intermedios, aislando efecto directo de cada rezago sobre presente. Es especialmente informativa para identificar procesos AR(p): un corte abrupto después de rezago $p$ sugiere componente AR(p).
 
-El análisis combinado de ACF y PACF proporciona indicios valiosos sobre especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
+El análisis combinado de $ACF$ y $PACF$ proporciona indicios valiosos sobre especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
 
 ### 2.5.3 Búsqueda Automática: Función auto.arima()
 
 En práctica moderna, la función `auto.arima()` automatiza gran parte del proceso de identificación mediante algoritmos de búsqueda sistemática. Realiza búsqueda sobre rango especificado de valores para $p$, $d$ y $q$, evaluando cada combinación mediante criterios de información como AICc.
 
-Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por ello, resulta valioso complementar búsqueda automática con análisis visual de ACF/PACF, permitiendo que teoría económica y conocimiento del dominio del problema informen especificación final.
+Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por ello, resulta valioso complementar búsqueda automática con análisis visual de $ACF/PACF$, permitiendo que teoría económica y conocimiento del dominio del problema informen especificación final.
 
 ### 2.5.4 Criterios de Selección del Modelo: AICc
 
@@ -977,17 +977,17 @@ La metodología Box-Jenkins propone proceso iterativo sistemático para modeliza
 
 ### Paso 1: Determinación del Orden de Integración (d)
 
-Se evalúa estacionariedad de serie mediante pruebas formales (ADF) y análisis visual de ACF. Se identifica número de diferencias necesarias para que serie se vuelva estacionaria: - Si serie original es estacionaria: $d=0$ - Si primera diferencia es estacionaria: $d=1$ - Si segunda diferencia es estacionaria: $d=2$
+Se evalúa estacionariedad de serie mediante pruebas formales (ADF) y análisis visual de $ACF$. Se identifica número de diferencias necesarias para que serie se vuelva estacionaria: - Si serie original es estacionaria: $d=0$ - Si primera diferencia es estacionaria: $d=1$ - Si segunda diferencia es estacionaria: $d=2$
 
 El parámetro $d$ es determinado independientemente de $p$ y $q$, antes de cualquier comparación de criterios de información.
 
 ### Paso 2: Análisis Exploratorio de ACF y PACF
 
-Se examinan gráficos de autocorrelación para serie potencialmente diferenciada, obteniendo sugerencias preliminares sobre órdenes $p$ y $q$: - Si ACF corta abruptamente en lag $q$: sugiere MA(q) - Si PACF corta abruptamente en lag $p$: sugiere AR(p) - Si ambos decaen gradualmente: sugiere proceso mixto ARMA(p,q)
+Se examinan gráficos de autocorrelación para serie potencialmente diferenciada, obteniendo sugerencias preliminares sobre órdenes $p$ y $q$: - Si $ACF$ corta abruptamente en lag $q$: sugiere MA(q) - Si $PACF$ corta abruptamente en lag $p$: sugiere AR(p) - Si ambos decaen gradualmente: sugiere proceso mixto ARMA(p,q)
 
 ### Paso 3: Identificación de Modelos Candidatos
 
-Se identifican especificaciones $ARIMA$ plausibles basadas en: - Análisis visual de ACF/PACF - Búsqueda automática mediante `auto.arima()` - Consideraciones de parsimonia (preferir modelos simples) - Teoría económica/financiera sobre comportamiento de variable
+Se identifican especificaciones $ARIMA$ plausibles basadas en: - Análisis visual de $ACF/PACF$ - Búsqueda automática mediante `auto.arima()` - Consideraciones de parsimonia (preferir modelos simples) - Teoría económica/financiera sobre comportamiento de variable
 
 Se ajustan múltiples modelos candidatos con diferentes combinaciones de $(p,d,q)$.
 
@@ -999,7 +999,7 @@ Se selecciona modelo que balancéa mejor ajuste con complejidad.
 
 ### Paso 5: Validación Diagnóstica de Residuos
 
-Se examinan residuos del modelo seleccionado mediante: - Análisis gráfico temporal de residuos (verificar media cero, varianza constante) - Gráfico de ACF de residuos (verificar ausencia de autocorrelación) - Q-Q plot (verificar aproximación a normalidad) - Prueba de Ljung-Box (verificar formalmente que residuos son ruido blanco)
+Se examinan residuos del modelo seleccionado mediante: - Análisis gráfico temporal de residuos (verificar media cero, varianza constante) - Gráfico de $ACF$ de residuos (verificar ausencia de autocorrelación) - Q-Q plot (verificar aproximación a normalidad) - Prueba de Ljung-Box (verificar formalmente que residuos son ruido blanco)
 
 Si residuos no se comportan como ruido blanco, se regresa a Paso 3 para respecificación.
 
@@ -2932,7 +2932,7 @@ Finalmente, el desempeño predictivo evaluado sobre 10 días hábiles del conjun
 
 Los pronósticos generados por el modelo $ARIMA$(1,1,1) con drift deben interpretarse considerando las características particulares de los mercados financieros eficientes y la naturaleza del sector tecnológico. La implicación más inmediata es que el horizonte temporal útil del modelo está inherentemente limitado. Los intervalos de confianza se expanden progresivamente con el horizonte de pronóstico, desde aproximadamente 21.54 USD en el día 1 hasta 66.01 USD en el día 10. Esta expansión es consecuencia directa del componente de integración, donde la varianza crece proporcional al horizonte temporal. En términos prácticos, la utilidad predictiva se concentra en ventanas de 1 a 5 días hábiles; más allá de dos semanas, los intervalos aportan información limitada para decisiones de inversión.
 
-Los resultados son consistentes con la Hipótesis de Mercado Eficiente en su forma débil. El análisis ACF y PACF de la serie diferenciada reveló autocorrelaciones prácticamente indistinguibles de ruido blanco, indicando que la información histórica ya está incorporada en el precio actual. Los coeficientes AR(1) y MA(1) estimados casi se cancelan entre sí, produciendo residuos muy similares a la serie diferenciada original. En mercados donde miles de participantes procesan información continuamente, cualquier patrón predecible tiende a ser arbitrajado antes de poder explotarse sistemáticamente.
+Los resultados son consistentes con la Hipótesis de Mercado Eficiente en su forma débil. El análisis $ACF$ y $PACF$ de la serie diferenciada reveló autocorrelaciones prácticamente indistinguibles de ruido blanco, indicando que la información histórica ya está incorporada en el precio actual. Los coeficientes AR(1) y MA(1) estimados casi se cancelan entre sí, produciendo residuos muy similares a la serie diferenciada original. En mercados donde miles de participantes procesan información continuamente, cualquier patrón predecible tiende a ser arbitrajado antes de poder explotarse sistemáticamente.
 
 El término drift estimado de aproximadamente 0.44 USD diarios no debe interpretarse como predicción de rendimiento futuro garantizado, sino como captura de la tendencia histórica durante el período específico de entrenamiento, que coincidió con la recuperación posterior a 2022 y el rally impulsado por inteligencia artificial. Cambios en el régimen de mercado invalidarían este supuesto de tendencia constante.
 
