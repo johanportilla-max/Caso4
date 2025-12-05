@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
   toc.appendChild(list);
 
   // 3. GENERAR ENLACES BASADOS EN H1 y H2
-  const headers = document.querySelectorAll("h1, h2");
+  const headers = document.querySelectorAll("h2");
   
   headers.forEach(header => {
     // Si el header no tiene ID, creamos uno limpio
@@ -2987,7 +2987,7 @@ el mercado espera, 25% de retorno anualizado durante este período. Y permite mo
   <strong style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PROGRAMA:</strong> Ingeniería Industrial<br>
   
   <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(124, 58, 237, 0.3);">
-    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ESTUDIANTE:</strong> Camilo<br>
+    <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ESTUDIANTE:</strong> Portilla Aguirre Johan Camilo (2422468), Barros Rayo Alejandro (2415837), Muñoz Portela Diego Fernando (2415620)<br>
     <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">FECHA ENTREGA:</strong> <span id="fecha-entrega"></span><br>
     <strong style="background: linear-gradient(135deg, #06b6d4, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">VERSIÓN:</strong> 1.0<br>
   </div>
