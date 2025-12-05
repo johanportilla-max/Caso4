@@ -1060,20 +1060,27 @@ library(moments)
 library(packcircles)
 library(tidyr)
 library(lubridate)
-
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="2010-01-01")
 precios <- serie$QQQ.Close
-
 datos_qqq <- data.frame(
   Fecha = index(precios),
   Precio = as.numeric(precios)
 )
+datos_qqq <- datos_qqq %>%
+  mutate(Corte = as.Date(Fecha)) 
+lista_frames <- lapply(unique(datos_qqq$Corte), function(c) {
+  dt <- datos_qqq[datos_qqq$Corte <= c, ]
+  dt$Frame <- as.character(c) 
+  return(dt)
+})
 
-datos_qqq$Frame <- as.character(datos_qqq$Fecha)
-
-p <- ggplot(datos_qqq, aes(x = Fecha, y = Precio)) +
-  geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1) +
+datos_animados <- dplyr::bind_rows(lista_frames)
+p <- ggplot(datos_animados, aes(x = Fecha, y = Precio)) +
+  
+  geom_area(aes(frame = Frame), fill = tesla_pal$primary, alpha = 0.1, position = "identity") +
+  
   geom_line(aes(frame = Frame), color = tesla_pal$primary, size = 0.8) +
+  
   labs(
     title = "Evolución Dinámica del QQQ",
     subtitle = "Crecimiento histórico acumulado",
@@ -1091,8 +1098,14 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
     font = list(family = "Inter, sans-serif", color = tesla_pal$text_gray),
     hovermode = "x unified"
   ) %>%
-  plotly::animation_opts(frame = 100, transition = 0, redraw = FALSE) %>%
-  plotly::animation_slider(currentvalue = list(prefix = "Fecha: ")) %>%
+  plotly::animation_opts(
+    frame = 100,       
+    transition = 0,    
+    redraw = FALSE     
+  ) %>%
+  plotly::animation_slider(
+    currentvalue = list(prefix = "Periodo: ") 
+  ) %>%
   plotly::config(displayModeBar = FALSE)
 
 ```
