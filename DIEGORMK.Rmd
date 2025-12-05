@@ -1684,7 +1684,7 @@ nombres_map <- c(
   "IWM" = "IWM (Small Caps)"
 )
 
-datos_comp <- tq_get(tickers, get = "stock.prices", from = "1999-05-01")
+datos_comp <- tq_get(tickers, get = "stock.prices", from = "2010-01-01")
 datos_norm <- datos_comp %>%
   group_by(symbol) %>%
   mutate(
