@@ -692,9 +692,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
 ```
 ```{r setup-theme, include=FALSE}
-library(ggplot2)
-library(forecast)
+
+library(tidyverse)
+library(quantmod)
+library(xts)
+library(fpp2)
 library(tseries)
+library(scales)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
+library(forecast)
+library(ggplot2)
+library(zoo)
+library(plotly)
+library(tidyquant)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(scales)
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.width = 12,
+  fig.height = 6
+)
+
+qqq_pal <- list(
+  bg        = "#ffffff",
+  text_dark = "#1f2937",
+  text_gray = "#4b5563",
+  primary   = "#00b894",
+  secondary = "#06b6d4",
+  positive  = "#84cc16",
+  negative  = "#e17055",
+  grid      = "#f3f4f6"
+)
+
+theme_QQQ <- function() {
+  theme_minimal(base_size = 14) +
+    theme(
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      text = element_text(color = qqq_pal$text_dark, family = "sans"),
+      plot.title = element_text(face = "bold", size = 16, color = qqq_pal$text_dark, margin = margin(b = 10)),
+      plot.subtitle = element_text(size = 12, color = qqq_pal$secondary, margin = margin(b = 10)),
+      plot.caption = element_text(size = 9, color = qqq_pal$text_gray, margin = margin(t = 10)),
+      axis.title = element_text(face = "bold", size = 11, color = qqq_pal$text_gray),
+      axis.text = element_text(size = 10, color = qqq_pal$text_gray),
+      axis.line.x = element_line(color = qqq_pal$secondary, size = 0.5),
+      panel.grid.major = element_line(color = qqq_pal$grid, linetype = "dashed"),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom",
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.key = element_rect(fill = "transparent", color = NA)
+    )
+}
+
+theme_set(theme_QQQ())
+update_geom_defaults("line", list(color = qqq_pal$primary, size = 1.1))
+update_geom_defaults("point", list(color = qqq_pal$secondary, size = 2))
+update_geom_defaults("col", list(fill = qqq_pal$primary, color = NA))
 
 tesla_pal <- list(
   bg        = "#ffffff",    # Tu --bg-li
@@ -727,47 +789,300 @@ theme_tesla <- function() {
     )
 }
 
-theme_set(theme_tesla())
-
-update_geom_defaults("line", list(color = tesla_pal$primary, size = 1.1))
-update_geom_defaults("point", list(color = tesla_pal$secondary, size = 2))
-update_geom_defaults("col", list(fill = tesla_pal$primary, color = NA))
 
 ```
 ---
 
-# Análisis de Series de Tiempo y Pronósticos ARIMA
-
-Estudio Empírico sobre el Precio de Acciones de Tesla Inc.
-
----
-
 # 1. Introducción
 
-## 1.1 Relevancia del Análisis
+La capacidad de anticipar el comportamiento futuro de los precios en los mercados financieros constituye uno de los elementos centrales para la toma de decisiones de inversión estratégicas y la gestión eficiente de portafolios. En el contexto de los mercados bursátiles globales, donde la incertidumbre es inherente y los patrones de precios reflejan complejas dinámicas de oferta y demanda, el desarrollo de modelos predictivos robustos cobra particular relevancia para inversionistas, analistas financieros y gestores de cartera.
 
+El Invesco $QQQ Trust$ (QQQ) es uno de los fondos cotizados en bolsa (ETF) más negociados a nivel mundial, con activos bajo gestión superiores a los 400 mil millones de dólares. Este instrumento replica el índice $Nasdaq-100$, compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con una fuerte concentración en el sector tecnológico que incluye líderes como $Apple$, $Microsoft$, $NVIDIA$, $Amazon$ y $Alphabet$. Entre 2009 y 2019, el $QQQ$ se benefició significativamente de las economías de escala en software, el auge de los smartphones y el desarrollo de ecosistemas tecnológicos integrados. Esta composición convierte al $QQQ$ en un referente para analizar el comportamiento del sector tecnológico estadounidense y, por extensión, las tendencias de innovación que impulsan la economía global.
 
+La importancia de modelar series de precios como la del QQQ radica en múltiples factores. En primer lugar, los pronósticos financieros juegan un papel fundamental en la formación de expectativas de mercado e influyen directamente en las decisiones de inversión, la asignación de activos y la evaluación de riesgos. En segundo lugar, el análisis cuantitativo de series temporales permite identificar patrones y comportamientos que proporcionan información valiosa para diseñar estrategias de inversión más fundamentadas. La predicción específica del $QQQ$ es particularmente importante porque replica el índice $Nasdaq-100$, concentrado en empresas tecnológicas líderes en desarrollo de inteligencia artificial, computación en la nube y ecosistemas digitales innovadores. Dado que el sector tecnológico representa uno de los mercados emergentes y con mayor potencial de crecimiento en la economía global, predecir el comportamiento del $QQQ$ permite anticipar tendencias en innovación, evaluar correctamente la valuación de activos tecnológicos y gestionar la exposición al riesgo en un sector de alta volatilidad que impulsa transformaciones estructurales en la economía mundial.
 
-## 1.2 Metodología: Modelos ARIMA
+En este contexto, los modelos $ARIMA$ (AutoRegressive Integrated Moving Average) se han consolidado como uno de los enfoques más utilizados para el pronóstico de series de tiempo, junto con los modelos de suavizado exponencial. Mientras que los modelos de suavizado exponencial se basan en una descripción de la tendencia y la estacionalidad en los datos, los modelos $ARIMA$ tienen como objetivo describir las autocorrelaciones presentes en la serie. Estos modelos integran tres componentes fundamentales: el componente autorregresivo (AR), que pronostica la variable de interés utilizando una combinación lineal de sus valores pasados; el componente de integración (I), que transforma series no estacionarias en estacionarias mediante la aplicación de diferencias sucesivas; y el componente de media móvil (MA), que utiliza errores de pronóstico pasados en un modelo similar a la regresión.
 
+Un aspecto fundamental previo al ajuste de modelos $ARIMA$ es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación ACF de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
+
+El presente estudio emplea datos históricos del ETF $QQQ$ obtenidos de Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre de 2025, con un total de 791 observaciones diarias de precios de cierre. Durante este período, el precio del $QQQ$ fluctuó entre un mínimo de \$260.10 y un máximo de \$635.77, con un precio promedio de \$435.84 y una desviación estándar de \$97.95. El rendimiento acumulado del período alcanzó un notable 131.14%, reflejando la fuerte recuperación del sector tecnológico tras el mercado bajista de 2022 y el impulso generado por desarrollos en inteligencia artificial. La volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%, característica de instrumentos con alta exposición al sector tecnológico.
+
+El análisis incluye la verificación de supuestos estadísticos fundamentales: evaluación de estacionariedad mediante la prueba de $Dickey-Fuller$ Aumentada y análisis gráfico de las funciones de autocorrelación (ACF) y autocorrelación parcial (PACF), la selección del modelo óptimo utilizando criterios de información (AICc), y la validación diagnóstica de residuos para confirmar que se comporten como ruido blanco. Se comparan múltiples especificaciones $ARIMA$, incluyendo el modelo seleccionado automáticamente mediante la función `auto.arima` y configuraciones alternativas sugeridas por el análisis de los gráficos $ACF$ y $PACF$, reconociendo que aunque la automatización es útil, "cualquier cosa automatizada puede ser un poco peligrosa, y vale la pena entender algo sobre el comportamiento de los modelos".
 
 ---
 
-# 2. Análisis descriptivo
+# 2. Metodología
+
+La metodología adoptada sigue el procedimiento estándar de modelamiento de series temporales propuesto en la literatura Box-Jenkins: se particiona el conjunto de datos en un conjunto de entrenamiento destinado a la estimación de parámetros y validación de modelos candidatos, y un conjunto de prueba para evaluar la capacidad predictiva fuera de muestra. Este diseño respeta la naturaleza secuencial de datos financieros, evitando la fuga de información que comprometería la validez de los pronósticos.
+
+---
+
+## 2.1 Base de Datos
+
+La base de datos utilizada proviene de Yahoo Finance, plataforma reconocida globalmente para obtención de datos financieros históricos de alta calidad y frecuencia diaria. Se extrajo información del ETF Invesco QQQ Trust (símbolo: QQQ), el cual replica el índice Nasdaq-100 compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con fuerte concentración en sector tecnológico (Apple, Microsoft, NVIDIA, Amazon, Alphabet, Tesla, Meta).
+
+La extracción se realizó mediante la función `getSymbols()` del paquete `quantmod` de R, automatizando la descarga directa desde fuente oficial. El período de estudio abarca desde 7 de octubre de 2022 hasta 2 de diciembre de 2025, capturando 791 observaciones diarias de precios de cierre. Este período es particularmente informativo: incluye recuperación post-crisis 2022, impulso del rally de inteligencia artificial (2023-2025), cambios en política monetaria de la Reserva Federal, y volatilidad estructural del sector tecnológico.
+
+```{r cargar-datos, echo=TRUE}
+
+serie_QQQ <- getSymbols("QQQ", src="yahoo", auto.assign=FALSE, from="2015-01-01") 
+Precio <- serie_QQQ$`QQQ.Close`
+
+```
+
+---
+
+## 2.2 Variable de Análisis
+
+El dataset se centra en una única variable cuantitativa de interés: **precio de cierre diario del ETF QQQ**. Esta variable representa el último precio de negociación durante cada sesión bursátil y es la medida estándar en análisis técnico y modelización de series financieras.
+
+La elección del precio de cierre se fundamenta en que: (i) refleja el consenso del mercado al finalizar cada sesión, incorporando información completa del día; (ii) es el referente para cálculo de rendimientos y valoración de portafolios; (iii) es utilizado en la mayoría de indicadores técnicos y modelos predictivos; (iv) su disponibilidad es consistente sin interrupciones en días hábiles.
+
+---
+
+## 2.3 Partición Temporal de Datos
+
+En análisis de series temporales, la partición de datos debe respetar el orden cronológico, diferenciándose fundamentalmente de validación cruzada aleatoria. La estrategia implementada divide la serie en dos subconjuntos contiguos:
+
+- **Conjunto de Entrenamiento:** Comprende la mayoría de observaciones históricas (aproximadamente 95% de datos), utilizado para identificar parámetros óptimos del modelo ARIMA, estimar coeficientes y evaluar criterios de información.
+
+- **Conjunto de Prueba:** Representa período posterior no utilizado durante ajuste (aproximadamente 5% de datos), destinado a evaluar capacidad predictiva en escenario realista de pronóstico.
+
+Esta metodología es esencial porque: (i) evita "fuga de información" (data leakage) donde datos futuros influirían en predicción del pasado; (ii) mantiene estructura cronológica respetando dependencias temporales inherentes a series financieras; (iii) simula condiciones reales donde pronósticos se generan sin conocimiento de valores posteriores; (iv) proporciona métricas objetivas de desempeño ex-post que validan capacidad predictiva genuina.
+
+---
+
+## 2.4 Marco Conceptual: Modelos ARIMA(p,d,q)
+
+Los modelos ARIMA (AutoRegressive Integrated Moving Average), desarrollados por Box y Jenkins en 1970, constituyen metodología sistemática y robusta para análisis y pronóstico de series temporales. Se fundamentan en la idea de que el valor actual de una serie puede explicarse mediante: (i) sus valores históricos (componente autorregresivo), (ii) transformaciones que alcancen estacionariedad (componente integrador), o (iii) errores de pronóstico pasados (componente de media móvil).
+
+A diferencia de modelos de regresión que requieren variables explicativas externas, los modelos ARIMA son **univariados**, extrayendo toda información predictiva de la propia historia de la serie. Esta característica los hace especialmente valiosos en contextos financieros donde no se dispone de predictores externos confiables, o donde el objetivo es capturar dinámicas intrínsecas de evolución temporal.
+
+### 2.4.1 Componente Autorregresivo AR(p)
+
+El modelo AR(p) pronostica la variable utilizando combinación lineal de sus valores pasados:
+
+$$y_t = c + \phi_1 y_{t-1} + \phi_2 y_{t-2} + \cdots + \phi_p y_{t-p} + \varepsilon_t$$
+
+donde:
+- $y_t$ es el valor de la serie en tiempo $t$
+- $c$ es constante (intercepto o drift)
+- $\phi_1, \phi_2, \ldots, \phi_p$ son coeficientes autorregresivos que miden influencia de cada rezago
+- $\varepsilon_t$ es término de error (ruido blanco) con $E[\varepsilon_t]=0$ y varianza $\sigma^2$ constante
+
+El coeficiente $\phi_1$ en AR(1) indica **persistencia de la serie**: valores cercanos a 1 implican alta persistencia (shocks tienen efectos duraderos), mientras que valores cercanos a 0 indican reversión rápida a media. Para que modelo sea estacionario, los coeficientes deben satisfacer restricciones específicas (raíces del polinomio característico fuera del círculo unitario).
+
+La interpretación económica es que si una serie ha estado elevada en período anterior, tiende a permanecer elevada actualmente, capturando inercia o persistencia en comportamiento de variable.
+
+### 2.4.2 Componente de Media Móvil MA(q)
+
+El modelo MA(q) utiliza errores de pronóstico pasados en lugar de valores históricos de variable:
+
+$$y_t = c + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \cdots + \theta_q \varepsilon_{t-q}$$
+
+donde $\theta_1, \ldots, \theta_q$ son coeficientes de media móvil.
+
+La interpretación económica es que shocks o sorpresas en serie tienen efectos **transitorios** que se disipan gradualmente. Esto captura comportamientos donde precios regresan a nivel promedio tras perturbación, en lugar de permanecer desplazados permanentemente. En contextos financieros, MA modela la reversión a media que caracteriza a mercados relativamente eficientes en corto plazo.
+
+### 2.4.3 Componente de Integración I(d)
+
+Muchas series económicas y financieras **no son estacionarias** en forma original, presentando tendencias, medias cambiantes, o varianzas no constantes. Una serie estacionaria tiene propiedades estadísticas (media, varianza, autocovarianzas) invariantes en tiempo; una serie no-estacionaria exhibe comportamientos dependientes del momento observado.
+
+El componente de integración aborda esto mediante **diferenciación**, transformación que calcula cambios entre observaciones consecutivas:
+
+$$y'_t = y_t - y_{t-1} = \Delta y_t$$
+
+Esta operación (primera diferencia) elimina tendencias lineales y estabiliza media. Si una diferencia es insuficiente para estacionariedad, se aplica segunda diferencia:
+
+$$y''_t = y'_t - y'_{t-1} = \Delta^2 y_t$$
+
+El parámetro $d$ indica número de diferencias necesarias para que serie se vuelva estacionaria. Una serie que requiere $d$ diferencias se denomina "integrada de orden $d$", denotada I(d). En práctica, rara vez se requieren más de dos diferencias; para series financieras como precios de activos, típicamente $d=1$ es suficiente.
+
+### 2.4.4 Formulación Compacta con Operador de Rezago
+
+Combinando los tres componentes, el modelo ARIMA(p,d,q) se expresa compactamente usando operador de rezago $B$ (donde $B y_t = y_{t-1}$):
+
+$$\Phi(B)(1-B)^d y_t = c + \Theta(B) \varepsilon_t$$
+
+donde:
+- $\Phi(B) = 1 - \phi_1 B - \phi_2 B^2 - \cdots - \phi_p B^p$ es polinomio autorregresivo
+- $(1-B)^d$ es operador de diferenciación aplicado $d$ veces
+- $\Theta(B) = 1 + \theta_1 B + \theta_2 B^2 + \cdots + \theta_q B^q$ es polinomio de media móvil
+
+Esta representación facilita análisis teórico y derivación de propiedades estadísticas. Su elegancia radica en capturar dinámicas complejas mediante combinación sistemática de componentes que actúan en niveles distintos: AR modela persistencia, MA modela efectos de shocks transitorios, I transforma serie hacia propiedades deseadas.
+
+### 2.4.5 Supuestos Fundamentales del Modelo
+
+Para que inferencias y pronósticos derivados de ARIMA sean válidos y confiables, deben cumplirse supuestos sobre naturaleza de serie y sus residuos:
+
+1. **Estacionariedad:** Serie temporal debe presentar estacionariedad en media y varianza, i.e., propiedades estadísticas permanecen aproximadamente constantes en tiempo. Esto asegura que relaciones identificadas entre observaciones son estables y predecibles, en lugar de resultado de tendencias determinísticas no modeladas.
+
+2. **Ruido Blanco en Residuos:** Los residuos del modelo ajustado deben comportarse como secuencia aleatoria e independiente sin patrones sistemáticos. Si residuos contienen estructura, sugiere que modelo no ha capturado completamente dinámica temporal, requiriendo respecificación.
+
+3. **Homocedasticidad:** Se asume que errores tienen varianza constante a través del tiempo. Violaciones (heteroscedasticidad o volatilidad que cambia en tiempo) comprometen precisión de intervalos de confianza.
+
+4. **Normalidad de Residuos:** Aunque no es estrictamente necesaria para estimación del modelo, la normalidad es deseable para construcción precisa de intervalos de confianza y validez de pruebas de hipótesis sobre parámetros.
+
+---
+
+## 2.5 Herramientas Estadísticas para Identificación y Validación
+
+### 2.5.1 Prueba Aumentada de Dickey-Fuller (ADF)
+
+La estacionariedad es requisito previo fundamental antes de modelización ARIMA. Una serie no-estacionaria produciría inferencias engañosas y pronósticos poco confiables.
+
+La **Prueba Aumentada de Dickey-Fuller (ADF)** es contraste estadístico estándar para evaluación formal. Contrasta:
+- $H_0$: Serie tiene raíz unitaria (no-estacionaria)
+- $H_1$: Serie es estacionaria
+
+El resultado de esta prueba determina el orden de integración $d$: si serie original rechaza $H_0$ (p-valor < 0.05), se procede a diferenciar y repetir hasta lograr estacionariedad. El estadístico ADF compara contra valores críticos tabulados; si estadístico de prueba es más negativo que valor crítico (mayor en magnitud), se rechaza $H_0$.
+
+### 2.5.2 Funciones de Autocorrelación: ACF y PACF
+
+Las funciones de autocorrelación proporcionan **diagnóstico visual** fundamental para entender patrones de dependencia temporal y sugerir especificaciones ARIMA iniciales.
+
+**Función de Autocorrelación (ACF):** Cuantifica correlación lineal entre observaciones separadas por rezagos 1, 2, ..., k. Su comportamiento es diagnóstico:
+- En series estacionarias: ACF decae gradualmente hacia cero
+- En series no-estacionarias: ACF persiste en valores altos durante muchos rezagos
+
+Para identificación de modelo, ACF es especialmente útil para distinguir procesos MA(q): un corte abrupto después de rezago $q$ (i.e., autocorrelaciones significativas hasta lag $q$ luego caen a cero dentro de bandas) sugiere componente MA(q).
+
+**Función de Autocorrelación Parcial (PACF):** Elimina influencia de rezagos intermedios, aislando efecto directo de cada rezago sobre presente. Es especialmente informativa para identificar procesos AR(p): un corte abrupto después de rezago $p$ sugiere componente AR(p).
+
+El análisis combinado de ACF y PACF proporciona indicios valiosos sobre especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
+
+### 2.5.3 Búsqueda Automática: Función auto.arima()
+
+En práctica moderna, la función `auto.arima()` automatiza gran parte del proceso de identificación mediante algoritmos de búsqueda sistemática. Realiza búsqueda sobre rango especificado de valores para $p$, $d$ y $q$, evaluando cada combinación mediante criterios de información como AICc.
+
+Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por ello, resulta valioso complementar búsqueda automática con análisis visual de ACF/PACF, permitiendo que teoría económica y conocimiento del dominio del problema informen especificación final.
+
+### 2.5.4 Criterios de Selección del Modelo: AICc
+
+Cuando múltiples especificaciones ARIMA son candidatas, es necesario criterio objetivo para elegir entre ellas. Los **criterios de información** cumplen este rol al balancear calidad del ajuste con complejidad del modelo.
+
+El **AICc (Criterio de Información de Akaike Corregido)** es criterio más utilizado en práctica para selección de modelos ARIMA. Evalúa verosimilitud del modelo (qué tan bien se ajusta a datos) y aplica penalización por agregar parámetros adicionales, reduciendo tendencia al sobreajuste. Su fórmula es:
+
+$$\text{AICc} = \text{AIC} + \frac{2(p+q+k+1)(p+q+k+2)}{T-p-q-k-2}$$
+
+donde:
+- $T$ es número de observaciones
+- $p$ y $q$ son órdenes del modelo ARIMA
+- $k$ es número de parámetros adicionales (como constante)
+
+El término adicional respecto al AIC clásico corrige sesgo que ocurre en muestras pequeñas. **Especificaciones con menor AICc son preferibles**, indicando mejor balance entre ajuste y parsimonia.
+
+**Aspecto crítico:** Criterios de información NO son aplicables para seleccionar orden de diferenciación $d$, pues diferenciación altera escala de datos sobre cual se computa verosimilitud, haciendo valores de AICc no comparables entre modelos con diferente $d$. Por ello, parámetro $d$ se determina primero mediante pruebas de estacionariedad (ADF), y AICc se utiliza posteriormente para optimizar órdenes $p$ y $q$.
+
+### 2.5.5 Diagnóstico de Residuos: Prueba de Ljung-Box
+
+Después de ajustar modelo ARIMA específico, es necesario verificar que modelo haya capturado adecuadamente estructura temporal.
+
+La **Prueba de Ljung-Box** es contraste estadístico que evalúa si existe autocorrelación significativa en residuos. Contrasta:
+- $H_0$: Residuos son ruido blanco independiente (sin autocorrelación)
+- $H_1$: Residuos contienen autocorrelación significativa
+
+Si residuos conservan autocorrelación, es señal de que modelo especificado no ha extraído completamente información temporal disponible, requiriendo respecificación con órdenes más altos. Un p-valor elevado (> 0.05) indica que residuos se comportan consistentemente con ruido blanco, suministrando confianza en que modelo ha cumplido su propósito de modelar adecuadamente dinámica temporal de serie.
+
+---
+
+## 2.6 Procedimiento Metodológico: Metodología Box-Jenkins
+
+La metodología Box-Jenkins propone proceso iterativo sistemático para modelización ARIMA. El procedimiento implementado en este análisis sigue estos pasos secuenciales:
+
+### Paso 1: Determinación del Orden de Integración (d)
+
+Se evalúa estacionariedad de serie mediante pruebas formales (ADF) y análisis visual de ACF. Se identifica número de diferencias necesarias para que serie se vuelva estacionaria:
+- Si serie original es estacionaria: $d=0$
+- Si primera diferencia es estacionaria: $d=1$
+- Si segunda diferencia es estacionaria: $d=2$
+
+El parámetro $d$ es determinado independientemente de $p$ y $q$, antes de cualquier comparación de criterios de información.
+
+### Paso 2: Análisis Exploratorio de ACF y PACF
+
+Se examinan gráficos de autocorrelación para serie potencialmente diferenciada, obteniendo sugerencias preliminares sobre órdenes $p$ y $q$:
+- Si ACF corta abruptamente en lag $q$: sugiere MA(q)
+- Si PACF corta abruptamente en lag $p$: sugiere AR(p)
+- Si ambos decaen gradualmente: sugiere proceso mixto ARMA(p,q)
+
+### Paso 3: Identificación de Modelos Candidatos
+
+Se identifican especificaciones ARIMA plausibles basadas en:
+- Análisis visual de ACF/PACF
+- Búsqueda automática mediante `auto.arima()`
+- Consideraciones de parsimonia (preferir modelos simples)
+- Teoría económica/financiera sobre comportamiento de variable
+
+Se ajustan múltiples modelos candidatos con diferentes combinaciones de $(p,d,q)$.
+
+### Paso 4: Estimación Comparativa y Selección
+
+Se comparan especificaciones mediante:
+- Criterios de información (AICc, AIC, BIC)
+- Métricas de precisión en datos de entrenamiento (RMSE, MAE, MAPE)
+- Principio de parsimonia: preferir modelos más simples si diferencias en ajuste son marginales
+
+Se selecciona modelo que balancéa mejor ajuste con complejidad.
+
+### Paso 5: Validación Diagnóstica de Residuos
+
+Se examinan residuos del modelo seleccionado mediante:
+- Análisis gráfico temporal de residuos (verificar media cero, varianza constante)
+- Gráfico de ACF de residuos (verificar ausencia de autocorrelación)
+- Q-Q plot (verificar aproximación a normalidad)
+- Prueba de Ljung-Box (verificar formalmente que residuos son ruido blanco)
+
+Si residuos no se comportan como ruido blanco, se regresa a Paso 3 para respecificación.
+
+### Paso 6: Generación de Pronósticos
+
+Una vez validado modelo, se procede a:
+- Pronósticos puntuales sobre conjunto de prueba
+- Intervalos de confianza (típicamente 95%) que cuantifican incertidumbre
+- Evaluación ex-post comparando predicciones contra valores reales observados
+
+---
+
+## 2.7 Métricas de Evaluación del Desempeño Predictivo
+
+Para evaluar objetivamente precisión de pronósticos generados por modelo ARIMA en conjunto de prueba, se emplean métricas cuantitativas estándar:
+
+**RMSE (Root Mean Squared Error):**
+
+$$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{t=1}^{n} (\hat{y}_t - y_t)^2}$$
+
+Amplifica penalizaciones sobre errores grandes, siendo sensible a presencia de valores atípicos en errores de pronóstico. Útil para identificar si modelo comete errores sistemáticamente grandes en algún período.
+
+**MAE (Mean Absolute Error):**
+
+$$\text{MAE} = \frac{1}{n} \sum_{t=1}^{n} |\hat{y}_t - y_t|$$
+
+Proporciona medida de error promedio menos sensible a outliers que RMSE, ofreciendo perspectiva más robusta de desempeño general. Tiene interpretación directa: en promedio, predicciones desviación esta cantidad del valor real.
+
+**MAPE (Mean Absolute Percentage Error):**
+
+$$\text{MAPE} = \frac{100}{n} \sum_{t=1}^{n} \left| \frac{y_t - \hat{y}_t}{y_t} \right|$$
+
+Expresa error como porcentaje relativo del valor observado, permitiendo comparabilidad del desempeño independientemente de magnitud absoluta de valores predichos. Especialmente útil en contextos financieros donde escala de precios varía.
+
+**Cobertura de Intervalos de Confianza:**
+
+Se evalúa proporción de valores reales que caen dentro de intervalos de confianza predichos (típicamente 95%). Una calibración correcta sugiere que incertidumbre fue estimada apropiadamente; demasiadas observaciones fuera del intervalo sugiere que modelo subestimó volatilidad.
+
+---
+
+
+# 3. Análisis descriptivo
 
 En esta sección se presenta un análisis descriptivo exhaustivo de la serie histórica del ETF QQQ (Invesco QQQ Trust) —utilizado aquí como proxy del desempeño conjunto de las empresas del Nasdaq-100— recuperada programáticamente desde Yahoo Finance. La serie cubre desde el 1 de mayo de 1999 hasta 2025 y trabaja en frecuencia diaria; la variable base es el precio de cierre ajustado, a partir del cual se calculan rendimientos, logarítmicos diarios, mensuales y anuales, así como medidas de riesgo y desempeño.
 El propósito central de este bloque es ofrecer una visión integrada y reproducible de (i) la evolución temporal acumulada del precio del QQQ, (ii) la estructura actual del instrumento —por sectores y principales holdings— y (iii) un conjunto de estadísticas descriptivas y métricas financieras que cuantifiquen nivel, dispersión, asimetría, colas y riesgos extremos. 
 Las visualizaciones incluyen gráficos interactivos para facilitar la exploración temporal, un gráfico de asignación sectorial, un diagrama de empaquetamiento circular para las mayores participaciones, histogramas y densidades de retornos, boxplots por año, heatmap estacional mensual y comparaciones normalizadas frente a otros ETFs de mercado . Además, se presenta un resumen anual con volatilidad y drawdown por año para identificar episodios de estrés y recuperación, así como una cronología de hitos tecnológicos relevantes que permite contextualizar inflexiones recientes en la dinámica del QQQ.
 La interpretación de los resultados prioriza tres ejes: nivel y tendencia de largo plazo, dinámica de riesgo (volatilidad y drawdowns) y concentración (sectorial y por holdings), con el objetivo de brindar una base sólida para cualquier análisis inferencial o de modelado posterior.
 
-## 2.1.1 serie QQQ historica 
+## 3.1.1 serie QQQ historica 
 
 ```{r serie, echo=TRUE, warning=FALSE, message=FALSE}
-library(tidyquant)
-library(tidyverse)
-library(ggplot2)
-library(zoo)
-library(plotly)
 
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="1999-05-01")
 precios <- serie$QQQ.Close
@@ -821,7 +1136,7 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
 
 La evolución histórica del QQQ muestra una tendencia alcista secular con crecimiento claramente exponencial: el precio ha pasado de niveles inferiores a los 100 USD en el año 2000 a superar los 600 USD en 2025, revelando una dinámica de crecimiento compuesto que justifica el uso de rendimientos logarítmicos para evitar distorsiones visuales y estadísticas en series con fuerte convexidad (Tsay, 2010). A lo largo de esta trayectoria se observan episodios de estrés que estructuran la narrativa de riesgo: el colapso de la Burbuja Dot-Com (2000–2002), cuyo drawdown tardó más de una década en recuperarse, constituye un ejemplo prototípico de riesgo de cola y rupturas prolongadas de tendencia (Malkiel, 2003); la Crisis Financiera de 2008 introduce un segundo punto de inflexión, seguido años después por la corrección de 2022 asociada al ciclo de aumentos de tasas de la Reserva Federal. Estos episodios confirman que la volatilidad no es constante, sino que se concentra en periodos específicos, tal como lo sugiere la literatura clásica sobre colas pesadas y agrupamiento de volatilidad (Mandelbrot, 1963), lo que respalda el uso de densidades de retornos, métricas de drawdown y boxplots anuales como parte del análisis descriptivo. En el extremo derecho del gráfico —el periodo 2023-2025— aparece una aceleración sin precedentes atribuible al auge de la inteligencia artificial generativa, fenómeno coherente con la “cronología de hitos tecnológicos” mencionada en el análisis y con la marcada concentración del QQQ en mega-caps como NVIDIA, Microsoft y Apple, cuya participación desproporcionada impulsa el índice (Invesco, 2024). En conjunto, la trayectoria refleja una combinación de convexidad positiva de largo plazo, episodios de estrés profundos y una creciente concentración tecnológica, elementos que explican simultáneamente su alto retorno histórico y su exposición a volatilidad extrema.
 
-## 3.1 Resumen anual retornos
+## 4.1 Resumen anual retornos
 
 ```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(dplyr)
@@ -874,7 +1189,7 @@ La década posterior (2009–2019) ilustra la "Era Dorada" del crecimiento tecno
 
 Finalmente, el periodo más reciente (2023–2025) evidencia una recuperación vigorosa y rápida, con retornos del 43.04% en 2023 y 22.18% en 2024, impulsados por el cambio de paradigma hacia la Inteligencia Artificial Generativa. Aunque la volatilidad se ha moderado respecto a 2022 (descendiendo al rango del 17-24%), se mantiene por encima de los mínimos de la década anterior, lo que sugiere que el mercado actual opera bajo una nueva estructura de riesgo, dependiente de la concentración en mega-caps y las expectativas de productividad futura de la IA. En conjunto, la tabla demuestra que la capacidad del QQQ para generar riqueza a largo plazo (CAGR positivo) está intrínsecamente ligada a la tolerancia del inversor para soportar periodos de volatilidad extrema y drawdowns profundos que actúan como el costo de entrada al crecimiento exponencial del sector.
 
-## 2.1.2 División sectorial 
+## 3.1.2 División sectorial 
 
 
 ```{r tortA, echo=TRUE, warning=FALSE, message=FALSE}
@@ -934,7 +1249,7 @@ Esta preponderancia se ve magnificada por la correlación estratégica de los se
 
 Por el contrario, la participación marginal de sectores defensivos y anticíclicos —como Consumo Básico (5.02%), Salud (4.3%), Industriales (4.61%) y las asignaciones residuales en Servicios Públicos (1.39%) y Energía (0.473%)— sugiere que el QQQ carece de los "amortiguadores" tradicionales contra la volatilidad macroeconómica. Esta asimetría estructural dota al portafolio de una elevada duración de acciones implícita, haciéndolo mecánicamente vulnerable a las variaciones en la tasa de descuento (tasas de interés), una característica que explica la severidad de las correcciones observadas en 2022 cuando el costo del capital se incrementó (Bernstein, 1997).
 
-## 2.3 Mayores Holdings 
+## 3.3 Mayores Holdings 
 
 ```{r top10, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1034,7 +1349,7 @@ La distribución sectorial refuerza el sesgo hacia la innovación: las burbujas 
 Desde una perspectiva de gestión de riesgos, esta configuración explica la alta beta y la convexidad observada en la serie histórica: la correlación positiva entre estos pocos activos líderes amplifica tanto los rendimientos exponenciales en mercados alcistas como la severidad de los drawdowns en periodos de corrección, confirmando que la dinámica del QQQ está intrínsecamente ligada a la salud financiera y las expectativas de crecimiento de este selecto grupo de empresas (Sharpe, 1964).
 
 
-## 2.4 Análisis Estadístico precios
+## 3.4 Análisis Estadístico precios
 
 ```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
 library(moments)
@@ -1095,7 +1410,8 @@ La discrepancia sustancial entre la Media ($134.57) y la Mediana ($66.88) es el 
 El Rango de operación, que abarca desde un mínimo de $16.96 (el suelo tras el colapso del 2002) hasta un máximo histórico de $635.77 (el pico impulsado por la IA en 2025), cuantifica la convexidad del activo: una multiplicación del capital por más de 37 veces desde el valle hasta la cima. Esta dispersión masiva se captura en una Desviación Estándar de 141.17, una cifra que, en el contexto de niveles de precios, no debe leerse solo como riesgo, sino como una medida de la magnitud de la tendencia alcista (Trend Magnitude).
 
 Finalmente, la Curtosis de 4.42 (superior a 3, indicando una distribución leptocúrtica) en la serie de precios sugiere que el QQQ tiende a operar en los extremos de su rango más de lo que predeciría una distribución normal. En términos de mercado, esto valida la existencia de "colas gruesas" en la valoración: el índice pasa periodos prolongados deprimido (como en 2002-2012) o periodos de euforia extendida (2020-2025), sin revertir rápidamente a la media histórica, comportamiento típico de los activos impulsados por la innovación tecnológica y los ciclos de adopción (Malkiel, 2003).
-## 2.5 Rendimientos Diarios
+
+## 3.5 Rendimientos Diarios
 
 ```{r tablarendimientos, echo=TRUE, warning=FALSE, message=FALSE}
 library(quantmod)
@@ -1123,7 +1439,7 @@ Al contrastar este dato con el análisis de la serie histórica, se evidencia qu
 
 En consecuencia, el nivel de 26.97% confirma la naturaleza del QQQ como un activo de alta beta y alta convexidad: ofrece la capacidad de captura de crecimiento exponencial observada en la tendencia de precios a largo plazo, pero exige al inversor tolerar una variabilidad sustancial impulsada por la sensibilidad del sector tecnológico a la tasa de descuento y a las revisiones de expectativas de crecimiento futuro (Sharpe, 1964; Black, 1976).
 
-## 2.6 Retornos Diarios
+## 3.6 Retornos Diarios
 
 ```{r tablaretrnosentos, echo=TRUE, warning=FALSE, message=FALSE}
 ret_df <- data.frame(Retorno = as.numeric(ret_diario))
@@ -1181,13 +1497,9 @@ En los años más recientes —2021 a 2024— se observa una volatilidad interme
 
 En conjunto, el gráfico confirma que los retornos diarios del QQQ mantienen una distribución típicamente estrecha con mediana cercana a cero, pero presentan explosiones periódicas de volatilidad asociadas a eventos macroeconómicos de gran escala. Este patrón es característico de series financieras: comportamiento estable la mayor parte del tiempo, interrumpido por episodios de turbulencia. Para el análisis de modelos ARIMA, esto es relevante porque estos picos de volatilidad pueden introducir heterocedasticidad y afectar la estabilidad del modelo, por lo que un análisis complementario de volatilidad (p. ej., GARCH) sería apropiado si el proyecto lo requiere.
 
-## 2.7 Rendimientos por año
+## 3.7 Rendimientos por año
 
 ```{r rendimientosaño, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-library(scales) 
 ret_anual_df <- data.frame(
   Año = year(index(ret_anual)),
   Retorno = round(100 * as.numeric(ret_anual), 2)
@@ -1239,7 +1551,7 @@ Finalmente, los años más recientes (2023–2025) exhiben retornos positivos mo
 
 En conjunto, el gráfico muestra que el QQQ es un activo con alto potencial de crecimiento, pero también con eventos periódicos de riesgo elevado, característica típica de los mercados tecnológicos. Este comportamiento es coherente con los patrones detectados en los boxplots y con la naturaleza no estacionaria de las series financieras, lo que justifica la importancia de técnicas como ARIMA para modelar tendencias (Box & Jenkins, 1976), complementadas —cuando sea necesario— con modelos de volatilidad como GARCH para capturar la heterocedasticidad inherente a este tipo de datos (Engle, 1982).
 
-## 2.8 Drawdown 
+## 3.8 Drawdown 
 
 ```{r drawdown, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 library(PerformanceAnalytics)
@@ -1272,7 +1584,7 @@ Finalmente, el periodo 2022–2023 muestra un nuevo episodio de drawdown profund
 
 En conjunto, el análisis del drawdown confirma la narrativa construida en los gráficos previos: el QQQ es un activo con un potencial de crecimiento extraordinario, pero con episodios recurrentes de caídas severas que pueden prolongarse en el tiempo. Este comportamiento hace evidente la naturaleza no estacionaria y heterocedástica de la serie, lo cual justifica el uso de modelos ARIMA para capturar tendencias y de modelos GARCH para describir la volatilidad condicional (Engle, 1982; Bollerslev, 1986). El drawdown, por tanto, complementa los análisis anteriores al mostrar no solo cuán fuerte cae el índice, sino cuánto tiempo tarda en recuperarse, un factor crítico en la gestión del riesgo financiero.
 
-## 2.9 Métricas Financieras 
+## 3.9 Métricas Financieras 
 
 ```{r metrics_financieras, echo=TRUE, warning=FALSE, message=FALSE}
 library(PerformanceAnalytics)
@@ -1346,7 +1658,7 @@ La discrepancia entre las ventanas de estimación de corto plazo (vol30, línea 
 
 En conclusión, este gráfico actúa como el eslabón que conecta la Asimetría estadística con el Max Drawdown histórico del 87.9%. Demuestra que la “volatilidad media” es una métrica engañosa para el QQQ, ya que el inversor rara vez experimenta el promedio; en su lugar, el activo transita entre largos periodos de volatilidad moderada y explosiones de riesgo extremo. Esta dinámica bimodal justifica plenamente la conclusión de las métricas financieras: la gestión de este activo requiere una tolerancia al riesgo excepcional, diseñada no para el promedio, sino para sobrevivir a los picos de varianza que definen su trayectoria a largo plazo (Mandelbrot, 1963; Bollerslev, 1986).
 
-## 3 Estacionalidad Mensual del QQQ (1999–2025)
+## 4 Estacionalidad Mensual del QQQ (1999–2025)
 
 ```{r heatmap_estacional_mejor, echo=TRUE, warning=FALSE, message=FALSE}
 library(ggplot2)
@@ -1589,57 +1901,1038 @@ Esta proliferación tecnológica ha sostenido el momentum del precio, validando 
 
 Finalmente, basándose en la evidencia visual y fundamental de la ruptura estructural provocada por la IA Generativa, se define el año 2022 como el punto de inicio para la ventana de entrenamiento del modelo predictivo. Incluir datos anteriores a esta fecha introduciría "ruido" en los parámetros del modelo, dado que la dinámica de precios de la década 2010-2020 respondía a un régimen de tasas cero y expansión móvil, estructuralmente distinto al actual entorno de tasas medias e inversión intensiva en IA. La literatura econométrica sobre cambios estructurales (Perron, 1989) sugiere que, tras un shock permanente de esta magnitud, los datos previos pierden capacidad predictiva. Por consiguiente, al restringir la muestra al periodo post-ChatGPT, el modelo capturará con mayor fidelidad la inercia (momentum) y la volatilidad específica del actual "superciclo de IA", optimizando la precisión de los pronósticos a corto plazo.
 
+---
 
+# 4. Resultados del Modelo ARIMA
 
-# 3. Resultados del Modelo ARIMA
+## 4.1 Partición de Datos
 
-## 3.1 Evaluación de Estacionariedad
+### 4.1.1 Estrategia Train/Test
 
-[**PLACEHOLDER:** Documenta pruebas de estacionariedad KPSS y ADF. Interpreta resultados]
+La aplicación de la estrategia de partición temporal al conjunto de datos del QQQ divide el período de análisis (octubre 2022 - presente) en dos subconjuntos contiguos que respetan el orden cronológico. El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en calendarios financieros y evita arbitrariedades en la selección del período de corte.
 
+El conjunto de entrenamiento comprende observaciones desde el 7 de octubre de 2022 hasta el 30 de septiembre de 2025, proporcionando una base robusta para estimación de coeficientes $ARIMA$, mientras que el conjunto de prueba abarca desde el 1 de octubre de 2025 hasta el presente, permitiendo validación con un horizonte de pronóstico consistente con estándares de análisis de corto plazo en mercados financieros (Hyndman & Athanasopoulos, 2021).
 
-
-## 3.2 Análisis ACF y PACF
-
-[**PLACEHOLDER:** Inserta gráficos ACF y PACF. Analiza patrones de autocorrelación]
-
-```{r acf, echo=TRUE, eval=FALSE}
-library(ggplot2)
-ggtsdisplay(diff(datos_tesla$Close))
+```{r particion-datos, echo=TRUE}
+Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
+Prueba <- window(Precio, start = "2025-10-01")
 ```
 
-## 3.3 Selección del Modelo
+### 4.1.2 Tabla Resumen: Observaciones por Conjunto
 
-[**PLACEHOLDER:** Documenta parámetros p, d, q seleccionados y justificación]
+```{r particion-tabla, echo=TRUE}
+particion_resumen <- data.frame(
+  Conjunto = c("Entrenamiento", "Prueba", "Total"),
+  Período = c(
+    "07-Oct-2022 → 30-Sep-2025",
+    "01-Oct-2025 → Presente",
+    "07-Oct-2022 → Presente"
+  ),
+  `Observaciones` = c(
+    length(Entrenamiento),
+    length(Prueba),
+    length(Entrenamiento) + length(Prueba)
+  ),
+  Porcentaje = c(
+    paste0(round(length(Entrenamiento)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    paste0(round(length(Prueba)/(length(Entrenamiento)+length(Prueba))*100, 1), "%"),
+    "100%"
+  ),
+  Propósito = c(
+    "Estimación y validación de modelo",
+    "Evaluación de capacidad predictiva",
+    ""
+  )
+)
 
-| Parámetro | Valor | Justificación |
-|:---|:--:|:---|
-| p | [ ] | [Basado en PACF] |
-| d | [ ] | [Basado en tests de estacionariedad] |
-| q | [ ] | [Basado en ACF] |
-
-## 3.4 Ajuste del Modelo
-
-[**PLACEHOLDER:** Resumen del modelo ARIMA ajustado con coeficientes interpretados]
-
-
-
-## 3.5 Diagnóstico de Residuos
-
-[**PLACEHOLDER:** Análisis de residuos: gráficos, pruebas de normalidad y autocorrelación]
-
-```{r residuos, echo=TRUE, eval=FALSE}
-checkresiduals(fit)
+kable(particion_resumen,
+      caption = "Resumen de Partición de Datos: Entrenamiento vs Prueba",
+      align = c("l", "c", "c", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(3, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark)
 ```
 
-## 3.6 Pronósticos
+El conjunto de entrenamiento contiene 746 observaciones diarias (aproximadamente 3 años de negociación), representando el 95% del total de datos disponibles. Este volumen es más que suficiente para identificar parámetros confiables de un modelo $ARIMA$ de complejidad moderada. El conjunto de prueba contiene 45 observaciones (aproximadamente 9 semanas de actividad bursátil), permitiendo validación con horizonte de pronóstico de al menos 10 días hábiles conforme lo requiere el análisis.
 
-[**PLACEHOLDER:** Pronósticos para períodos futuros con intervalos de confianza]
+### 4.1.3 Visualización: Serie con Partición 
 
-```{r forecast, echo=TRUE, eval=FALSE}
-forecast_tesla <- forecast(fit, h=10)
-autoplot(forecast_tesla)
+```{r grafico-particion, echo=TRUE, fig.height=6.5}
+df_train <- data.frame(
+  Fecha = index(Entrenamiento),
+  Precio = as.numeric(Entrenamiento),
+  Conjunto = "Entrenamiento"
+)
+
+df_test <- data.frame(
+  Fecha = index(Prueba),
+  Precio = as.numeric(Prueba),
+  Conjunto = "Prueba"
+)
+
+df_completo <- bind_rows(df_train, df_test)
+fecha_corte <- as.Date("2025-10-01")
+
+ggplot(df_completo, aes(x = Fecha, y = Precio)) +
+  geom_ribbon(data = df_train, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$primary, alpha = 0.08) +
+  geom_ribbon(data = df_test, 
+              aes(ymin = min(df_completo$Precio) * 0.95, ymax = Precio),
+              fill = qqq_pal$secondary, alpha = 0.15) +
+  geom_line(data = df_train, color = qqq_pal$primary, linewidth = 0.9) +
+  geom_line(data = df_test, color = qqq_pal$secondary, linewidth = 1.1) +
+  geom_vline(xintercept = fecha_corte, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.8) +
+  annotate("text", x = fecha_corte, y = max(df_completo$Precio) * 1.02,
+           label = "Corte: 01-Oct-2025", hjust = -0.05, vjust = 0,
+           color = qqq_pal$negative, fontface = "bold", size = 3.5) +
+  annotate("label", 
+           x = as.Date("2024-01-01"), 
+           y = max(df_completo$Precio) * 0.85,
+           label = paste0("ENTRENAMIENTO\n", nrow(df_train), " observaciones"),
+           fill = qqq_pal$primary, color = "white", 
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  annotate("label", 
+           x = max(df_test$Fecha) - 10,
+           y = min(df_completo$Precio) * 1.15,
+           label = paste0("PRUEBA\n", nrow(df_test), " obs."),
+           fill = qqq_pal$secondary, color = "white", 
+           fontface = "bold", size = 3.2, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.05))) +
+  scale_y_continuous(labels = dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Partición de Datos: Entrenamiento vs Prueba",
+    subtitle = "QQQ (Nasdaq-100 ETF) | Serie de precios de cierre diarios",
+    x = NULL,
+    y = "Precio de Cierre (USD)",
+    caption = paste0("Fuente: Yahoo Finance | Período: ", 
+                     min(df_completo$Fecha), " a ", max(df_completo$Fecha))
+  ) +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+---
+
+## 4.2 Análisis de Estacionariedad
+
+La serie de precios del QQQ exhibe visualmente una tendencia alcista pronunciada con fluctuaciones amplias alrededor de una trayectoria creciente durante el período de entrenamiento (octubre 2022 - septiembre 2025). El gráfico de autocorrelación de la serie en niveles revela el síntoma clásico de no-estacionariedad:
+
+```{r acf-original, echo=TRUE, fig.height=5.5}
+acf_data <- acf(Entrenamiento, lag.max = 30, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = acf_data$lag[-1], 
+  ACF = acf_data$acf[-1]
+)
+
+n <- length(Entrenamiento)
+limite_sup <- qnorm(0.975) / sqrt(n)
+limite_inf <- -limite_sup
+
+ggplot(df_acf, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$primary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$primary, size = 2) +
+  geom_hline(yintercept = limite_sup, linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf, linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf, ymax = limite_sup,
+           fill = qqq_pal$secondary, alpha = 0.1) +
+  annotate("label", x = 20, y = 0.5,
+           label = "Decaimiento lento\n→ Serie NO estacionaria",
+           fill = qqq_pal$negative, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.1, 1.05), breaks = seq(0, 1, 0.25)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie en Niveles",
+    subtitle = "QQQ: Precio de cierre | Datos de entrenamiento",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas azules: Límites de significancia al 95%"
+  ) +
+  theme_QQQ()
+```
+
+La autocorrelación muestral permanece elevada (>0.85) incluso en rezagos distantes (lag 30). Este decaimiento lento es indicador clásico de que la serie contiene raíz unitaria y requiere diferenciación. Adicionalmente, casi todos los rezagos caen fuera de las bandas de confianza, confirmando correlación sistemática estructural.
+
+### 4.2.2 Contraste Estadístico: Test de Dickey-Fuller Aumentado (ADF)
+
+```{r adf-original, echo=TRUE}
+adf_resultado <- adf.test(Entrenamiento)
+
+tabla_adf <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Nivel de Significancia (α)",
+              "Conclusión"),
+  Valor = c(round(adf_resultado$statistic, 4),
+            adf_resultado$parameter,
+            round(adf_resultado$p.value, 4),
+            "0.05",
+            ifelse(adf_resultado$p.value > 0.05, 
+                   "Serie NO estacionaria", "Serie estacionaria ✓"))
+)
+
+kable(tabla_adf, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie en Niveles",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$negative, background = "#ffe8e0") %>% 
+  row_spec(5, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
+```
+
+Con p-valor de 0.1352 > 0.05, no se rechaza la hipótesis nula: la serie de precios del QQQ en niveles es no-estacionaria. Esta evidencia estadística justifica la aplicación de diferenciación.
+
+### 4.2.3 Aplicación de Diferenciación de Primer Orden
+
+```{r diferenciacion, echo=TRUE}
+dif_Entrenamiento <- diff(Entrenamiento) %>% na.omit()
+```
+
+```{r grafico-diferenciada, echo=TRUE, fig.height=6}
+df_diff <- data.frame(
+  Fecha = index(dif_Entrenamiento),
+  Valor = as.numeric(dif_Entrenamiento)
+)
+
+ggplot(df_diff, aes(x = Fecha, y = Valor)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  annotate("label", 
+           x = as.Date("2023-06-01"), 
+           y = max(df_diff$Valor) * 0.85,
+           label = paste0("Media ≈ ", round(mean(df_diff$Valor), 3)),
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.4, "lines")) +
+  scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
+               expand = expansion(mult = c(0.02, 0.03))) +
+  scale_y_continuous(labels = scales::dollar_format(prefix = "$"),
+                     expand = expansion(mult = c(0.05, 0.08))) +
+  labs(
+    title = "Serie Diferenciada de Primer Orden (d = 1)",
+    subtitle = "QQQ: Cambios diarios en precio de cierre | Datos de entrenamiento",
+    x = NULL,
+    y = "Cambio Diario (USD)",
+    caption = paste0("Observaciones: ", nrow(df_diff), 
+                     " | Período: ", min(df_diff$Fecha), " a ", max(df_diff$Fecha))
+  ) +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La serie diferenciada del QQQ oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La media permanece relativamente constante a lo largo del período, característica fundamental de estacionariedad.
+
+### 4.2.4 Verificación Post-Diferenciación
+
+```{r acf-diferenciada, echo=TRUE, fig.height=5.5}
+acf_diff_data <- acf(dif_Entrenamiento, lag.max = 30, plot = FALSE)
+
+df_acf_diff <- data.frame(
+  Lag = acf_diff_data$lag[-1],
+  ACF = acf_diff_data$acf[-1]
+)
+
+n_diff <- length(dif_Entrenamiento)
+limite_sup_diff <- qnorm(0.975) / sqrt(n_diff)
+limite_inf_diff <- -limite_sup_diff
+
+ggplot(df_acf_diff, aes(x = Lag, y = ACF)) +
+  geom_segment(aes(xend = Lag, yend = 0), 
+               color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(color = qqq_pal$secondary, size = 2) +
+  geom_hline(yintercept = limite_sup_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = limite_inf_diff, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = limite_inf_diff, ymax = limite_sup_diff,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  annotate("label", x = 22, y = 0.12,
+           label = "Autocorrelaciones dentro\nde bandas → Estacionaria ✓",
+           fill = qqq_pal$positive, color = "white",
+           fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
+  scale_x_continuous(breaks = seq(0, 30, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.2), breaks = seq(-0.1, 0.2, 0.05)) +
+  labs(
+    title = "Función de Autocorrelación (ACF) - Serie Diferenciada",
+    subtitle = "QQQ: Cambios diarios | Verificación de estacionariedad post-diferenciación",
+    x = "Rezago (Lag)",
+    y = "Autocorrelación",
+    caption = "Bandas verdes: Límites de significancia al 95%"
+  ) +
+  theme_QQQ()
+```
+
+La mayoría de autocorrelaciones caen dentro de las bandas de confianza. Este contraste dramático con el $ACF$ de la serie original en niveles valida la diferenciación.
+
+```{r adf-diferenciada, echo=TRUE}
+adf_diff_resultado <- adf.test(dif_Entrenamiento)
+
+tabla_adf_diff <- data.frame(
+  Métrica = c("Estadístico Dickey-Fuller", 
+              "Orden de Rezagos (Lag)", 
+              "P-valor",
+              "Conclusión"),
+  Valor = c(round(adf_diff_resultado$statistic, 4),
+            adf_diff_resultado$parameter,
+            round(adf_diff_resultado$p.value, 4),
+            ifelse(adf_diff_resultado$p.value < 0.05,
+                   "Serie ES estacionaria ✓",
+                   "Serie NO estacionaria"))
+)
+
+kable(tabla_adf_diff, 
+      caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie Diferenciada (d=1)",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(3, bold = TRUE, color = qqq_pal$positive, background = "#e8f5e9") %>%
+  row_spec(4, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
+```
+
+El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 < 0.05, se rechaza $H_0$. La serie diferenciada del QQQ es estacionaria. Por tanto, el parámetro de integración es $d=1$: una única diferenciación convierte la serie de precios en una serie estacionaria de cambios diarios.
+
+---
+
+## 4.3 Identificación del Modelo
+
+El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del QQQ revela patrones característicos de mercados financieros eficientes:
+
+```{r acf-pacf-dual, echo=TRUE, fig.height=6}
+acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+pacf_data <- pacf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
+
+df_acf <- data.frame(
+  Lag = as.numeric(acf_data$lag[-1]),
+  Valor = as.numeric(acf_data$acf[-1])
+)
+
+df_pacf <- data.frame(
+  Lag = as.numeric(pacf_data$lag),
+  Valor = as.numeric(pacf_data$acf)
+)
+
+n <- length(dif_Entrenamiento)
+limite <- qnorm(0.975) / sqrt(n)
+
+p_acf <- ggplot(df_acf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(title = "ACF - Serie Diferenciada",
+       subtitle = "Identificación del orden q (MA)",
+       x = "Rezago (Lag)",
+       y = "ACF") +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 12))
+
+p_pacf <- ggplot(df_pacf, aes(x = Lag, y = Valor)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite, limite), linetype = "dashed", 
+             color = qqq_pal$secondary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite, ymax = limite,
+           fill = qqq_pal$secondary, alpha = 0.08) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$primary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$primary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 28, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.12)) +
+  labs(title = "PACF - Serie Diferenciada",
+       subtitle = "Identificación del orden p (AR)",
+       x = "Rezago (Lag)",
+       y = "PACF") +
+  theme_QQQ() +
+  theme(plot.title = element_text(size = 12))
+
+grid.arrange(p_acf, p_pacf, ncol = 2)
+```
+
+En el $ACF$, la mayoría de autocorrelaciones caen dentro de las bandas de confianza para todos los rezagos hasta lag 28. Esta ausencia sistemática es consistente con la hipótesis de mercado eficiente: los precios incorporan información disponible públicamente, dejando en los cambios diarios estructura prácticamente aleatoria sin dependencias predecibles (Fama, 1970; Malkiel, 1973).
+
+El $PACF$ exhibe un patrón complementario: nuevamente, la mayoría de autocorrelaciones parciales se ubican dentro de bandas de confianza. En conjunto, el análisis $ACF/PACF$ sugiere que la serie diferenciada es cercana a ruido blanco, implicando que cualquier modelo $ARIMA$ que intente capturar estructura estará fundamentalmente limitado en capacidad predictiva, capturando quizás pequeños componentes de ineficiencia de mercado de corto plazo (Tsay, 2010; Hamilton, 1994).
+
+### 4.3.2 Modelos ARIMA Candidatos
+
+```{r modelos-candidatos-tabla, echo=TRUE}
+tabla_candidatos <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1)",
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Tipo = c("Random Walk",
+           "auto.arima()",
+           "Manual",
+           "Manual",
+           "Manual",
+           "Exploratorio"),
+  Justificación = c(
+    "Benchmark: hipótesis de mercado eficiente",
+    "Referencia algorítmica para validar selección manual",
+    "Extensión AR(2) para capturar persistencia de corto plazo",
+    "Extensión MA(2) para capturar estructura de media móvil",
+    "Modelo simétrico que combina dinámicas AR y MA",
+    "Evaluar si rezagos marginales aportan capacidad predictiva"
+  )
+)
+
+kable(tabla_candidatos,
+      caption = "Modelos ARIMA Candidatos para Evaluación",
+      align = c("l", "c", "l"),
+      col.names = c("Modelo", "Tipo", "Justificación")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, color = qqq_pal$secondary) %>%
+  column_spec(3, width = "30em") %>%
+  row_spec(2, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
+```
+
+La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$ (random walk) representa la hipótesis nula de mercado eficiente: no existe estructura explorable. El $ARIMA(1,1,1)$ fue seleccionado automáticamente por `auto.arima()` y es el más parsimonioso que añade estructura genuina. Los demás representan extensiones que exploran si estructura adicional existe en la serie del QQQ.
+
+---
+
+## 4.4 Estimación y Comparación de Modelos
+
+### 4.4.1 Criterios de Información
+
+```{r ajuste-modelos, echo=TRUE}
+ModeloQA <- auto.arima(Entrenamiento)
+modeloQ1 <- Arima(Entrenamiento, order = c(3,1,3))
+modeloQ2 <- Arima(Entrenamiento, order = c(0,1,0))
+modeloQ3 <- Arima(Entrenamiento, order = c(2,1,1))
+modeloQ4 <- Arima(Entrenamiento, order = c(1,1,2))
+modeloQ5 <- Arima(Entrenamiento, order = c(2,1,2))
+```
+
+```{r criterios-informacion, echo=TRUE}
+comparacion_IC <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  Parametros = c(length(coef(modeloQ2)) + 1,
+                 length(coef(ModeloQA)) + 1,
+                 length(coef(modeloQ3)) + 1,
+                 length(coef(modeloQ4)) + 1,
+                 length(coef(modeloQ5)) + 1,
+                 length(coef(modeloQ1)) + 1),
+  AIC = round(c(AIC(modeloQ2), 
+                AIC(ModeloQA), 
+                AIC(modeloQ3), 
+                AIC(modeloQ4),
+                AIC(modeloQ5),
+                AIC(modeloQ1)), 2),
+  AICc = round(c(modeloQ2$aicc, 
+                 ModeloQA$aicc, 
+                 modeloQ3$aicc, 
+                 modeloQ4$aicc,
+                 modeloQ5$aicc,
+                 modeloQ1$aicc), 2),
+  BIC = round(c(BIC(modeloQ2), 
+                BIC(ModeloQA), 
+                BIC(modeloQ3), 
+                BIC(modeloQ4),
+                BIC(modeloQ5),
+                BIC(modeloQ1)), 2)
+)
+
+comparacion_IC <- comparacion_IC %>%
+  arrange(AICc) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, Parametros, AIC, AICc, BIC)
+
+kable(comparacion_IC,
+      caption = "Comparación de Modelos por Criterios de Información",
+      align = c("c", "l", "c", "c", "c", "c"),
+      col.names = c("Ranking", "Modelo", "# Parámetros", "AIC", "AICc", "BIC")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(5, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark) %>%
+  footnote(general = "Ordenado por AICc (menor es mejor). AICc es el criterio preferido para muestras finitas.",
+           general_title = "Nota: ")
+```
+
+El $ARIMA(1,1,1)$ + drift del QQQ emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2). La diferencia de 4.2 puntos en $AICc$ es clara, validando $ARIMA(1,1,1)$ como notablemente superior. Según Burnham & Anderson (2002), diferencias entre 4-7 indican soporte moderado para modelo superior. El término "drift" representa una constante en la ecuación de diferencias que captura la tendencia lineal implícita: durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio, reflejando optimismo en tecnología pese a volatilidad (Brockwell & Davis, 2016).
+
+La evaluación de modelos más complejos revela el problema de sobreparametrización: aunque $ARIMA(3,1,3)$ tiene $AIC$ más bajo (4669.04), su $AICc$ es 4669.19 (ranking 6) porque la penalización por 7 parámetros domina cualquier mejora marginal. El $ARIMA(0,1,0)$ (random walk puro) produce $AICc =$ 4668.39 (ranking 3), confirmando que estructura existe aunque sea pequeña.
+
+### 4.4.2 Métricas de Precisión en Entrenamiento
+
+```{r metricas-precision, echo=TRUE}
+acc_QA <- accuracy(ModeloQA)
+acc_Q1 <- accuracy(modeloQ1)
+acc_Q2 <- accuracy(modeloQ2)
+acc_Q3 <- accuracy(modeloQ3)
+acc_Q4 <- accuracy(modeloQ4)
+acc_Q5 <- accuracy(modeloQ5)
+
+comparacion_accuracy <- data.frame(
+  Modelo = c("ARIMA(0,1,0)", 
+             "ARIMA(1,1,1) + drift", 
+             "ARIMA(2,1,1)", 
+             "ARIMA(1,1,2)",
+             "ARIMA(2,1,2)",
+             "ARIMA(3,1,3)"),
+  ME = round(c(acc_Q2["Training set", "ME"], 
+               acc_QA["Training set", "ME"], 
+               acc_Q3["Training set", "ME"], 
+               acc_Q4["Training set", "ME"],
+               acc_Q5["Training set", "ME"],
+               acc_Q1["Training set", "ME"]), 4),
+  RMSE = round(c(acc_Q2["Training set", "RMSE"], 
+                 acc_QA["Training set", "RMSE"], 
+                 acc_Q3["Training set", "RMSE"], 
+                 acc_Q4["Training set", "RMSE"],
+                 acc_Q5["Training set", "RMSE"],
+                 acc_Q1["Training set", "RMSE"]), 4),
+  MAE = round(c(acc_Q2["Training set", "MAE"], 
+                acc_QA["Training set", "MAE"], 
+                acc_Q3["Training set", "MAE"], 
+                acc_Q4["Training set", "MAE"],
+                acc_Q5["Training set", "MAE"],
+                acc_Q1["Training set", "MAE"]), 4),
+  MAPE = round(c(acc_Q2["Training set", "MAPE"], 
+                 acc_QA["Training set", "MAPE"], 
+                 acc_Q3["Training set", "MAPE"], 
+                 acc_Q4["Training set", "MAPE"],
+                 acc_Q5["Training set", "MAPE"],
+                 acc_Q1["Training set", "MAPE"]), 4),
+  MASE = round(c(acc_Q2["Training set", "MASE"], 
+                 acc_QA["Training set", "MASE"], 
+                 acc_Q3["Training set", "MASE"], 
+                 acc_Q4["Training set", "MASE"],
+                 acc_Q5["Training set", "MASE"],
+                 acc_Q1["Training set", "MASE"]), 4)
+)
+
+comparacion_accuracy <- comparacion_accuracy %>%
+  arrange(RMSE) %>%
+  mutate(Ranking = row_number()) %>%
+  select(Ranking, Modelo, ME, RMSE, MAE, MAPE, MASE)
+
+kable(comparacion_accuracy,
+      caption = "Métricas de Precisión sobre Datos de Entrenamiento",
+      align = c("c", "l", rep("c", 5))) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(2, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(4, bold = TRUE, color = qqq_pal$positive) %>%
+  row_spec(1, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE) %>%
+  footnote(general = "ME: Error Medio | RMSE: Raíz del Error Cuadrático Medio | MAE: Error Absoluto Medio | MAPE: Error Porcentual (%) | MASE: Error Escalado",
+           general_title = "Métricas: ")
+```
+
+El Error Medio (ME) de todos los modelos es cercano a cero (rango: -0.0001 a 0.4939), confirmando que son aproximadamente insesgados. El $ARIMA(1,1,1)$ + drift tiene $ME =$ -0.0001, virtualmente perfecto. El $RMSE$ del $ARIMA(3,1,3)$ lidera con 5.4759, marginalmente inferior al $ARIMA(1,1,1)$ + drift (5.4792), una diferencia de 0.0033 negligible en términos prácticos (0.06% mejora) mientras requiere 75% incremento en parámetros.
+
+El Error Absoluto Medio (MAE) del $ARIMA(1,1,1)$ + drift es 3.8704: en promedio, predicciones desviaron ±3.87 puntos del valor real. El MAPE es 0.9445%, indicando error promedio menos de 1% del valor real. El MASE de todos los modelos es < 1, mejorando al random walk puro. El $ARIMA(1,1,1)$ + drift obtiene $MASE =$ 0.9943, mejorando al random walk en ~0.6%—en contexto de series financieras eficientes, una mejora significativa (Hyndman & Koehler, 2006).
+
+---
+
+## 4.5 Diagnóstico de Residuos
+
+El proceso de diagnóstico valida que el modelo $ARIMA(1,1,1)$ + drift seleccionado produce residuos que se comportan como ruido blanco: secuencia aleatoria con media cero, varianza constante, y ausencia de autocorrelación.
+
+### 4.5.1 Análisis Gráfico de Residuos
+
+```{r residuos-grafico, echo=TRUE}
+residuos <- residuals(ModeloQA)
+
+df_residuos <- data.frame(
+  Fecha = index(residuos),
+  Residuo = as.numeric(residuos)
+)
+
+p1 <- ggplot(df_residuos, aes(x = Fecha, y = Residuo)) +
+  geom_line(color = qqq_pal$secondary, linewidth = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.7) +
+  geom_hline(yintercept = c(-2*sd(df_residuos$Residuo), 2*sd(df_residuos$Residuo)), 
+             linetype = "dotted", color = qqq_pal$negative, linewidth = 0.5) +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  labs(title = "Residuos del Modelo en el Tiempo",
+       subtitle = "Verificación de media cero y varianza constante",
+       x = NULL,
+       y = "Residuo") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+p1
+acf_resid <- acf(residuos, lag.max = 25, plot = FALSE)
+df_acf_resid <- data.frame(
+  Lag = as.numeric(acf_resid$lag[-1]),
+  ACF = as.numeric(acf_resid$acf[-1])
+)
+
+n_resid <- length(residuos)
+limite_resid <- qnorm(0.975) / sqrt(n_resid)
+
+p2 <- ggplot(df_acf_resid, aes(x = Lag, y = ACF)) +
+  geom_hline(yintercept = 0, color = qqq_pal$text_gray, linewidth = 0.5) +
+  geom_hline(yintercept = c(-limite_resid, limite_resid), linetype = "dashed", 
+             color = qqq_pal$primary, linewidth = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -limite_resid, ymax = limite_resid,
+           fill = qqq_pal$primary, alpha = 0.1) +
+  geom_segment(aes(xend = Lag, yend = 0), color = qqq_pal$secondary, linewidth = 0.7) +
+  geom_point(color = qqq_pal$secondary, size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 25, 5)) +
+  scale_y_continuous(limits = c(-0.15, 0.15)) +
+  labs(title = "ACF de Residuos",
+       subtitle = "Verificación de independencia",
+       x = "Rezago (Lag)",
+       y = "ACF") +
+  theme_QQQ()
+p2
+p3 <- ggplot(df_residuos, aes(x = Residuo)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 bins = 35, fill = qqq_pal$primary, 
+                 color = "white", alpha = 0.7) +
+  geom_density(color = qqq_pal$secondary, linewidth = 1) +
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(df_residuos$Residuo), 
+                            sd = sd(df_residuos$Residuo)),
+                color = qqq_pal$negative, linewidth = 1, linetype = "dashed") +
+  labs(title = "Distribución de Residuos",
+       subtitle = "Verificación de normalidad",
+       x = "Residuo",
+       y = "Densidad",
+       caption = "Línea roja punteada: distribución normal teórica") +
+  theme_QQQ()
+p3
+```
+
+El gráfico temporal de residuos exhibe oscilación alrededor de media próxima a cero (0.0001), validando ausencia de sesgo sistemático. La varianza aparece aproximadamente constante, sugiriendo homocedasticidad. El $ACF$ de residuos muestra ausencia de autocorrelación significativa: la mayoría caen dentro de bandas de confianza.
+
+El histograma de densidad muestra forma aproximadamente simétrica y unimodal, consistente con distribución normal. Se observa presencia de "fat tails" (colas pesadas): residuos extremos ocurren con probabilidad ligeramente mayor que lo predicho por normalidad exacta, característica típica de datos financieros reales (Tsay, 2010).
+
+### 4.5.2 Q-Q Plot de Normalidad
+
+```{r residuos-qq, echo=TRUE}
+
+residuos_std <- scale(residuals(ModeloQA))
+df_qq <- data.frame(residuos = residuos_std)
+
+n <- length(residuos_std)
+cuantiles_teoricos <- qnorm(ppoints(n))
+cuantiles_observados <- sort(residuos_std)
+df_qq_line <- data.frame(x = cuantiles_teoricos, y = cuantiles_observados)
+
+fit <- lm(y ~ x, data = df_qq_line)
+df_qq_line$fitted <- predict(fit, df_qq_line)
+
+df_qq_puntos <- data.frame(
+  x = cuantiles_teoricos,
+  y = cuantiles_observados,
+  label = paste0(
+    "Cuantil teórico: ", round(cuantiles_teoricos, 3), "<br>",
+    "Residuo observado: ", round(cuantiles_observados, 3)
+  )
+)
+
+p_qq <- ggplot() +
+  geom_line(data = df_qq_line, aes(x = x, y = fitted), 
+            color = qqq_pal$negative, linewidth = 1.1) +
+  geom_point(data = df_qq_puntos, aes(x = x, y = y, text = label),
+             color = qqq_pal$primary, size = 2.5, alpha = 0.75) +
+  labs(
+    title = "Q-Q Plot de Residuos Estandarizados",
+    subtitle = "Verificación de normalidad del modelo | Línea roja = distribución normal teórica",
+    x = "Cuantiles Teóricos (Distribución Normal Estándar)",
+    y = "Cuantiles Observados (Residuos Estandarizados)",
+    caption = "✓ Puntos alineados con la línea roja indican buenos residuos normales"
+  ) +
+  theme_QQQ() +
+  theme(
+    plot.title = element_text(size = 13, face = "bold", color = qqq_pal$primary),
+    plot.subtitle = element_text(size = 11, color = qqq_pal$text_gray, margin = margin(b = 8)),
+    plot.caption = element_text(size = 9, color = qqq_pal$secondary, face = "italic"),
+    panel.background = element_rect(fill = "#f8f9fa", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    axis.line = element_line(color = qqq_pal$text_gray, linewidth = 0.5),
+    panel.grid.major = element_line(color = "#e8eef5", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  )
+
+plotly::ggplotly(p_qq, tooltip = "text") %>%
+  plotly::layout(
+    font = list(family = "Arial, sans-serif", size = 11, color = qqq_pal$text_dark),
+    plot_bgcolor = "#f8f9fa",
+    paper_bgcolor = "white",
+    xaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    yaxis = list(
+      showgrid = TRUE,
+      gridwidth = 1,
+      gridcolor = "#e8eef5",
+      zeroline = FALSE,
+      showline = TRUE,
+      linewidth = 1,
+      linecolor = qqq_pal$text_gray,
+      mirror = TRUE
+    ),
+    hovermode = "closest",
+    margin = list(l = 60, r = 30, t = 80, b = 60)
+  ) %>%
+  plotly::config(
+    displayModeBar = TRUE,
+    displaylogo = FALSE,
+    collaborate = FALSE,
+    modeBarButtonsToRemove = c("lasso2d", "select2d"),
+    toImageButtonOptions = list(
+      format = "png",
+      filename = "qq_plot_residuos",
+      height = 600,
+      width = 900,
+      scale = 2
+    )
+  )
+```
+
+Se observa alineación muy cercana de puntos con la línea teórica en la región central. En las colas (cuantiles extremos), hay desviación sistemática indicando presencia de "fat tails". Esta característica no invalida el modelo pero tiene implicaciones para intervalos de confianza: pueden ser ligeramente conservadores en términos de probabilidades de eventos extremos (Tsay, 2010).
+
+### 4.5.3 Test de Independencia (Ljung-Box)
+
+```{r residuos-tabla, echo=TRUE}
+lb_test <- Box.test(residuals(ModeloQA), lag = 10, type = "Ljung-Box")
+
+tabla_ljung <- data.frame(
+  Métrica = c("Estadístico Ljung-Box", 
+              "Grados de Libertad", 
+              "P-valor",
+              "Conclusión"),
+  Valor = c(
+    round(lb_test$statistic, 4),
+    lb_test$parameter,
+    round(lb_test$p.value, 4),
+    ifelse(lb_test$p.value > 0.05, 
+           "Residuos son ruido blanco ✓", 
+           "Posible autocorrelación residual")
+  )
+)
+
+kable(tabla_ljung, 
+      caption = "Test de Ljung-Box: Independencia de Residuos",
+      align = c("l", "c")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  row_spec(4, bold = TRUE, 
+           background = ifelse(lb_test$p.value > 0.05, "#e8f5e9", "#ffe8e0"),
+           color = qqq_pal$text_dark)
+```
+
+El estadístico Ljung-Box de $Q^*$ = 10.1399 con 10 grados de libertad produce p-valor = 0.4283 > 0.05. No se rechaza la hipótesis nula: los residuos no exhiben autocorrelación significativa en los primeros 10 rezagos. El $p-valor$ de 0.43 indica que si verdaderamente los residuos fuesen ruido blanco independiente, observaríamos una estadística de prueba tan extrema o más extrema con probabilidad del 43%—resultado completamente consistente con independencia (Ljung & Box, 1978).
+
+---
+
+## 4.6 Pronóstico y Evaluación
+
+Una vez validado que el modelo $ARIMA(1,1,1)$ + drift produce residuos que se comportan como ruido blanco, procede la etapa de pronóstico: generación de predicciones puntuales para el QQQ junto con intervalos de confianza que cuantifican incertidumbre.
+
+```{r pronostico-generacion, echo=TRUE}
+pronostico <- forecast(ModeloQA, h = 10, level = 95)
+
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
+
+fechas_pronostico <- c()
+fecha_actual <- ultima_fecha
+dias_agregados <- 0
+
+while(dias_agregados < 10) {
+  fecha_actual <- fecha_actual + 1
+  if (!(weekdays(fecha_actual) %in% c("sábado", "domingo", "Saturday", "Sunday"))) {
+    fechas_pronostico <- c(fechas_pronostico, fecha_actual)
+    dias_agregados <- dias_agregados + 1
+  }
+}
+
+fechas_pronostico <- as.Date(fechas_pronostico, origin = "1970-01-01")
+```
+
+### 4.6.1 Tabla de Pronósticos
+
+```{r tabla-pronosticos, echo=TRUE}
+tabla_pronostico <- data.frame(
+  Día = 1:10,
+  Fecha = as.character(fechas_pronostico),
+  Pronóstico = round(as.numeric(pronostico$mean), 2),
+  `Límite Inferior` = round(as.numeric(pronostico$lower), 2),
+  `Límite Superior` = round(as.numeric(pronostico$upper), 2),
+  `Amplitud IC` = round(as.numeric(pronostico$upper) - as.numeric(pronostico$lower), 2)
+)
+
+kable(tabla_pronostico,
+      caption = "Pronósticos del Modelo ARIMA(1,1,1) con Drift - Intervalo de Confianza al 95%",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Pronóstico (USD)", "Lím. Inferior", "Lím. Superior", "Amplitud IC")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, bold = TRUE, color = qqq_pal$primary, background = "#f0f9ff") %>%
+  column_spec(4, color = qqq_pal$negative) %>%
+  column_spec(5, color = qqq_pal$positive) %>%
+  column_spec(6, color = "#666666") %>%
+  footnote(general = "IC = Intervalo de Confianza. La amplitud del intervalo aumenta con el horizonte de pronóstico.",
+           general_title = "Nota: ")
+```
+
+Los pronósticos del $ARIMA(1,1,1)$ + drift para los próximos 10 días hábiles (01-octubre a 14-octubre 2025) se ubican en el rango 600.71 a 604.76 USD. El incremento inicial refleja el drift estimado: una tendencia alcista promedio de μ ≈ 0.4-0.5 dólares por día. La amplitud expansiva de los intervalos de confianza es característica: el IC 95% en el día 1 tiene amplitud apenas 21.54, pero se expande a 66.01 en el día 10. Esta expansión refleja que bajo un $ARIMA(1,1,1)$ con $d=1$, la varianza del pronóstico crece aproximadamente como $σ²·h$, donde $σ²$ es varianza de innovaciones (Hamilton, 1994).
+
+### 4.6.2 Gráfico: Pronóstico con Intervalo de Confianza
+
+```{r grafico-pronostico, echo=TRUE, fig.height=6.5}
+n_historico <- 100
+datos_hist <- tail(Entrenamiento, n_historico)
+
+df_historico <- data.frame(
+  Fecha = as.Date(index(datos_hist)),
+  Precio = as.numeric(datos_hist),
+  Tipo = "Histórico"
+)
+
+ultima_fecha <- as.Date(index(Entrenamiento)[length(Entrenamiento)])
+fechas_forecast <- ultima_fecha + 1:10
+
+df_pronostico <- data.frame(
+  Fecha = fechas_forecast,
+  Precio = as.numeric(pronostico$mean),
+  Lower = as.numeric(pronostico$lower),
+  Upper = as.numeric(pronostico$upper)
+)
+
+punto_conexion <- data.frame(
+  Fecha = ultima_fecha,
+  Precio = as.numeric(tail(datos_hist, 1)),
+  Lower = as.numeric(tail(datos_hist, 1)),
+  Upper = as.numeric(tail(datos_hist, 1))
+)
+
+df_pronostico_completo <- bind_rows(punto_conexion, df_pronostico)
+
+ggplot() +
+  geom_ribbon(data = df_pronostico_completo,
+              aes(x = Fecha, ymin = Lower, ymax = Upper),
+              fill = qqq_pal$secondary, alpha = 0.2) +
+  geom_line(data = df_historico,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$primary, linewidth = 0.7) +
+  geom_line(data = df_pronostico_completo,
+            aes(x = Fecha, y = Precio),
+            color = qqq_pal$secondary, linewidth = 0.8) +
+  geom_point(data = df_pronostico %>% filter(Fecha == max(Fecha)),
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$secondary, size = 2.5) +
+  geom_point(data = punto_conexion,
+             aes(x = Fecha, y = Precio),
+             color = qqq_pal$primary, size = 2.5) +
+  geom_vline(xintercept = ultima_fecha, 
+             linetype = "dashed", color = qqq_pal$negative, linewidth = 0.5) +
+  annotate("label",
+           x = min(df_historico$Fecha) + 15,
+           y = max(df_historico$Precio, df_pronostico$Upper) * 0.99,
+           label = "Entrenamiento",
+           fill = qqq_pal$primary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  annotate("label",
+           x = max(df_pronostico$Fecha) - 3,
+           y = max(df_pronostico$Upper) * 1.01,
+           label = "Pronóstico",
+           fill = qqq_pal$secondary, color = "white",
+           fontface = "bold", size = 3, label.padding = unit(0.3, "lines")) +
+  scale_x_date(date_breaks = "3 weeks", date_labels = "%d %b",
+               expand = expansion(mult = c(0.02, 0.08))) +
+  scale_y_continuous(labels = scales::dollar_format(),
+                     expand = expansion(mult = c(0.02, 0.05))) +
+  labs(title = "Pronóstico ARIMA(1,1,1) con Drift",
+       subtitle = "QQQ (Nasdaq-100 ETF) | Últimos 100 días + 10 días de pronóstico | IC 95%",
+       x = NULL,
+       y = "Precio de Cierre (USD)",
+       caption = "Línea verde: Datos históricos | Línea cian: Pronóstico | Área sombreada: Intervalo de confianza 95%") +
+  theme_QQQ() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### 4.6.3 Evaluación Comparativa: Predicho vs Real
+
+```{r predicho-vs-real, echo=TRUE, fig.height=6}
+reales <- head(as.numeric(Prueba), 10)
+predichos <- as.numeric(pronostico$mean)
+fechas_prueba <- head(as.Date(index(Prueba)), 10)
+
+df_evaluacion <- data.frame(
+  Dia = 1:10,
+  Fecha = fechas_prueba,
+  Real = reales,
+  Predicho = round(predichos, 2),
+  Error = round(reales - predichos, 2),
+  Error_Abs = round(abs(reales - predichos), 2),
+  Error_Pct = round((reales - predichos) / reales * 100, 2)
+)
+
+df_largo <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho) %>%
+  pivot_longer(cols = c(Real, Predicho),
+               names_to = "Tipo",
+               values_to = "Precio")
+
+ggplot(df_largo, aes(x = Dia, y = Precio, color = Tipo, shape = Tipo)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) +
+  geom_ribbon(data = df_evaluacion,
+              aes(x = Dia, y = Predicho,
+                  ymin = as.numeric(pronostico$lower),
+                  ymax = as.numeric(pronostico$upper)),
+              fill = qqq_pal$secondary, alpha = 0.15,
+              inherit.aes = FALSE) +
+  scale_color_manual(values = c("Real" = qqq_pal$primary, 
+                                "Predicho" = qqq_pal$secondary),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_shape_manual(values = c("Real" = 16, "Predicho" = 17),
+                     labels = c("Predicho" = "Pronóstico", "Real" = "Valor Real")) +
+  scale_x_continuous(breaks = 1:10, labels = paste0("t+", 1:10)) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  labs(title = "Evaluación del Pronóstico: Valores Reales vs Predichos",
+       subtitle = "QQQ (Nasdaq-100 ETF) | Primeros 10 días del conjunto de prueba",
+       x = "Horizonte de Pronóstico",
+       y = "Precio de Cierre (USD)",
+       color = NULL,
+       shape = NULL,
+       caption = "Área sombreada: Intervalo de confianza 95%") +
+  theme_QQQ() +
+  theme(legend.position = "top")
+```
+
+Los primeros 10 días observados de octubre 2025 revelan que valores reales exhiben volatilidad que oscila alrededor de la línea de pronóstico, sin divergencia sistemática consistente. Los valores reales caen todos dentro del intervalo de confianza 95%, validando calibración correcta de la incertidumbre.
+
+### 4.6.4 Tabla de Errores por Observación
+
+```{r tabla-errores, echo=TRUE}
+tabla_errores <- df_evaluacion %>%
+  select(Dia, Fecha, Real, Predicho, Error, Error_Pct) %>%
+  mutate(
+    Fecha = as.character(Fecha),
+    Real = paste0("$", round(Real, 2)),
+    Predicho = paste0("$", round(Predicho, 2)),
+    Error = round(Error, 2),
+    Error_Pct = paste0(round(Error_Pct, 2), "%")
+  )
+
+kable(tabla_errores,
+      caption = "Evaluación del Pronóstico: Errores por Observación",
+      align = c("c", "c", "c", "c", "c", "c"),
+      col.names = c("Día", "Fecha", "Valor Real", "Pronóstico", "Error (USD)", "Error (%)")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(3, color = qqq_pal$primary, bold = TRUE) %>%
+  column_spec(4, color = qqq_pal$secondary, bold = TRUE) %>%
+  column_spec(5, bold = TRUE) %>%
+  column_spec(6, bold = TRUE) %>%
+  footnote(general = "Error positivo: el modelo subestimó (valor real > pronóstico). Error negativo: el modelo sobreestimó.",
+           general_title = "Nota: ")
+```
+
+Los errores exhiben distribución asimétrica pero no-sistemática. Los primeros tres días exhiben errores positivos pequeños, indicando subestimación leve. Lo notable es la simetría aproximada de errores: errores positivos en días iniciales son balanceados aproximadamente por errores negativos posteriormente, indicando que el modelo no tiene sesgo direccional sistemático.
+
+### 4.6.5 Métricas Finales de Evaluación
+
+```{r metricas-finales, echo=TRUE}
+MAE <- mean(abs(df_evaluacion$Error))
+RMSE <- sqrt(mean(df_evaluacion$Error^2))
+MAPE <- mean(abs(df_evaluacion$Error_Pct))
+ME <- mean(df_evaluacion$Error)
+
+dentro_IC <- sum(reales >= as.numeric(pronostico$lower) & 
+                   reales <= as.numeric(pronostico$upper))
+pct_dentro_IC <- dentro_IC / 10 * 100
+
+tabla_metricas <- data.frame(
+  Métrica = c("Error Medio (ME)",
+              "Error Absoluto Medio (MAE)",
+              "Raíz del Error Cuadrático Medio (RMSE)",
+              "Error Porcentual Absoluto Medio (MAPE)",
+              "Observaciones dentro del IC 95%"),
+  Valor = c(paste0("$", round(ME, 2)),
+            paste0("$", round(MAE, 2)),
+            paste0("$", round(RMSE, 2)),
+            paste0(round(MAPE, 2), "%"),
+            paste0(dentro_IC, " de 10 (", pct_dentro_IC, "%)")),
+  Interpretación = c(
+    ifelse(abs(ME) < 1, "Sin sesgo sistemático ✓", 
+           ifelse(ME > 0, "Modelo subestima", "Modelo sobreestima")),
+    "Error promedio en USD",
+    "Penaliza errores grandes",
+    "Error relativo al precio",
+    ifelse(pct_dentro_IC >= 80, "Intervalos bien calibrados ✓", 
+           "Intervalos pueden estar mal calibrados")
+  )
+)
+
+kable(tabla_metricas,
+      caption = "Métricas de Evaluación del Pronóstico - Datos de Prueba",
+      align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"),
+                full_width = FALSE,
+                position = "center") %>%
+  row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
+  column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
+  column_spec(2, bold = TRUE) %>%
+  row_spec(5, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
+```
+
+El Error Medio (ME) = 0.85 es notablemente pequeño, validando ausencia de sesgo direccional sistemático. El Error Absoluto Medio (MAE) = 5.54 cuantifica desviación promedio de ±5.54 o 0.92% del precio. La Raíz del Error Cuadrático Medio (RMSE) = 6.68 es ligeramente superior porque penaliza desviaciones grandes. El Error Porcentual Absoluto Medio (MAPE) = 0.92% es excelente para pronóstico de precios de activos financieros.
+
+La métrica más reveladora es "Observaciones dentro del IC 95%" = 10 de 10 (100%). Esta perfecta cobertura indica que el intervalo de confianza fue exactamente bien calibrado: todos los valores reales cayeron dentro de las bandas predichas, validando calibración correcta de la incertidumbre (Hyndman & Koehler, 2006).
+
 
 ---
 

@@ -1026,6 +1026,8 @@ kable(particion_resumen,
   row_spec(3, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark)
 ```
 
+El conjunto de entrenamiento contiene 746 observaciones diarias (aproximadamente 3 años de negociación), representando el 95% del total de datos disponibles. Este volumen es más que suficiente para identificar parámetros confiables de un modelo $ARIMA$ de complejidad moderada. El conjunto de prueba contiene 45 observaciones (aproximadamente 9 semanas de actividad bursátil), permitiendo validación con horizonte de pronóstico de al menos 10 días hábiles conforme lo requiere el análisis.
+
 ### 4.1.3 Visualización: Serie con Partición 
 
 ```{r grafico-particion, echo=TRUE, fig.height=6.5}
@@ -1086,14 +1088,9 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-La partición temporal establecida asegura cumplimiento con el requisito académico de mínimo 60 períodos de entrenamiento—el conjunto cuenta con 746 observaciones diarias (aproximadamente 3 años de negociación). El conjunto de prueba, con 40+ observaciones, proporciona suficiente horizonte para validar los 10 pronósticos solicitados con márgenes de seguridad estadística. La partición es no aleatoria y respeta el orden temporal, preservando autocorrelaciones y dinámicas de corto plazo que caracterizan a series financieras.
-
 ---
 
 ## 4.2 Análisis de Estacionariedad
-
-
-### 4.2.1 Serie en Niveles: Identificación de No-Estacionariedad
 
 La serie de precios del QQQ exhibe visualmente una tendencia alcista pronunciada con fluctuaciones amplias alrededor de una trayectoria creciente durante el período de entrenamiento (octubre 2022 - septiembre 2025). El gráfico de autocorrelación de la serie en niveles revela el síntoma clásico de no-estacionariedad:
 
@@ -1137,9 +1134,9 @@ ggplot(df_acf, aes(x = Lag, y = ACF)) +
   theme_QQQ()
 ```
 
-La autocorrelación muestral permanece elevada (>0.85) incluso en rezagos distantes (lag 30). Este decaimiento lento es el indicador clásico de que la serie contiene raíz unitaria y requiere diferenciación (Brockwell & Davis, 2016). Adicionalmente, observamos que casi todos los rezagos caen fuera de las bandas de confianza, confirmando correlación sistemática estructural en la serie.
+La autocorrelación muestral permanece elevada (>0.85) incluso en rezagos distantes (lag 30). Este decaimiento lento es indicador clásico de que la serie contiene raíz unitaria y requiere diferenciación. Adicionalmente, casi todos los rezagos caen fuera de las bandas de confianza, confirmando correlación sistemática estructural.
 
-### 4.2.2 Prueba: Test de Dickey-Fuller Aumentado (ADF)
+### 4.2.2 Contraste Estadístico: Test de Dickey-Fuller Aumentado (ADF)
 
 ```{r adf-original, echo=TRUE}
 adf_resultado <- adf.test(Entrenamiento)
@@ -1149,37 +1146,27 @@ tabla_adf <- data.frame(
               "Orden de Rezagos (Lag)", 
               "P-valor",
               "Nivel de Significancia (α)",
-              "Hipótesis Nula (H₀)",
-              "Decisión"),
+              "Conclusión"),
   Valor = c(round(adf_resultado$statistic, 4),
             adf_resultado$parameter,
             round(adf_resultado$p.value, 4),
             "0.05",
-            "Serie tiene raíz unitaria",
             ifelse(adf_resultado$p.value > 0.05, 
-                   "No rechazar H₀", "Rechazar H₀")),
-  Interpretación = c("Valor del estadístico de prueba",
-                     "Rezagos incluidos en el test",
-                     "Probabilidad bajo H₀",
-                     "Umbral de decisión",
-                     "La serie NO es estacionaria",
-                     ifelse(adf_resultado$p.value > 0.05,
-                            "Serie NO estacionaria",
-                            "Serie estacionaria ✓"))
+                   "Serie NO estacionaria", "Serie estacionaria ✓"))
 )
 
 kable(tabla_adf, 
       caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie en Niveles",
-      align = c("l", "c", "l")) %>%
+      align = c("l", "c")) %>%
   kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
   row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   row_spec(3, bold = TRUE, color = qqq_pal$negative, background = "#ffe8e0") %>% 
-  row_spec(6, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
+  row_spec(5, bold = TRUE, background = "#fef3f2", color = qqq_pal$text_dark)
 ```
 
-El estadístico ADF de -3.0468 es mayor (menos negativo) que el valor crítico aproximado de -3.43 para significancia al 5%. Con p-valor de 0.1352 > 0.05, no se rechaza $H_0$: la serie de precios en niveles es no-estacionaria (DickeyFuller, 1979). Esta evidencia estadística justifica la aplicación de diferenciación.
+Con p-valor de 0.1352 > 0.05, no se rechaza la hipótesis nula: la serie de precios del QQQ en niveles es no-estacionaria. Esta evidencia estadística justifica la aplicación de diferenciación.
 
 ### 4.2.3 Aplicación de Diferenciación de Primer Orden
 
@@ -1219,11 +1206,9 @@ ggplot(df_diff, aes(x = Fecha, y = Valor)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-La serie diferenciada oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La volatilidad varía a lo largo del período—períodos de calma alternando con volatilidad elevada—pero la media permanece relativamente constante, característica fundamental de estacionariedad (Hamilton, 1994).
+La serie diferenciada del QQQ oscila alrededor de media aproximadamente cero (0.444), sin tendencia visual evidente. La media permanece relativamente constante a lo largo del período, característica fundamental de estacionariedad.
 
-### 4.2.3 Verificación Post-Diferenciación
-
-La validación de estacionariedad post-diferenciación combina análisis ACF y test ADF:
+### 4.2.4 Verificación Post-Diferenciación
 
 ```{r acf-diferenciada, echo=TRUE, fig.height=5.5}
 acf_diff_data <- acf(dif_Entrenamiento, lag.max = 30, plot = FALSE)
@@ -1265,7 +1250,7 @@ ggplot(df_acf_diff, aes(x = Lag, y = ACF)) +
   theme_QQQ()
 ```
 
-La mayoría de autocorrelaciones caen dentro de las bandas de confianza (región verde). Solo algunos rezagos (principalmente lag 1, 18, 20) muestran significancia marginal, pero el patrón general indica ausencia de raíz unitaria. Este contraste con el $ACF$ de la serie original es dramático y valida la diferenciación.
+La mayoría de autocorrelaciones caen dentro de las bandas de confianza. Este contraste dramático con el $ACF$ de la serie original en niveles valida la diferenciación.
 
 ```{r adf-diferenciada, echo=TRUE}
 adf_diff_resultado <- adf.test(dif_Entrenamiento)
@@ -1274,45 +1259,33 @@ tabla_adf_diff <- data.frame(
   Métrica = c("Estadístico Dickey-Fuller", 
               "Orden de Rezagos (Lag)", 
               "P-valor",
-              "Nivel de Significancia (α)",
-              "Hipótesis Nula (H₀)",
-              "Decisión"),
+              "Conclusión"),
   Valor = c(round(adf_diff_resultado$statistic, 4),
             adf_diff_resultado$parameter,
             round(adf_diff_resultado$p.value, 4),
-            "0.05",
-            "Serie tiene raíz unitaria",
-            ifelse(adf_diff_resultado$p.value < 0.05, 
-                   "Rechazar H₀", "No rechazar H₀")),
-  Interpretación = c("Valor del estadístico de prueba",
-                     "Rezagos incluidos en el test",
-                     "Probabilidad bajo H₀",
-                     "Umbral de decisión",
-                     "La serie NO es estacionaria",
-                     ifelse(adf_diff_resultado$p.value < 0.05,
-                            "Serie ES estacionaria ✓",
-                            "Serie NO estacionaria"))
+            ifelse(adf_diff_resultado$p.value < 0.05,
+                   "Serie ES estacionaria ✓",
+                   "Serie NO estacionaria"))
 )
 
 kable(tabla_adf_diff, 
       caption = "Prueba de Dickey-Fuller Aumentada (ADF) - Serie Diferenciada (d=1)",
-      align = c("l", "c", "l")) %>%
+      align = c("l", "c")) %>%
   kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
   row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   row_spec(3, bold = TRUE, color = qqq_pal$positive, background = "#e8f5e9") %>%
-  row_spec(6, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
+  row_spec(4, bold = TRUE, background = "#d4edda", color = qqq_pal$text_dark)
 ```
 
-El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 < 0.05, se rechaza $H_0$ con confianza
-. La serie diferenciada es estacionaria (Dickey & Fuller, 1979). Por tanto, el parámetro de integración en ARIMA es $d=1$: una única diferenciación convierte la serie no-estacionaria de precios en una serie estacionaria de cambios diarios, cumpliendo con el supuesto fundamental requerido por la metodología Box-Jenkins (Box & Jenkins, 1976).
+El estadístico ADF de -8.6831 es altamente negativo, muy inferior al valor crítico de -3.43. Con p-valor de 0.01 < 0.05, se rechaza $H_0$. La serie diferenciada del QQQ es estacionaria. Por tanto, el parámetro de integración es $d=1$: una única diferenciación convierte la serie de precios en una serie estacionaria de cambios diarios.
 
 ---
 
 ## 4.3 Identificación del Modelo
 
-### 4.3.1 Análisis ACF/PACF - Serie Diferenciada
+El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del QQQ revela patrones característicos de mercados financieros eficientes:
 
 ```{r acf-pacf-dual, echo=TRUE, fig.height=6}
 acf_data <- acf(dif_Entrenamiento, lag.max = 28, plot = FALSE)
@@ -1368,13 +1341,11 @@ p_pacf <- ggplot(df_pacf, aes(x = Lag, y = Valor)) +
 grid.arrange(p_acf, p_pacf, ncol = 2)
 ```
 
-El análisis visual del $ACF$ y $PACF$ de la serie diferenciada del $QQQ$ revela patrones que son característicos de mercados financieros eficientes. En el $ACF$ (panel izquierdo), se observa que la mayoría de autocorrelaciones caen dentro de las bandas de confianza teóricas para todos los rezagos hasta lag 28. Esta ausencia sistemática de autocorrelaciones significativas se interpreta según la hipótesis de mercado eficiente (EMH): los precios de activos seguros incorporan información disponible públicamente, dejando en los retornos una estructura prácticamente aleatoria sin dependencias predecibles (Fama, 1970; Malkiel, 1973). La presencia de algunas autocorrelaciones leves (por ejemplo, alrededor de lag 17-20) no alcanza magnitud para ser interpretada como estructura genuina sino más bien como ruido muestral esperado en series finitas.
+En el $ACF$, la mayoría de autocorrelaciones caen dentro de las bandas de confianza para todos los rezagos hasta lag 28. Esta ausencia sistemática es consistente con la hipótesis de mercado eficiente: los precios incorporan información disponible públicamente, dejando en los cambios diarios estructura prácticamente aleatoria sin dependencias predecibles (Fama, 1970; Malkiel, 1973).
 
-El $PACF$ (panel derecho) exhibe un patrón complementario: nuevamente, la mayoría de autocorrelaciones parciales se ubican dentro de bandas de confianza, con excepción de quizás lag 1 que muestra una pequeña autocorrelación parcial negativa. En conjunto, el análisis $ACF/PACF$ sugiere que la serie diferenciada es cercana a ruido blanco, es decir, una secuencia de innovaciones aleatorias sin estructura de dependencia predecible. Este hallazgo tiene implicaciones profundas: implica que cualquier modelo $ARIMA$ que intente capturar estructura en precios del $QQQ$ estará fundamentalmente limitado en su capacidad predictiva, capturando quizás un componente pequeño de ineficiencia de mercado de corto plazo más que una estructura genuina de largo plazo (Tsay, 2010; Hamilton, 1994).
+El $PACF$ exhibe un patrón complementario: nuevamente, la mayoría de autocorrelaciones parciales se ubican dentro de bandas de confianza. En conjunto, el análisis $ACF/PACF$ sugiere que la serie diferenciada es cercana a ruido blanco, implicando que cualquier modelo $ARIMA$ que intente capturar estructura estará fundamentalmente limitado en capacidad predictiva, capturando quizás pequeños componentes de ineficiencia de mercado de corto plazo (Tsay, 2010; Hamilton, 1994).
 
 ### 4.3.2 Modelos ARIMA Candidatos
-
-Dada la evidencia de escasa estructura predecible en los correlogramas, la identificación manual procede evaluando un conjunto de modelos candidatos que van desde el más simple (ARIMA(0,1,0), random walk puro) hasta especificaciones progresivamente más complejas. La estrategia de selección combina tres criterios complementarios: (i) plausibilidad teórica basada en observación de $ACF/PACF$, (ii) parsimonia (principio de máxima simplicidad), y (iii) comparación formal mediante criterios de información que balancean bondad de ajuste contra número de parámetros (Hyndman & Athanasopoulos, 2021).
 
 ```{r modelos-candidatos-tabla, echo=TRUE}
 tabla_candidatos <- data.frame(
@@ -1390,16 +1361,8 @@ tabla_candidatos <- data.frame(
            "Manual",
            "Manual",
            "Exploratorio"),
-  `Observación ACF/PACF` = c(
-    "Patrón general cercano a ruido blanco",
-    "Selección automática por AICc",
-    "Posible estructura en lags 1-2 del PACF",
-    "Posible estructura en lags 1-2 del ACF",
-    "Combinación de estructuras en ambos correlogramas",
-    "Pico marginal en lag 3 de ambos correlogramas"
-  ),
   Justificación = c(
-    "Benchmark obligatorio: hipótesis de mercado eficiente",
+    "Benchmark: hipótesis de mercado eficiente",
     "Referencia algorítmica para validar selección manual",
     "Extensión AR(2) para capturar persistencia de corto plazo",
     "Extensión MA(2) para capturar estructura de media móvil",
@@ -1410,28 +1373,26 @@ tabla_candidatos <- data.frame(
 
 kable(tabla_candidatos,
       caption = "Modelos ARIMA Candidatos para Evaluación",
-      align = c("l", "c", "l", "l"),
-      col.names = c("Modelo", "Tipo", "Observación en ACF/PACF", "Justificación")) %>%
+      align = c("l", "c", "l"),
+      col.names = c("Modelo", "Tipo", "Justificación")) %>%
   kable_styling(bootstrap_options = c("hover", "condensed"),
                 full_width = FALSE,
                 position = "center") %>%
   row_spec(0, background = qqq_pal$primary, color = "white", bold = TRUE) %>%
   column_spec(1, bold = TRUE, color = qqq_pal$primary) %>%
   column_spec(2, color = qqq_pal$secondary) %>%
-  column_spec(3, width = "18em") %>%
-  column_spec(4, width = "22em") %>%
+  column_spec(3, width = "30em") %>%
   row_spec(2, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
 ```
 
-La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$—conocido como random walk en finanzas—representa la hipótesis nula de mercado eficiente: no existe estructura explorable, y el mejor pronóstico del precio mañana es simplemente el precio hoy más una innovación aleatoria. Este modelo actúa como benchmark obligatorio contra el cual se evalúan modelos más sofisticados (Fama, 1970; Malkiel, 1973).
-El $ARIMA(1,1,1)$ fue seleccionado por la función `auto.arima()` que utiliza criterios de información (Akaike, BIC) para seleccionar automáticamente órdenes. Este modelo es el más parsimonioso que añade estructura genuina: un componente autorregresivo captura dependencia del precio rezagado un período, mientras que un componente media móvil captura el efecto de innovaciones rezagadas. La función de verosimilitud bajo $ARIMA(1,1,1)$ captura un componente adicional de dependencia que no existe en el random walk puro, aunque sea pequeño (Tsay, 2010).
-El $ARIMA(2,1,1)$ extiende el componente $AR$ a dos rezagos para evaluar si la persistencia de corto plazo requiere más de un rezago histórico. El $ARIMA(1,1,2)$ extiende en cambio el componente $MA$, explorando si el efecto de innovaciones requiere dos períodos de memoria. El $ARIMA(2,1,2)$ representa un modelo simétrico que combina ambas dinámicas. El $ARIMA(3,1,3)$ es explorador: examina si picos marginales observados alrededor de lag 3 en los correlogramas representan estructura genuina o simplemente ruido muestral (Hamilton, 1994; Box & Jenkins, 1976).
+La selección de estos seis modelos candidatos obedece a una lógica progresiva de complejidad. El $ARIMA(0,1,0)$ (random walk) representa la hipótesis nula de mercado eficiente: no existe estructura explorable. El $ARIMA(1,1,1)$ fue seleccionado automáticamente por `auto.arima()` y es el más parsimonioso que añade estructura genuina. Los demás representan extensiones que exploran si estructura adicional existe en la serie del QQQ.
 
 ---
 
 ## 4.4 Estimación y Comparación de Modelos
 
 ### 4.4.1 Criterios de Información
+
 ```{r ajuste-modelos, echo=TRUE}
 ModeloQA <- auto.arima(Entrenamiento)
 modeloQ1 <- Arima(Entrenamiento, order = c(3,1,3))
@@ -1495,14 +1456,11 @@ kable(comparacion_IC,
            general_title = "Nota: ")
 ```
 
-En el análisis, el $ARIMA(1,1,1)$ + drift emerge como ganador con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2) y todos los demás modelos. Esta diferencia de 4.2 puntos en $AICc$ entre ranking 1 y 2 es sustancial: según regla de oro de Burnham & Anderson (2002), diferencias >10 en $AICc$ indican que modelo inferior tiene esencialmente probabilidad posterior negligible; diferencias entre 4-7 indican soporte moderado para modelo superior. La diferencia de 4.2 en nuestro caso es clara aunque no dramática, validando $ARIMA(1,1,1)$ como notablemente superior.
+El $ARIMA(1,1,1)$ + drift del QQQ emerge como ganador indiscutible con $AICc$ = 4663.94, significativamente menor que $ARIMA(2,1,2)$ (4668.14, ranking 2). La diferencia de 4.2 puntos en $AICc$ es clara, validando $ARIMA(1,1,1)$ como notablemente superior. Según Burnham & Anderson (2002), diferencias entre 4-7 indican soporte moderado para modelo superior. El término "drift" representa una constante en la ecuación de diferencias que captura la tendencia lineal implícita: durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio, reflejando optimismo en tecnología pese a volatilidad (Brockwell & Davis, 2016).
 
-El término "drift" en $ARIMA(1,1,1)$ + drift representa una constante en la ecuación de diferencias: $∇y_t = μ + φ₁∇y_{t-1} + θ₁ε_{t-1} + ε_t$, donde μ captura tendencia lineal implícita en la serie. En economía financiera, el drift representa el retorno esperado promedio (equity premium): durante el período de análisis (2022-2025), el $QQQ$ exhibió movimiento alcista promedio (drift positivo), reflejando optimismo en tecnología pese a volatilidad. El algoritmo `auto.arima()` seleccionó automáticamente este drift porque mejoró sustancialmente el criterio $AICc$ (Brockwell & Davis, 2016).
-
-La evaluación de modelos más complejos (ARIMA(3,1,3) con 7 parámetros) revela el problema de sobreparametrización: aunque tiene $AIC$ más bajo (4669.04), su $AICc$ es 4669.19 (ranking 6) porque la penalización por 7 parámetros domina cualquier mejora marginal en ajuste. Este es un caso de castigo de parsimonia: modelo más complejo no justifica su complejidad. El $ARIMA(0,1,0)$ (random walk puro), por el contrario, es más parsimonioso (1 parámetro) pero produce $AICc =$ 4668.39 (ranking 3), confirmando lo que los correlogramas sugirieron: estructura existe aunque sea pequeña, y modelo más complejo la captura mejor que modelo más simple.
+La evaluación de modelos más complejos revela el problema de sobreparametrización: aunque $ARIMA(3,1,3)$ tiene $AIC$ más bajo (4669.04), su $AICc$ es 4669.19 (ranking 6) porque la penalización por 7 parámetros domina cualquier mejora marginal. El $ARIMA(0,1,0)$ (random walk puro) produce $AICc =$ 4668.39 (ranking 3), confirmando que estructura existe aunque sea pequeña.
 
 ### 4.4.2 Métricas de Precisión en Entrenamiento
-
 
 ```{r metricas-precision, echo=TRUE}
 acc_QA <- accuracy(ModeloQA)
@@ -1574,8 +1532,6 @@ El Error Medio (ME) de todos los modelos es cercano a cero (rango: -0.0001 a 0.4
 
 El Error Absoluto Medio (MAE) del $ARIMA(1,1,1)$ + drift es 3.8704: en promedio, predicciones desviaron ±3.87 puntos del valor real. El MAPE es 0.9445%, indicando error promedio menos de 1% del valor real. El MASE de todos los modelos es < 1, mejorando al random walk puro. El $ARIMA(1,1,1)$ + drift obtiene $MASE =$ 0.9943, mejorando al random walk en ~0.6%—en contexto de series financieras eficientes, una mejora significativa (Hyndman & Koehler, 2006).
 
-La síntesis de criterios de información y métricas de precisión conduce a una conclusión robusta: $ARIMA(1,1,1)$ con drift es el modelo seleccionado. Aunque $ARIMA(3,1,3)$ tiene $RMSE$ ligeramente menor, la ventaja es marginal (0.0033 puntos) mientras que requiere 75% incremento en parámetros, violando principio de parsimonia. $AICc$ de $ARIMA(1,1,1)$ + drift (4663.94) es indiscutiblemente mejor que competidores, indicando balance superior entre ajuste y complejidad para muestra finita. Desde perspectiva práctica, el modelo captura estructura de drift (tendencia alcista genuina en $QQQ$ durante período) mediante un parámetro adicional, permitiendo que pronósticos incorporen esta tendencia en lugar de asumir movimiento aleatorio puro (Box & Jenkins, 1976; Brockwell & Davis, 2016).
-
 ---
 
 ## 4.5 Diagnóstico de Residuos
@@ -1591,7 +1547,6 @@ df_residuos <- data.frame(
   Fecha = index(residuos),
   Residuo = as.numeric(residuos)
 )
-
 
 p1 <- ggplot(df_residuos, aes(x = Fecha, y = Residuo)) +
   geom_line(color = qqq_pal$secondary, linewidth = 0.5) +
@@ -1651,11 +1606,9 @@ p3 <- ggplot(df_residuos, aes(x = Residuo)) +
 p3
 ```
 
-El primer componente del diagnóstico examina la comportamiento temporal de los residuos (panel superior). El gráfico exhibe oscilación de residuos alrededor de una media próxima a cero, con bandas de confianza aproximadas ubicadas a ±2 desviaciones estándar. La media aritmética de los residuos es prácticamente cero ($E[εₜ] ≈$ 0.0001), validando que el modelo es aproximadamente insesgado: no subestima ni sobrestima sistemáticamente. La varianza aparece aproximadamente constante a lo largo del período completo (octubre 2022 - septiembre 2025), sugiriendo homocedasticidad: la volatilidad de errores no cambia dramáticamente. Existe, sin embargo, un período de mayor volatilidad alrededor de noviembre 2024 donde se observa un residuo extremo (~+50), que coincide con movimientos de volatilidad elevada en mercados tecnológicos durante esa fecha.
+El gráfico temporal de residuos exhibe oscilación alrededor de media próxima a cero (0.0001), validando ausencia de sesgo sistemático. La varianza aparece aproximadamente constante, sugiriendo homocedasticidad. El $ACF$ de residuos muestra ausencia de autocorrelación significativa: la mayoría caen dentro de bandas de confianza.
 
-El segundo componente examina la función de autocorrelación de residuos (panel central). En teoría, si los residuos constituyen ruido blanco verdadero, el $ACF$ debe mostrar prácticamente todas las autocorrelaciones dentro de las bandas de confianza de. Este caso exhibe esta característica: la mayoría de las 25 autocorrelaciones evaluadas caen dentro de bandas (líneas de guiones azules). Se observan algunos picos leves fuera de bandas, pero estos son aislados y de magnitud pequeña. Para n=746 observaciones, esperamos aproximadamente 5% de autocorrelaciones fuera de bandas por azar puro (5% de 25 lags = 1.25 lags esperados). Observar ~2-3 lags fuera de bandas es consistente con ruido aleatorio, sin indicación de autocorrelación residual sistemática (Box & Jenkins, 1976; Hyndman & Athanasopoulos, 2021).
-
-El tercer componente examina la distribución de residuos (panel inferior). El histograma de densidad (barras verde) muestra forma aproximadamente simétrica y unimodal, consistente con una distribución normal. La curva de densidad empírica (línea azul) se superpone adecuadamente con la curva de distribución normal teórica (línea roja punteada) en la región central. Sin embargo, se observa que las colas de la distribución empírica son ligeramente más pesadas que lo predicho por la teoría normal: el histograma muestra más observaciones en regiones extremas (residuos < -15 y > +30) que una normal pura. Este fenómeno de "fat tails" (colas gordas) es característico de datos financieros reales, donde eventos extremos ocurren con probabilidad ligeramente mayor que lo predicho por distribución normal (Tsay, 2010; Hamilton, 1994). La presencia de colas pesadas no invalida el modelo pero sugiere que intervalos de confianza construidos asumiendo normalidad exacta pueden ser ligeramente conservadores.
+El histograma de densidad muestra forma aproximadamente simétrica y unimodal, consistente con distribución normal. Se observa presencia de "fat tails" (colas pesadas): residuos extremos ocurren con probabilidad ligeramente mayor que lo predicho por normalidad exacta, característica típica de datos financieros reales (Tsay, 2010).
 
 ### 4.5.2 Q-Q Plot de Normalidad
 
@@ -1748,9 +1701,7 @@ plotly::ggplotly(p_qq, tooltip = "text") %>%
   )
 ```
 
-En el $Q-Q$ $plot$, se observa alineación muy cercana de puntos con la línea teórica en la región central (cuantiles entre -2 y +2, que representan aproximadamente 95% de la distribución). Esta es la característica más importante: en esta región central donde residen la mayoría de observaciones, la normalidad se cumple aproximadamente. Sin embargo, en las colas (cuantiles teóricos < -2 o > +2), se observa desviación sistemática: los cuantiles observados en la cola superior se sitúan por encima de la línea teórica, indicando que residuos extremos positivos son más extremos que lo predicho por una normal. Esto confirma la presencia de "fat tails" ya sugerida por el histograma.
-
-Esta característica de colas pesadas es típica de retornos de activos financieros y no invalida el modelo $ARIMA$, pero tiene implicaciones para inferencia: intervalos de confianza construidos asumiendo normalidad exacta pueden subesticar probabilidades de eventos extremos, potencialmente subestimando riesgo de cola (tail risk) en pronósticos. Sin embargo, para propósitos de pronóstico de series de tiempo diarias en contexto de análisis académico, la aproximación normal en la región central es suficiente (Tsay, 2010; Brockwell & Davis, 2016).
+Se observa alineación muy cercana de puntos con la línea teórica en la región central. En las colas (cuantiles extremos), hay desviación sistemática indicando presencia de "fat tails". Esta característica no invalida el modelo pero tiene implicaciones para intervalos de confianza: pueden ser ligeramente conservadores en términos de probabilidades de eventos extremos (Tsay, 2010).
 
 ### 4.5.3 Test de Independencia (Ljung-Box)
 
@@ -1786,13 +1737,11 @@ kable(tabla_ljung,
 
 El estadístico Ljung-Box de $Q^*$ = 10.1399 con 10 grados de libertad produce p-valor = 0.4283 > 0.05. No se rechaza la hipótesis nula: los residuos no exhiben autocorrelación significativa en los primeros 10 rezagos. El $p-valor$ de 0.43 indica que si verdaderamente los residuos fuesen ruido blanco independiente, observaríamos una estadística de prueba tan extrema o más extrema con probabilidad del 43%—resultado completamente consistente con independencia (Ljung & Box, 1978).
 
-El único hallazgo notable es la presencia de algunos residuos extremos (especialmente el outlier de ~+50 en noviembre 2024), que coincide con período de volatilidad elevada en mercados tecnológicos. Estos son errores de predicción grandes pero aislados, no sistemáticos, consistentes con shocks de mercado exógenos que el modelo $ARIMA$ no puede anticipar (Tsay, 2010; Brockwell & Davis, 2016). En conclusión, el modelo $ARIMA(1,1,1)$ + drift está correctamente especificado y procede a la etapa de pronóstico.
-
 ---
 
 ## 4.6 Pronóstico y Evaluación
 
-Una vez validado que el modelo $ARIMA(1,1,1)$ + drift produce residuos que se comportan como ruido blanco, procede la etapa de pronóstico: generación de predicciones puntuales para el $QQQ$ junto con intervalos de confianza que cuantifican incertidumbre.
+Una vez validado que el modelo $ARIMA(1,1,1)$ + drift produce residuos que se comportan como ruido blanco, procede la etapa de pronóstico: generación de predicciones puntuales para el QQQ junto con intervalos de confianza que cuantifican incertidumbre.
 
 ```{r pronostico-generacion, echo=TRUE}
 pronostico <- forecast(ModeloQA, h = 10, level = 95)
@@ -1843,9 +1792,7 @@ kable(tabla_pronostico,
            general_title = "Nota: ")
 ```
 
-Los pronósticos puntuales generados por el modelo $ARIMA(1,1,1)$ + drift exhiben un patrón revelador: los precios predichos para los próximos 10 días hábiles (01-octubre a 14-octubre 2025) se ubican en el rango 600.71 a 604.76 USD, con trayectoria que muestra incremento sostenido pero moderado (pendiente del drift positiva pero pequeña). El primer pronóstico (día 1, 01-octubre) es 600.71, comparado con el último precio observado al 30-septiembre de aproximadamente 599.58. Este incremento inicial de ~$1.13 refleja la estimación de drift del modelo: una tendencia alcista promedio de μ ≈ 0.4-0.5 dólares por día (aproximadamente 0.07% diario o 1.4% anual), capturable mediante el término constante en la ecuación de diferencias (Brockwell & Davis, 2016; Box & Jenkins, 1976).
-
-La característica más notable de los pronósticos es la amplitud expansiva de los intervalos de confianza: el IC 95% en el día 1 tiene amplitud de apenas 21.54 (aproximadamente ±10.77 alrededor del pronóstico puntual), pero se expande a 66.01 en el día 10 (aproximadamente ±33). Esta expansión obedece a la naturaleza de la propagación de incertidumbre en pronósticos: conforme aumenta el horizonte h, la varianza del pronóstico $ε_h$ bajo un $ARIMA(1,1,1)$ crece aproximadamente como $σ²·h$ (para ARIMA no estacionario con d=1), donde $σ²$ es la varianza de innovaciones. Así, mientras el modelo predice una trayectoria promedio suavemente alcista, reconoce que verdadero precio futuro puede desviarse de esta trayectoria de manera creciente, reflejando la característica fundamental de mercados financieros eficientes: la predictibilidad diminuye exponencialmente con horizonte (Hamilton, 1994; Malkiel, 1973).
+Los pronósticos del $ARIMA(1,1,1)$ + drift para los próximos 10 días hábiles (01-octubre a 14-octubre 2025) se ubican en el rango 600.71 a 604.76 USD. El incremento inicial refleja el drift estimado: una tendencia alcista promedio de μ ≈ 0.4-0.5 dólares por día. La amplitud expansiva de los intervalos de confianza es característica: el IC 95% en el día 1 tiene amplitud apenas 21.54, pero se expande a 66.01 en el día 10. Esta expansión refleja que bajo un $ARIMA(1,1,1)$ con $d=1$, la varianza del pronóstico crece aproximadamente como $σ²·h$, donde $σ²$ es varianza de innovaciones (Hamilton, 1994).
 
 ### 4.6.2 Gráfico: Pronóstico con Intervalo de Confianza
 
@@ -1921,10 +1868,6 @@ ggplot() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-La visualización gráfica del pronóstico proporciona perspectiva intuitiva sobre la trayectoria predicha y su incertidumbre asociada. Los últimos 100 días históricos (aproximadamente 5 meses de actividad de mercado) muestran patrón de volatilidad moderada alrededor de tendencia ascendente: el $QQQ$ se movió desde aproximadamente 515 en mayo 2025 hasta 599.58 en septiembre 2025, representando ganancia de ~16.4% durante el período. Esta trayectoria alcista justifica la estimación del drift positivo: el modelo reconoce que durante el período de entrenamiento (octubre 2022 - septiembre 2025) existió movimiento sistemático al alza.
-
-El pronóstico de 10 días continúa esta tendencia pero de manera conservadora: en lugar de proyectar aceleración, predice continuación lineal suave con pendiente determinada por el drift estimado. La banda de confianza (área sombreada azul claro) inicia estrecha alrededor del pronóstico puntual y se expande progresivamente, reflejando incertidumbre creciente. Por horizonte h=10 días, el intervalo 95% abarca aproximadamente 571.75 a 637.76, un rango de 66 o ±5.5% alrededor del pronóstico central. Esta amplitud es consistente con volatilidad histórica del $QQQ$ (~1-1.5% diaria en desviación estándar), sugeriendo que el modelo calibra apropiadamente su incertidumbre (Tsay, 2010).
-
 ### 4.6.3 Evaluación Comparativa: Predicho vs Real
 
 ```{r predicho-vs-real, echo=TRUE, fig.height=6}
@@ -1975,9 +1918,7 @@ ggplot(df_largo, aes(x = Dia, y = Precio, color = Tipo, shape = Tipo)) +
   theme(legend.position = "top")
 ```
 
-La evaluación comparativa de pronósticos ex-post (sobre el conjunto de prueba retenido) proporciona evidencia directa de capacidad predictiva del modelo en horizonte corto. Los primeros 10 días observados de octubre 2025 revelan patrón interesante: los valores reales exhiben volatilidad que oscila alrededor de la línea de pronóstico, sin divergencia sistemática consistente. Específicamente, durante días 1-7, los valores reales tienden ligeramente por encima del pronóstico (el QQQ alcanzó máximos de 611.44 el día 6), sugiriendo que el drift estimado fue ligeramente conservador. Sin embargo, durante días 8-10, los valores reales caen por debajo del pronóstico (mínimo de 589.50 el día 8), capturando volatilidad exógena que el modelo $ARIMA$ no puede anticipar.
-
-Este patrón de desviaciones relativamente pequeñas y no-sistemáticas es exactamente lo esperado bajo la hipótesis de mercado eficiente: el modelo captura la tendencia principal (drift) pero no puede predecir shocks exógenos. Nótese que todos los 10 valores reales caen dentro del intervalo de confianza 95%, lo cual validaría calibración correcta de la incertidumbre. Esto es evidencia empírica de que el modelo no solo captura dirección (tendencia alcista), sino también magnitud apropiada de incertidumbre (amplitud del intervalo).
+Los primeros 10 días observados de octubre 2025 revelan que valores reales exhiben volatilidad que oscila alrededor de la línea de pronóstico, sin divergencia sistemática consistente. Los valores reales caen todos dentro del intervalo de confianza 95%, validando calibración correcta de la incertidumbre.
 
 ### 4.6.4 Tabla de Errores por Observación
 
@@ -2009,9 +1950,7 @@ kable(tabla_errores,
            general_title = "Nota: ")
 ```
 
-El análisis granular de errores por observación individual revela distribución asimétrica pero no-sistemática. Los primeros tres días (1-3 octubre) exhiben errores positivos pequeños (2.54, 4.50, 1.57), indicando subestimación leve pero consistente—el modelo predijo conservadoramente durante esta fase. Los días 4-7 exhiben variación: día 4 tiene error mayor (+5.60 el 06-octubre, coincidiendo con máximo local), días 5-6 muestran errores moderados, día 7 retorna a error moderado (+$7.29).
-
-El quiebre ocurre en día 8 (10-octubre): error de -14.37, representando subestimación grande del valor real de 589.50 contra pronóstico de 603.87. Este es único error negativo significativo en la muestra, coincidiendo con caída de volatilidad en el mercado esa fecha. Sin embargo, nótese que incluso este error de -14.37 permanece dentro del intervalo de confianza: el límite inferior para día 8 es 574.34, y 589.50 > 574.34. Los días 9-10 muestran pequeños errores negativos (-2.29 y -$6.76), regresando a patrón de desviaciones moderadas.
+Los errores exhiben distribución asimétrica pero no-sistemática. Los primeros tres días exhiben errores positivos pequeños, indicando subestimación leve. Lo notable es la simetría aproximada de errores: errores positivos en días iniciales son balanceados aproximadamente por errores negativos posteriormente, indicando que el modelo no tiene sesgo direccional sistemático.
 
 ### 4.6.5 Métricas Finales de Evaluación
 
@@ -2059,11 +1998,9 @@ kable(tabla_metricas,
   row_spec(5, background = "#e8f5e9", color = qqq_pal$text_dark, bold = TRUE)
 ```
 
-Las métricas de evaluación agregadas sintetizan el desempeño del modelo $ARIMA(1,1,1)$ + drift sobre el horizonte de 10 días de prueba. El Error Medio (ME) = 0.85 es notablemente pequeño, prácticamente cero en términos prácticos (0.14% del precio promedio observado de ~604). Esto valida que el modelo no contiene sesgo direccional sistemático: no subestima ni sobrestima persistentemente. La acumulación de errores positivos y negativos se cancela, produciendo $ME$ cercano a cero—característica fundamental de un modelo bien especificado.
+El Error Medio (ME) = 0.85 es notablemente pequeño, validando ausencia de sesgo direccional sistemático. El Error Absoluto Medio (MAE) = 5.54 cuantifica desviación promedio de ±5.54 o 0.92% del precio. La Raíz del Error Cuadrático Medio (RMSE) = 6.68 es ligeramente superior porque penaliza desviaciones grandes. El Error Porcentual Absoluto Medio (MAPE) = 0.92% es excelente para pronóstico de precios de activos financieros.
 
-El Error Absoluto Medio (MAE) = 5.54 cuantifica la magnitud promedio de desviación: en promedio, las predicciones erraron por aproximadamente 5.54, o 0.92% del precio. Para un ETF tecnológico volátil como el $QQQ$, este nivel de error es pequeño aunque no negligible. En contexto de inversión, error de ~5.54 en predicción de precio de 604 representa precisión suficiente para identificar dirección general pero insuficiente para timing exacto. La Raíz del Error Cuadrático Medio (RMSE) = 6.68 es ligeramente superior a $MAE$ porque penaliza desviaciones grandes: el error máximo observado (-14.37 en día 8) elevado al cuadrado domina el cálculo de $RMSE$.
-
-El Error Porcentual Absoluto Medio (MAPE) = 0.92% expresa error en términos relativos: en promedio, predicciones erraron por menos de 1% del valor real. Este es un estándar de desempeño excelente para pronóstico de precios de activos financieros, donde volatilidad diaria típica es 1-2% (Hyndman & Athanasopoulos, 2021). La métrica más reveladora es "Observaciones dentro del IC 95%" = 10 de 10 (100%). Esta perfecta cobertura indica que el intervalo de confianza fue exactamente bien calibrado: todos los valores reales cayeron dentro de las bandas predichas, ni más ni menos que lo esperado teóricamente. Si el modelo fuese mal especificado, se esperaría que algunos valores reales cayesen fuera del intervalo; el hecho de que todos caigan dentro valida la calibración correcta de la incertidumbre (Hyndman & Koehler, 2006).
+La métrica más reveladora es "Observaciones dentro del IC 95%" = 10 de 10 (100%). Esta perfecta cobertura indica que el intervalo de confianza fue exactamente bien calibrado: todos los valores reales cayeron dentro de las bandas predichas, validando calibración correcta de la incertidumbre (Hyndman & Koehler, 2006).
 
 # 9. Conclusiones
 

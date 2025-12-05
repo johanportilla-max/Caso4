@@ -4,7 +4,7 @@
 
 ### 4.1.1 Estrategia Train/Test
 
-Dividimos el QQQ en entrenamiento (7-Oct-2022 → 30-Sep-2025) y prueba (1-Oct-2025 → presente).
+Se dividimos el QQQ en entrenamiento (7-Oct-2022 → 30-Sep-2025) y prueba (1-Oct-2025 → presente).
 
 ```{r particion-datos, echo=TRUE}
 Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
