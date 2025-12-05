@@ -330,7 +330,7 @@ body div.container-fluid:first-of-type {
 /* ===================== BOTÓN FLOTANTE UNIVERSIDAD ===================== */
 #uv-button {
   position: fixed;
-  bottom: 25px;
+  bottom: 40px;
   right: 25px;   /* cámbialo a left:25px si lo quieres a la izquierda */
   width: 70px;
   height: 70px;
