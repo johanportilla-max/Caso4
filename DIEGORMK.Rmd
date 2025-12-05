@@ -1069,7 +1069,6 @@ datos_qqq <- data.frame(
   Precio = as.numeric(precios)
 )
 
-# Crear un frame por cada fila (por cada día)
 datos_qqq$Frame <- as.character(datos_qqq$Fecha)
 
 p <- ggplot(datos_qqq, aes(x = Fecha, y = Precio)) +
