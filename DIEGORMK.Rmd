@@ -587,7 +587,6 @@ document.addEventListener('DOMContentLoaded', function() {
 ```
 
 ```{r setup-theme, include=FALSE}
-
 library(tidyverse)
 library(quantmod)
 library(xts)
