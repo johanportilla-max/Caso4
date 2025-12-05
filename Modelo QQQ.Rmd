@@ -600,6 +600,9 @@ library(forecast)
 library(ggplot2)
 library(zoo)
 library(plotly)
+library(tidyquant)
+library(ggplot2)
+library(zoo)
 
 knitr::opts_chunk$set(
   echo = TRUE,
@@ -651,25 +654,45 @@ update_geom_defaults("col", list(fill = qqq_pal$primary, color = NA))
 
 # 1. Introducción
 
-## 1.1 Relevancia del Análisis
+La capacidad de anticipar el comportamiento futuro de los precios en los mercados financieros constituye uno de los elementos centrales para la toma de decisiones de inversión estratégicas y la gestión eficiente de portafolios. En el contexto de los mercados bursátiles globales, donde la incertidumbre es inherente y los patrones de precios reflejan complejas dinámicas de oferta y demanda, el desarrollo de modelos predictivos robustos cobra particular relevancia para inversionistas, analistas financieros y gestores de cartera.
 
-[**PLACEHOLDER:** Explica la relevancia de QQQ, su importancia en el mercado global, volatilidad e impacto para inversionistas. Incluir contexto del Nasdaq-100 ETF.]
+El Invesco $QQQ Trust$ (QQQ) es uno de los fondos cotizados en bolsa (ETF) más negociados a nivel mundial, con activos bajo gestión superiores a los 400 mil millones de dólares. Este instrumento replica el índice $Nasdaq-100$, compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con una fuerte concentración en el sector tecnológico que incluye líderes como $Apple$, $Microsoft$, $NVIDIA$, $Amazon$ y $Alphabet$. Entre 2009 y 2019, el $QQQ$ se benefició significativamente de las economías de escala en software, el auge de los smartphones y el desarrollo de ecosistemas tecnológicos integrados. Esta composición convierte al $QQQ$ en un referente para analizar el comportamiento del sector tecnológico estadounidense y, por extensión, las tendencias de innovación que impulsan la economía global.
 
-# 3. Metodología
+La importancia de modelar series de precios como la del QQQ radica en múltiples factores. En primer lugar, los pronósticos financieros juegan un papel fundamental en la formación de expectativas de mercado e influyen directamente en las decisiones de inversión, la asignación de activos y la evaluación de riesgos. En segundo lugar, el análisis cuantitativo de series temporales permite identificar patrones y comportamientos que proporcionan información valiosa para diseñar estrategias de inversión más fundamentadas. La predicción específica del $QQQ$ es particularmente importante porque replica el índice $Nasdaq-100$, concentrado en empresas tecnológicas líderes en desarrollo de inteligencia artificial, computación en la nube y ecosistemas digitales innovadores. Dado que el sector tecnológico representa uno de los mercados emergentes y con mayor potencial de crecimiento en la economía global, predecir el comportamiento del $QQQ$ permite anticipar tendencias en innovación, evaluar correctamente la valuación de activos tecnológicos y gestionar la exposición al riesgo en un sector de alta volatilidad que impulsa transformaciones estructurales en la economía mundial.
+
+En este contexto, los modelos $ARIMA$ (AutoRegressive Integrated Moving Average) se han consolidado como uno de los enfoques más utilizados para el pronóstico de series de tiempo, junto con los modelos de suavizado exponencial. Mientras que los modelos de suavizado exponencial se basan en una descripción de la tendencia y la estacionalidad en los datos, los modelos $ARIMA$ tienen como objetivo describir las autocorrelaciones presentes en la serie. Estos modelos integran tres componentes fundamentales: el componente autorregresivo (AR), que pronostica la variable de interés utilizando una combinación lineal de sus valores pasados; el componente de integración (I), que transforma series no estacionarias en estacionarias mediante la aplicación de diferencias sucesivas; y el componente de media móvil (MA), que utiliza errores de pronóstico pasados en un modelo similar a la regresión.
+
+Un aspecto fundamental previo al ajuste de modelos $ARIMA$ es la verificación de la estacionariedad de la serie temporal. Una serie estacionaria es aquella cuyas propiedades no dependen del momento en que se observa; es decir, presenta media aproximadamente horizontal, varianza constante y no muestra patrones predecibles a largo plazo. Las series temporales con tendencias o estacionalidad no son estacionarias. Para identificar series no estacionarias, se emplean tanto herramientas gráficas (la función de autocorrelación ACF de datos no estacionarios decrece lentamente) como pruebas estadísticas formales, entre las que destaca el Test Aumentado de Dickey-Fuller, cuya hipótesis nula establece que los datos son no estacionarios.
+
+El presente estudio emplea datos históricos del ETF $QQQ$ obtenidos de Yahoo Finance, abarcando el período comprendido entre el 7 de octubre de 2022 y el 2 de diciembre de 2025, con un total de 791 observaciones diarias de precios de cierre. Durante este período, el precio del $QQQ$ fluctuó entre un mínimo de \$260.10 y un máximo de \$635.77, con un precio promedio de \$435.84 y una desviación estándar de \$97.95. El rendimiento acumulado del período alcanzó un notable 131.14%, reflejando la fuerte recuperación del sector tecnológico tras el mercado bajista de 2022 y el impulso generado por desarrollos en inteligencia artificial. La volatilidad anualizada de la serie se ubicó en aproximadamente 21.12%, característica de instrumentos con alta exposición al sector tecnológico.
+
+El análisis incluye la verificación de supuestos estadísticos fundamentales: evaluación de estacionariedad mediante la prueba de $Dickey-Fuller$ Aumentada y análisis gráfico de las funciones de autocorrelación (ACF) y autocorrelación parcial (PACF), la selección del modelo óptimo utilizando criterios de información (AICc), y la validación diagnóstica de residuos para confirmar que se comporten como ruido blanco. Se comparan múltiples especificaciones $ARIMA$, incluyendo el modelo seleccionado automáticamente mediante la función `auto.arima` y configuraciones alternativas sugeridas por el análisis de los gráficos $ACF$ y $PACF$, reconociendo que aunque la automatización es útil, "cualquier cosa automatizada puede ser un poco peligrosa, y vale la pena entender algo sobre el comportamiento de los modelos".
+
+------------------------------------------------------------------------
+
+
+# 2. Metodología
 
 La metodología adoptada sigue el procedimiento estándar de modelamiento de series temporales propuesto en la literatura Box-Jenkins: se particiona el conjunto de datos en un conjunto de entrenamiento destinado a la estimación de parámetros y validación de modelos candidatos, y un conjunto de prueba para evaluar la capacidad predictiva fuera de muestra. Este diseño respeta la naturaleza secuencial de datos financieros, evitando la fuga de información que comprometería la validez de los pronósticos.
 
 ---
 
-## 3.1 Base de Datos
+## 2.1 Base de Datos
 
 La base de datos utilizada proviene de Yahoo Finance, plataforma reconocida globalmente para obtención de datos financieros históricos de alta calidad y frecuencia diaria. Se extrajo información del ETF Invesco QQQ Trust (símbolo: QQQ), el cual replica el índice Nasdaq-100 compuesto por las 100 empresas no financieras de mayor capitalización bursátil listadas en el mercado Nasdaq, con fuerte concentración en sector tecnológico (Apple, Microsoft, NVIDIA, Amazon, Alphabet, Tesla, Meta).
 
 La extracción se realizó mediante la función `getSymbols()` del paquete `quantmod` de R, automatizando la descarga directa desde fuente oficial. El período de estudio abarca desde 7 de octubre de 2022 hasta 2 de diciembre de 2025, capturando 791 observaciones diarias de precios de cierre. Este período es particularmente informativo: incluye recuperación post-crisis 2022, impulso del rally de inteligencia artificial (2023-2025), cambios en política monetaria de la Reserva Federal, y volatilidad estructural del sector tecnológico.
 
+```{r cargar-datos, echo=TRUE}
+
+serie_QQQ <- getSymbols("QQQ", src="yahoo", auto.assign=FALSE, from="2015-01-01") 
+Precio <- serie_QQQ$`QQQ.Close`
+
+```
+
 ---
 
-## 3.2 Variable de Análisis
+## 2.2 Variable de Análisis
 
 El dataset se centra en una única variable cuantitativa de interés: **precio de cierre diario del ETF QQQ**. Esta variable representa el último precio de negociación durante cada sesión bursátil y es la medida estándar en análisis técnico y modelización de series financieras.
 
@@ -677,7 +700,7 @@ La elección del precio de cierre se fundamenta en que: (i) refleja el consenso 
 
 ---
 
-## 3.3 Partición Temporal de Datos
+## 2.3 Partición Temporal de Datos
 
 En análisis de series temporales, la partición de datos debe respetar el orden cronológico, diferenciándose fundamentalmente de validación cruzada aleatoria. La estrategia implementada divide la serie en dos subconjuntos contiguos:
 
@@ -689,13 +712,13 @@ Esta metodología es esencial porque: (i) evita "fuga de información" (data lea
 
 ---
 
-## 3.4 Marco Conceptual: Modelos ARIMA(p,d,q)
+## 2.4 Marco Conceptual: Modelos ARIMA(p,d,q)
 
 Los modelos ARIMA (AutoRegressive Integrated Moving Average), desarrollados por Box y Jenkins en 1970, constituyen metodología sistemática y robusta para análisis y pronóstico de series temporales. Se fundamentan en la idea de que el valor actual de una serie puede explicarse mediante: (i) sus valores históricos (componente autorregresivo), (ii) transformaciones que alcancen estacionariedad (componente integrador), o (iii) errores de pronóstico pasados (componente de media móvil).
 
 A diferencia de modelos de regresión que requieren variables explicativas externas, los modelos ARIMA son **univariados**, extrayendo toda información predictiva de la propia historia de la serie. Esta característica los hace especialmente valiosos en contextos financieros donde no se dispone de predictores externos confiables, o donde el objetivo es capturar dinámicas intrínsecas de evolución temporal.
 
-### 3.4.1 Componente Autorregresivo AR(p)
+### 2.4.1 Componente Autorregresivo AR(p)
 
 El modelo AR(p) pronostica la variable utilizando combinación lineal de sus valores pasados:
 
@@ -711,7 +734,7 @@ El coeficiente $\phi_1$ en AR(1) indica **persistencia de la serie**: valores ce
 
 La interpretación económica es que si una serie ha estado elevada en período anterior, tiende a permanecer elevada actualmente, capturando inercia o persistencia en comportamiento de variable.
 
-### 3.4.2 Componente de Media Móvil MA(q)
+### 2.4.2 Componente de Media Móvil MA(q)
 
 El modelo MA(q) utiliza errores de pronóstico pasados en lugar de valores históricos de variable:
 
@@ -721,7 +744,7 @@ donde $\theta_1, \ldots, \theta_q$ son coeficientes de media móvil.
 
 La interpretación económica es que shocks o sorpresas en serie tienen efectos **transitorios** que se disipan gradualmente. Esto captura comportamientos donde precios regresan a nivel promedio tras perturbación, en lugar de permanecer desplazados permanentemente. En contextos financieros, MA modela la reversión a media que caracteriza a mercados relativamente eficientes en corto plazo.
 
-### 3.4.3 Componente de Integración I(d)
+### 2.4.3 Componente de Integración I(d)
 
 Muchas series económicas y financieras **no son estacionarias** en forma original, presentando tendencias, medias cambiantes, o varianzas no constantes. Una serie estacionaria tiene propiedades estadísticas (media, varianza, autocovarianzas) invariantes en tiempo; una serie no-estacionaria exhibe comportamientos dependientes del momento observado.
 
@@ -735,7 +758,7 @@ $$y''_t = y'_t - y'_{t-1} = \Delta^2 y_t$$
 
 El parámetro $d$ indica número de diferencias necesarias para que serie se vuelva estacionaria. Una serie que requiere $d$ diferencias se denomina "integrada de orden $d$", denotada I(d). En práctica, rara vez se requieren más de dos diferencias; para series financieras como precios de activos, típicamente $d=1$ es suficiente.
 
-### 3.4.4 Formulación Compacta con Operador de Rezago
+### 2.4.4 Formulación Compacta con Operador de Rezago
 
 Combinando los tres componentes, el modelo ARIMA(p,d,q) se expresa compactamente usando operador de rezago $B$ (donde $B y_t = y_{t-1}$):
 
@@ -748,7 +771,7 @@ donde:
 
 Esta representación facilita análisis teórico y derivación de propiedades estadísticas. Su elegancia radica en capturar dinámicas complejas mediante combinación sistemática de componentes que actúan en niveles distintos: AR modela persistencia, MA modela efectos de shocks transitorios, I transforma serie hacia propiedades deseadas.
 
-### 3.4.5 Supuestos Fundamentales del Modelo
+### 2.4.5 Supuestos Fundamentales del Modelo
 
 Para que inferencias y pronósticos derivados de ARIMA sean válidos y confiables, deben cumplirse supuestos sobre naturaleza de serie y sus residuos:
 
@@ -762,9 +785,9 @@ Para que inferencias y pronósticos derivados de ARIMA sean válidos y confiable
 
 ---
 
-## 3.5 Herramientas Estadísticas para Identificación y Validación
+## 2.5 Herramientas Estadísticas para Identificación y Validación
 
-### 3.5.1 Prueba Aumentada de Dickey-Fuller (ADF)
+### 2.5.1 Prueba Aumentada de Dickey-Fuller (ADF)
 
 La estacionariedad es requisito previo fundamental antes de modelización ARIMA. Una serie no-estacionaria produciría inferencias engañosas y pronósticos poco confiables.
 
@@ -774,7 +797,7 @@ La **Prueba Aumentada de Dickey-Fuller (ADF)** es contraste estadístico estánd
 
 El resultado de esta prueba determina el orden de integración $d$: si serie original rechaza $H_0$ (p-valor < 0.05), se procede a diferenciar y repetir hasta lograr estacionariedad. El estadístico ADF compara contra valores críticos tabulados; si estadístico de prueba es más negativo que valor crítico (mayor en magnitud), se rechaza $H_0$.
 
-### 3.5.2 Funciones de Autocorrelación: ACF y PACF
+### 2.5.2 Funciones de Autocorrelación: ACF y PACF
 
 Las funciones de autocorrelación proporcionan **diagnóstico visual** fundamental para entender patrones de dependencia temporal y sugerir especificaciones ARIMA iniciales.
 
@@ -788,13 +811,13 @@ Para identificación de modelo, ACF es especialmente útil para distinguir proce
 
 El análisis combinado de ACF y PACF proporciona indicios valiosos sobre especificación inicial del modelo, aunque debe complementarse con criterios estadísticos formales.
 
-### 3.5.3 Búsqueda Automática: Función auto.arima()
+### 2.5.3 Búsqueda Automática: Función auto.arima()
 
 En práctica moderna, la función `auto.arima()` automatiza gran parte del proceso de identificación mediante algoritmos de búsqueda sistemática. Realiza búsqueda sobre rango especificado de valores para $p$, $d$ y $q$, evaluando cada combinación mediante criterios de información como AICc.
 
 Sin embargo, es importante reconocer limitaciones: un modelo automatizado puede omitir especificaciones que, aunque menos óptimas según criterios puramente estadísticos, podrían ser preferibles bajo consideraciones teóricas o interpretativas. Por ello, resulta valioso complementar búsqueda automática con análisis visual de ACF/PACF, permitiendo que teoría económica y conocimiento del dominio del problema informen especificación final.
 
-### 3.5.4 Criterios de Selección del Modelo: AICc
+### 2.5.4 Criterios de Selección del Modelo: AICc
 
 Cuando múltiples especificaciones ARIMA son candidatas, es necesario criterio objetivo para elegir entre ellas. Los **criterios de información** cumplen este rol al balancear calidad del ajuste con complejidad del modelo.
 
@@ -811,7 +834,7 @@ El término adicional respecto al AIC clásico corrige sesgo que ocurre en muest
 
 **Aspecto crítico:** Criterios de información NO son aplicables para seleccionar orden de diferenciación $d$, pues diferenciación altera escala de datos sobre cual se computa verosimilitud, haciendo valores de AICc no comparables entre modelos con diferente $d$. Por ello, parámetro $d$ se determina primero mediante pruebas de estacionariedad (ADF), y AICc se utiliza posteriormente para optimizar órdenes $p$ y $q$.
 
-### 3.5.5 Diagnóstico de Residuos: Prueba de Ljung-Box
+### 2.5.5 Diagnóstico de Residuos: Prueba de Ljung-Box
 
 Después de ajustar modelo ARIMA específico, es necesario verificar que modelo haya capturado adecuadamente estructura temporal.
 
@@ -823,7 +846,7 @@ Si residuos conservan autocorrelación, es señal de que modelo especificado no 
 
 ---
 
-## 3.6 Procedimiento Metodológico: Metodología Box-Jenkins
+## 2.6 Procedimiento Metodológico: Metodología Box-Jenkins
 
 La metodología Box-Jenkins propone proceso iterativo sistemático para modelización ARIMA. El procedimiento implementado en este análisis sigue estos pasos secuenciales:
 
@@ -881,7 +904,7 @@ Una vez validado modelo, se procede a:
 
 ---
 
-## 3.7 Métricas de Evaluación del Desempeño Predictivo
+## 2.7 Métricas de Evaluación del Desempeño Predictivo
 
 Para evaluar objetivamente precisión de pronósticos generados por modelo ARIMA en conjunto de prueba, se emplean métricas cuantitativas estándar:
 
@@ -909,9 +932,9 @@ Se evalúa proporción de valores reales que caen dentro de intervalos de confia
 
 ---
 
-# 2. Descripción de la Serie Temporal
+# 3. Descripción de la Serie Temporal
 
-## 2.1 Contexto Histórico y Datos
+## 3.1 Contexto Histórico y Datos
 
 [**PLACEHOLDER:** Contexto completo del QQQ (Nasdaq-100 ETF), período de análisis seleccionado (octubre 2022 - presente), eventos significativos que han afectado el precio (crisis de volatilidad, cambios de política monetaria, rally de IA, etc.)]
 
@@ -966,7 +989,7 @@ plotly::ggplotly(p, tooltip = c("x", "y")) %>%
   plotly::config(displayModeBar = FALSE)
 ```
 
-## 2.2 Estadísticas Descriptivas
+## 3.2 Estadísticas Descriptivas
 
 [**PLACEHOLDER:** Estadísticas completas de la serie - Media, Mediana, Desv. Est., Rango, Cuartiles. Tablas formateadas con kableExtra.]
 
