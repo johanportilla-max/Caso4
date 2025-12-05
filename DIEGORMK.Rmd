@@ -327,92 +327,6 @@ body div.container-fluid:first-of-type {
     padding: 20px !important;
   }
 }
-/* ===================== BOTÓN FLOTANTE UNIVERSIDAD ===================== */
-#uv-button {
-  position: fixed;
-  bottom: 40px;
-  right: 25px;   /* cámbialo a left:25px si lo quieres a la izquierda */
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  z-index: 9999;
-  transition: transform 0.3s ease;
-  overflow: hidden;
-}
-
-#uv-button:hover {
-  transform: scale(1.1);
-}
-
-/* Imagen interna */
-#uv-button img {
-  width: 80%;
-  height: 80%;
-  object-fit: contain;
-  transition: opacity .4s ease;
-}
-
-/* Animación de rotación */
-@keyframes spin-logo {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-#uv-button.spin {
-  animation: spin-logo 1.2s linear;
-}
-#uv-button img {
-  width: 80%;
-  height: 80%;
-  object-fit: contain;
-  display: block;
-  margin: auto;        
-  position: absolute;  
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-/* ===== TOOLTIP PERSONALIZADO PARA EL BOTÓN ===== */
-/* ===== TOOLTIP HACIA LA IZQUIERDA ===== */
-#uv-button::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: -10px;                /* empieza pegado al borde izquierdo */
-  top: 50%;                   /* centrado verticalmente */
-  transform: translate(-100%, -50%);  /* lo desplaza completamente a la izquierda */
-  
-  background: rgba(0,0,0,0.85);
-  color: white;
-  padding: 8px 12px;
-  font-size: 0.85em;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-#uv-button:hover::after {
-  opacity: 1;
-}
-
-#uv-button {
-  position: fixed !important;
-  z-index: 999999 !important;
-  pointer-events: auto !important;
-}
-#custom-toc, #right-toc {
-  z-index: 5000 !important;
-}
-#uv-button {
-  overflow: visible !important;
-}
 
 /* ========== NUEVO: ESTILO PARA EL BOTÓN INDIVIDUAL DE CADA CHUNK ========== */
 .chunk-code-toggle {
@@ -669,29 +583,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Eliminé el botón global anterior para que no tengas conflicto, 
-  // ya que ahora tienes botones individuales.
-
-  // Animación Logo Univalle
-  const logos = ["univalle.png", "ingenieria.png"];  
-  let index = 0;
-  const img = document.getElementById("uv-img");
-  const btn = document.getElementById("uv-button");
-  if (btn && img) {
-    setInterval(() => {
-      btn.classList.add("spin");
-      setTimeout(() => {
-        index = (index + 1) % logos.length;
-        img.style.opacity = 0;
-        setTimeout(() => {
-          img.src = logos[index];
-          img.style.opacity = 1;
-        }, 200);
-      }, 600);
-      setTimeout(() => btn.classList.remove("spin"), 1200);
-    }, 3500);
-  }
-});
 </script>
 ```
 
