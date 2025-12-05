@@ -1158,7 +1158,7 @@ En los años más recientes, especialmente entre 2023 y 2025, el ritmo de apreci
 
 En conjunto, la evolución del QQQ entre 2010 y 2025 combina una tendencia estructural de crecimiento con episodios de inestabilidad y con una dependencia cada vez mayor del desempeño de unas pocas empresas de gran capitalización. Esta mezcla explica tanto su elevado rendimiento histórico como su exposición marcada a shocks de volatilidad.
 
-## 4.1 Resumen anual retornos
+## 3.1.2 Resumen anual retornos
 
 ```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1207,7 +1207,7 @@ La curtosis de 2.78 —ligeramente inferior al valor de referencia normal (=3)�
 
 En conjunto, estas métricas reafirman que la estructura estadística del precio del QQQ está dominada por una tendencia alcista persistente, episodios de aceleración reciente y una asimetría que refleja cómo la mayor parte de la apreciación del valor se concentra en la última fase del periodo analizado.
 
-## 3.1.2 División sectorial 
+## 3.1.3 División sectorial 
 
 
 ```{r tortA, echo=TRUE, warning=FALSE, message=FALSE}
@@ -1267,7 +1267,7 @@ Esta preponderancia se ve magnificada por la correlación estratégica de los se
 
 Por el contrario, la participación marginal de sectores defensivos y anticíclicos —como Consumo Básico (5.02%), Salud (4.3%), Industriales (4.61%) y las asignaciones residuales en Servicios Públicos (1.39%) y Energía (0.473%)— sugiere que el QQQ carece de los "amortiguadores" tradicionales contra la volatilidad macroeconómica. Esta asimetría estructural dota al portafolio de una elevada duración de acciones implícita, haciéndolo mecánicamente vulnerable a las variaciones en la tasa de descuento (tasas de interés), una característica que explica la severidad de las correcciones observadas en 2022 cuando el costo del capital se incrementó (Bernstein, 1997).
 
-## 3.3 Mayores Holdings 
+## 3.1.4 Mayores Holdings 
 
 ```{r top10, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1362,7 +1362,7 @@ La distribución sectorial refuerza el sesgo hacia la innovación: las burbujas 
 Desde una perspectiva de gestión de riesgos, esta configuración explica la alta beta y la convexidad observada en la serie histórica: la correlación positiva entre estos pocos activos líderes amplifica tanto los rendimientos exponenciales en mercados alcistas como la severidad de los drawdowns en periodos de corrección, confirmando que la dinámica del QQQ está intrínsecamente ligada a la salud financiera y las expectativas de crecimiento de este selecto grupo de empresas (Sharpe, 1964).
 
 
-## 3.4 Análisis Estadístico precios
+## 3.1.5 Análisis Estadístico precios
 
 ```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1422,7 +1422,7 @@ La asimetría de 0.92 confirma el desplazamiento de la distribución hacia valor
 
 En conjunto, estas métricas describen una serie dominada por la apreciación sostenida del QQQ, con una distribución inclinada hacia los niveles altos y una dispersión que refleja la magnitud del crecimiento acumulado a lo largo del periodo.
 
-## 3.5 Rendimientos Diarios
+## 3.1.6 Rendimientos Diarios
 
 ```{r tablarendimientos, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1449,7 +1449,7 @@ Desde la perspectiva estadística, una volatilidad de este tamaño también resp
 
 En síntesis, la volatilidad anualizada del 20.80% no solo caracteriza el riesgo promedio del QQQ, sino que encaja con la narrativa general: un activo con una tendencia estructural potente, pero atravesado por episodios de estrés que amplifican temporalmente sus oscilaciones.
 
-## 3.6 Retornos Diarios
+## 3.1.7 Retornos Diarios
 
 ```{r tablaretrnosentos, echo=TRUE, warning=FALSE, message=FALSE}
 ret_df <- data.frame(Retorno = as.numeric(ret_diario))
@@ -1478,7 +1478,7 @@ La ligera inclinación de la distribución hacia rendimientos negativos —visib
 En conjunto, la forma de la distribución no solo plasma el comportamiento estadístico de los rendimientos, sino que funciona como una evidencia visual directa de la propia identidad del QQQ:
 un vehículo altamente concentrado, dominado por factores de crecimiento, sensible a liquidez y a ciclos tecnológicos, y estructuralmente propenso a movimientos extremos más frecuentes que los esperados bajo supuestos gaussianos.
 
-
+## 3.1.8 Retornos por Año (QQQ)
 
 ```{r boxpllot, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1507,7 +1507,7 @@ A partir de 2023, la dispersión disminuye parcialmente, pero se mantienen punto
 
 En conjunto, la distribución anual de retornos evidencia que el QQQ combina periodos prolongados de estabilidad con episodios de sobresaltos intensos, confirmando que la volatilidad no es constante sino heterogénea y concentrada en momentos específicos. Este comportamiento es característico de los activos con fuerte exposición tecnológica y ajusta perfectamente con las demás métricas analizadas del índice.
 
-## 3.7 Rendimientos por año
+## 3.1.9 Rendimientos por año
 
 ```{r rendimientosaño, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 ret_anual_df <- data.frame(
@@ -1559,7 +1559,7 @@ A partir de 2023, el retorno se recupera con fuerza (43.04%), reflejando el impu
 
 En suma, la serie de retornos anuales del QQQ muestra un activo con convexidad positiva de largo plazo, capaz de generar apreciaciones significativas en fases expansivas, pero sujeto a caídas abruptas cuando el ciclo tecnológico o monetario se invierte. Esta dinámica encaja plenamente con las demás métricas analizadas: volatilidad variable, asimetría positiva en los precios y episodios concentrados de estrés, todos rasgos característicos de un índice liderado por innovación y crecimiento acelerado.
 
-## 3.8 Drawdown 
+## 3.2 Drawdown 
 
 ```{r drawdown, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 
@@ -1592,7 +1592,7 @@ En conjunto, el análisis del drawdown en el período 2010-2025 confirma una nar
 
 Este comportamiento hace evidente la naturaleza no estacionaria y heterocedástica de la serie QQQ, caracterizada por volatilidad que se agrupa en períodos específicos de estrés macroeconómico. Este patrón justifica el uso de modelos ARIMA para capturar tendencias y dinámicas temporales, y de modelos GARCH para describir la volatilidad condicional que cambia en el tiempo. El drawdown, por tanto, complementa los análisis anteriores al mostrar no solo cuán profunda es la caída del índice, sino también cuánto tiempo tarda en recuperarse—un factor crítico en la gestión del riesgo financiero y fundamental para cualquier evaluación prospectiva del desempeño de este instrumento.
 
-## 3.9 Métricas Financieras 
+## 3.2.1 Métricas Financieras 
 
 ```{r metrics_financieras, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -1636,7 +1636,7 @@ Finalmente, el **Ratio Calmar de 0.39** relaciona el rendimiento anualizado (15.
 
 En conclusión, el análisis de las métricas confirma una narrativa de progresión: el QQQ ofrece potencial de crecimiento extraordinario, evidenciado por el CAGR de 15.23% y retorno acumulado de 852.76%, lo que lo convierte en un activo atractivo para inversores de largo plazo. Sin embargo, lo hace asumiendo un costo de riesgo moderado-alto, manifestado en el Max Drawdown de 39.0% y Sortino bajo. Las métricas sugieren que el perfil de riesgo del QQQ está caracterizado por volatilidad concentrada en episodios de estrés (2022) más que por variabilidad constante. Para inversores con horizonte de 10+ años y tolerancia al riesgo moderada-alta, el perfil riesgo-retorno es favorable; para inversores conservadores u horizontes cortos, requiere consideraciones de hedging o diversificación adicional. El modelado y la gestión de este activo deben necesariamente considerar la asimetría y la volatilidad heterocedástica inherentes a su comportamiento, lo que justifica el uso de modelos GARCH para capturar volatilidad condicional y ARIMA para tendencias.
 
-## 3.10 Volatilidad
+## 3.2.2 Volatilidad
 ```{r rolling_vol, echo=TRUE, warning=FALSE, message=FALSE}
 
 rollsd30  <- rollapply(as.numeric(ret_diario), width = 30, FUN = sd, fill = NA, align = "right")
@@ -1670,7 +1670,7 @@ El período 2013-2019 representa un régimen de volatilidad comprimida, con vol2
 
 En conclusión, este gráfico demuestra que la "volatilidad media" es una métrica engañosa para el QQQ, ya que el inversor rara vez experimenta el promedio; en su lugar, el activo transita entre largos períodos de volatilidad moderada y explosiones de riesgo extremo. Esta dinámica bimodal justifica plenamente la necesidad de modelos GARCH para capturar heterocedasticidad condicional (Mandelbrot, 1963; Bollerslev, 1986).
 
-## 4 Estacionalidad Mensual del QQQ (2010–2025)
+## 3.2.3 Estacionalidad Mensual del QQQ (2010–2025)
 
 ```{r heatmap_estacional_mejor, echo=TRUE, warning=FALSE, message=FALSE}
 df_m <- data.frame(Fecha = index(ret_mensual), Ret = as.numeric(ret_mensual))
@@ -1695,7 +1695,7 @@ La recuperación de 2023-2024, visible en las franjas superiores naranjas, confi
 
 En conjunto, el heatmap demuestra que el riesgo del QQQ no se distribuye uniformemente a lo largo del año, sino que se concentra en ventanas específicas. Septiembre emerge como mes vulnerables, mientras enero, noviembre y diciembre exhiben sesgo alcista recurrente. Esta estructura estacional tiene relevancia limitada para pronósticos ARIMA de frecuencia diaria (como en este análisis), pero es importante para decisiones de asignación táctica o rebalanceo de portafolios en horizonte mensual.
 
-
+## 3.2.4 Comparación rendimientos
 
 ```{r comparacion, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 
@@ -1784,6 +1784,8 @@ La brecha masiva visible en 2025, donde el retorno acumulado del QQQ alcanza niv
 
 En conclusión, el gráfico ratifica que el QQQ no es un sustituto del mercado general, sino un vehículo de crecimiento agresivo. Su desempeño superior a largo plazo frente al SPY y al DIA justifica su inclusión en portafolios que buscan maximización de capital. Sin embargo, como se documentó en análisis previos, esta superior generación de retorno viene acompañada por volatilidad y drawdowns sistemáticamente superiores (39.0% máximo vs ~27% para SPY). El inversor en QQQ asume explícitamente una postura factorial hacia la tecnología, aceptando mayor riesgo idiosincrático a cambio de participación en el crecimiento de la "nueva economía" (Fama & French, 2015; Sharpe, 1964).
 
+## 3.2.5 Partición de la serie
+
 ```{r partiion, echo=TRUE, warning=FALSE, message=FALSE}
 
 
@@ -1822,6 +1824,8 @@ Este comportamiento confirma la hipótesis de una ruptura estructural (structura
 Esta narrativa explica la aceleración visible entre 2023-2025, el QQQ ha generado retornos extraordinarios mientras la economía real permaneció bajo presión de altas tasas. El desacople es precisamente lo que cabría esperar si el mercado antecipase beneficios de largo plazo de la IA, independientes de ciclos macroeconómicos de corto plazo. La hegemonía de NVIDIA (9.33% del portafolio) y Microsoft (7.69%) refuerza esta tesis: ambas empresas son centrales en la infraestructura y aplicación de LLMs (Large Language Models).
 
 En consecuencia, el gráfico demuestra que el mercado ha transicionado de un esquema de "valoración por descuento de flujos" (sensible a tasas) a un esquema de "valoración por crecimiento potencial" (sensible a adopción de IA). Cualquier estrategia de modelado predictivo debe reconocer que el período 2023-2025 representa una nueva fase estocástica caracterizada por momentum idiosincrático derivado de la revolución de los Grandes Modelos de Lenguaje, distinta de la dinámica pre-2022. El modelo ARIMA calibrado en esta ventana temporal captura correctamente esta nueva estructura, mientras que su aplicación a horizontes muy largos (décadas) estaría sujeta a riesgo de cambio de régimen futuro.
+
+## 3.2.6 Inteligencia artificial linea de tiempo
 
 ```{r ias, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE, fig.width=10, fig.height=6}
 library(ggplot2)
