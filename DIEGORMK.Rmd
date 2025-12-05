@@ -1084,7 +1084,22 @@ La interpretación de los resultados prioriza tres ejes: nivel y tendencia de la
 ## 3.1.1 serie QQQ historica 
 
 ```{r serie, echo=TRUE, warning=FALSE, message=FALSE}
-
+library(dplyr)
+library(ggplot2)
+library(xts)
+library(tidyquant)
+library(tidyverse)
+library(plotly)
+library(viridis)
+library(reshape2)
+library(zoo)
+library(PerformanceAnalytics)
+library(quantmod)
+library(knitr)
+library(moments)
+library(packcircles)
+library(tidyr)
+library(lubridate)
 serie <- getSymbols('QQQ', src='yahoo', auto.assign=FALSE, from="1999-05-01")
 precios <- serie$QQQ.Close
 datos_qqq <- data.frame(
@@ -1140,11 +1155,7 @@ La evolución histórica del QQQ muestra una tendencia alcista secular con creci
 ## 4.1 Resumen anual retornos
 
 ```{r resumen_anual_tabla, echo=TRUE, warning=FALSE, message=FALSE}
-library(dplyr)
-library(tidyr)
-library(quantmod)
-library(lubridate)
-library(knitr)
+
 
 if (!exists("precios")) {
   precios <- serie[,6]   
@@ -1194,7 +1205,7 @@ Finalmente, el periodo más reciente (2023–2025) evidencia una recuperación v
 
 
 ```{r tortA, echo=TRUE, warning=FALSE, message=FALSE}
-library(plotly)
+
 sectores <- data.frame(
   Sector = c("Tecnología", "Consumo Discrecional", "Servicios de Comunicación", 
              "Consumo Básico", "Industriales", "Salud", "Otros", 
@@ -1253,11 +1264,6 @@ Por el contrario, la participación marginal de sectores defensivos y anticícli
 ## 3.3 Mayores Holdings 
 
 ```{r top10, echo=TRUE, warning=FALSE, message=FALSE}
-
-library(packcircles)
-library(dplyr)
-library(ggplot2)
-library(plotly)
 
 top10 <- data.frame(
   ticker = c("NVDA","AAPL","MSFT","AVGO","AMZN","GOOGL","GOOG","TSLA","META","NFLX"),
@@ -1353,9 +1359,7 @@ Desde una perspectiva de gestión de riesgos, esta configuración explica la alt
 ## 3.4 Análisis Estadístico precios
 
 ```{r tabla, echo=TRUE, warning=FALSE, message=FALSE}
-library(moments)
-library(knitr)
-library(dplyr)
+
 serie_vec <- as.numeric(serie[,6])
 serie_vec <- serie_vec[!is.na(serie_vec)]
 if (max(serie_vec) > 1000) {
@@ -1415,11 +1419,7 @@ Finalmente, la Curtosis de 4.42 (superior a 3, indicando una distribución lepto
 ## 3.5 Rendimientos Diarios
 
 ```{r tablarendimientos, echo=TRUE, warning=FALSE, message=FALSE}
-library(quantmod)
-library(dplyr)
-library(ggplot2)
-library(tidyverse)
-library(knitr)
+
 precios <- serie$QQQ.Close
 ret_diario  <- dailyReturn(precios, type = "log")
 ret_mensual <- monthlyReturn(precios, type = "log")
@@ -1555,9 +1555,7 @@ En conjunto, el gráfico muestra que el QQQ es un activo con alto potencial de c
 ## 3.8 Drawdown 
 
 ```{r drawdown, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-library(PerformanceAnalytics)
-library(ggplot2)
-library(dplyr)
+
 ret_diario <- dailyReturn(precios, type = "log")
 
 dd <- PerformanceAnalytics::Drawdowns(ret_diario)
@@ -1588,8 +1586,6 @@ En conjunto, el análisis del drawdown confirma la narrativa construida en los g
 ## 3.9 Métricas Financieras 
 
 ```{r metrics_financieras, echo=TRUE, warning=FALSE, message=FALSE}
-library(PerformanceAnalytics)
-library(xts)
 
 cagr <- Return.annualized(ret_diario, scale = 252)
 cumulative_return <- Return.cumulative(ret_diario)
@@ -1627,7 +1623,6 @@ En conclusión, el análisis de las métricas confirma la narrativa general: el 
 
 
 ```{r rolling_vol, echo=TRUE, warning=FALSE, message=FALSE}
-library(zoo)
 
 rollsd30  <- rollapply(as.numeric(ret_diario), width = 30, FUN = sd, fill = NA, align = "right")
 rollsd90  <- rollapply(as.numeric(ret_diario), width = 90, FUN = sd, fill = NA, align = "right")
@@ -1640,7 +1635,6 @@ df_roll <- data.frame(
   vol252 = rollsd252 * sqrt(252)
 )
 
-library(reshape2)
 dfm <- melt(df_roll, id.vars = "Fecha", variable.name = "Window", value.name = "VolAnual")
 
 ggplot(dfm, aes(x = Fecha, y = VolAnual, color = Window)) +
@@ -1662,9 +1656,6 @@ En conclusión, este gráfico actúa como el eslabón que conecta la Asimetría 
 ## 4 Estacionalidad Mensual del QQQ (1999–2025)
 
 ```{r heatmap_estacional_mejor, echo=TRUE, warning=FALSE, message=FALSE}
-library(ggplot2)
-library(viridis)
-
 df_m <- data.frame(Fecha = index(ret_mensual), Ret = as.numeric(ret_mensual))
 df_m <- df_m %>% mutate(Año = lubridate::year(Fecha), Mes = lubridate::month(Fecha, label = TRUE, abbr = TRUE), RetP = Ret*100)
 tabla_m <- df_m %>% group_by(Año, Mes) %>% summarise(RetP = mean(RetP, na.rm = TRUE))
@@ -1686,9 +1677,7 @@ Finalmente, la dinámica reciente (2020-2025) muestra una alternancia violenta d
 
 
 ```{r comparacion, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-library(tidyquant)
-library(tidyverse)
-library(plotly)
+
 tesla_pal <- list(
   primary = "#cc0000",
   secondary = "#000000",
@@ -1774,9 +1763,7 @@ La verdadera "bifurcación" o ruptura de tendencia se consolida post-2015 y se a
 En conclusión, el gráfico ratifica que el QQQ no es un sustituto del mercado general, sino un vehículo de alpha agresivo. Su desempeño superior a largo plazo frente al SPY (que incluye tecnología pero diluida) y al DIA (sesgado a economía tradicional) justifica su inclusión en portafolios que buscan maximización de capital, siempre que el inversor acepte que la desviación estándar de sus retornos (y por ende, el riesgo de drawdown) será sistemáticamente superior a la de un índice diversificado o de pequeña capitalización (Sharpe, 1964; Markowitz, 1952).
 
 ```{r partiion, echo=TRUE, warning=FALSE, message=FALSE}
-library(ggplot2)
-library(dplyr)
-library(xts)
+
 
 datos_plot <- data.frame(
   Fecha = index(precios),

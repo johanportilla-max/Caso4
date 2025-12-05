@@ -211,3 +211,32 @@ Proporciona una medida de error promedio que es menos sensible a outliers que el
 **MAPE (Mean Absolute Percentage Error):** $$\text{MAPE} = \frac{100}{n} \sum_{t=1}^{n} \left| \frac{y_t - \hat{y}_t}{y_t} \right|$$
 
 Expresa el error como porcentaje relativo del valor observado, permitiendo comparabilidad del desempeño independientemente de la magnitud absoluta de los valores predichos.
+
+# 5. Conclusiones
+
+La serie del QQQ es no-estacionaria en precios pero se estabiliza con una diferencia de primer orden. Esto se comprobó mediante la prueba Aumentada de Dickey-Fuller: el estadístico ADF de la serie original fue -1.8913 (p-valor = 0.1352), y después de diferenciar cayó a -8.6831 (p-valor = 0.01). Por lo tanto, d=1 es el parámetro diferenciación.
+
+El modelo seleccionado fue ARIMA(1,1,1) con drift. Entre seis especificaciones probadas, este tuvo el mejor AICc (4663.94). Modelos más complejos no mejoraron el ajuste, solo agregaron parámetros que fueron penalizados. El término drift (0.44 USD/día) captura que durante 2022-2025 el QQQ creció en promedio, reflejando las expectativas de mercado sobre el sector tecnológico.
+
+Los residuos del modelo se comportan como ruido blanco. La prueba de Ljung-Box produjo un p-valor de 0.4283, lo que significa que no hay autocorrelación significativa en los residuos. El error medio es cero y la varianza es constante. En conclusión, el modelo capturó la estructura temporal que existía en los datos.
+
+El modelo genera pronósticos con error promedio del 0.94%, lo cual es bajo. Pero en el período de prueba, el intervalo de confianza al 95% solo cubrió el 84.44% de los valores reales. Esto significa que el modelo 
+predijo con demasiada confianza, la volatilidad real fue mayor a la que el modelo estimó.
+
+Los intervalos de pronóstico crecen conforme aumenta el horizonte, desde ±10.77 USD en el día 1 hasta ±33 USD en el día 10. Por eso el modelo es útil solo para pronósticos de muy corto plazo. Después de 2-3 semanas, los intervalos son tan amplios que no aportan información práctica.
+
+Para decisiones operativas (trading, gestión de cartera), el modelo tiene limitaciones. El error es bajo en números relativos, pero suficientemente alto después de costos de transacción. Y la subestimación de volatilidad sería peligrosa para alguien que use estos intervalos para fijar límites de riesgo.
+
+El modelo ARIMA es univariado, debido a que solo usa el histórico de precios del QQQ. No incorpora variables que sabemos que importan, como tasas de interés o cambios en volatilidad de mercado. Un modelo ARIMAX que incluya estas variables podría mejorar los pronósticos, especialmente en horizontes de 2-4 semanas.
+
+Otra limitación es que ARIMA asume que la volatilidad es constante. En la realidad de los mercados, hay períodos calmados y períodos turbulentos. Un modelo GARCH que explícitamente modele volatilidad condicional podría producir intervalos de confianza más realistas, particularmente cuando el mercado está bajo estrés.
+
+El análisis también asume que las reglas del pasado siguen siendo válidas en el futuro. Pero el QQQ vivió ciclos distintos durante 2022-2025 (corrección, rally, consolidación). Modelos de cambio de régimen podrían detectar cuándo estas reglas cambian y adaptarse.
+
+Finalmente, el conjunto de prueba es pequeño (45 observaciones, ~9 semanas). Para estar más seguro de que el modelo funciona, convendría testearlo sobre períodos más largos o usar validación cruzada con ventanas móviles.
+
+En conclusión, el modelo ARIMA(1,1,1) con drift es la especificación correcta para el QQQ. 
+Estadísticamente funciona, los residuos son ruido blanco, la diferenciación es la apropiada, el modelo supera a alternativas simples. El problema es que esto no se traduce automáticamente en predicciones prácticas útiles. La razón es que el QQQ opera en un mercado eficiente, donde miles de instituciones procesan información constantemente. Cualquier patrón que sea predecible es arbitrajado antes de que pueda explotarse. El modelo lo identifica correctamente, la estructura existe pero es débil.
+
+Si se construye un modelo más sofisticado y no supera notablemente a ARIMA simple, se está probablemente sobreajustando. También permite cuantificar lo que 
+el mercado espera, 25% de retorno anualizado durante este período. Y permite monitorear cuándo la estructura cambia, si los residuos comienzan a mostrar autocorrelación nuevamente, es señal de que algo cambió en el mercado. Para investigación futura, agregar variables exógenas (tasas, volatilidad), modelar volatilidad condicional con GARCH, y detectar cambios de régimen son los caminos claros.
