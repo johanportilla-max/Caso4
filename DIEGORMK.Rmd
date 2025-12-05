@@ -1404,7 +1404,7 @@ Un nivel de volatilidad cercano al 21% puede considerarse moderado-alto para un 
 
 Desde la perspectiva estadística, una volatilidad de este tamaño también respalda la idea de volatilidad agrupada: largos tramos de relativa estabilidad interrumpidos por fases cortas de sobresaltos. Es la misma dinámica que se evidenció en el comportamiento histórico del índice y que la literatura clásica asocia a mercados impulsados por ciclos tecnológicos, donde los cambios de expectativas pueden ser abruptos.
 
-En síntesis, la volatilidad anualizada del 20.80% no solo caracteriza el riesgo promedio del QQQ, sino que encaja con la narrativa general: un activo con una tendencia estructural potente, pero atravesado por episodios de estrés que amplifican temporalmente sus oscilaciones.
+En síntesis, la volatilidad anualizada del 20.71% no solo caracteriza el riesgo promedio del QQQ, sino que encaja con la narrativa general: un activo con una tendencia estructural potente, pero atravesado por episodios de estrés que amplifican temporalmente sus oscilaciones.
 
 ## 3.1.7 Retornos Diarios
 
