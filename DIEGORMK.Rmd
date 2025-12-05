@@ -1879,11 +1879,11 @@ Finalmente, basándose en la evidencia visual y fundamental de la ruptura estruc
 
 La aplicación de la estrategia de partición temporal al conjunto de datos del QQQ divide el período de análisis (octubre 2022 - presente) en dos subconjuntos contiguos que respetan el orden cronológico. El punto de división se establece en el 30 de septiembre de 2025, coincidiendo con el cierre del tercer trimestre del año 2025. Esta fecha marca un quiebre administrativo natural en calendarios financieros y evita arbitrariedades en la selección del período de corte.
 
-El conjunto de entrenamiento comprende observaciones desde el 7 de octubre de 2022 hasta el 30 de septiembre de 2025, proporcionando una base robusta para estimación de coeficientes $ARIMA$, mientras que el conjunto de prueba abarca desde el 1 de octubre de 2025 hasta el presente, permitiendo validación con un horizonte de pronóstico consistente con estándares de análisis de corto plazo en mercados financieros (Hyndman & Athanasopoulos, 2021).
+El conjunto de entrenamiento comprende observaciones desde el 7 de octubre de 2022 hasta el 30 de septiembre de 2025, proporcionando una base robusta para estimación de coeficientes $ARIMA$, mientras que el conjunto de prueba abarca desde el 1 de octubre de 2025 hasta el 1 de diciembre del mismo año, permitiendo validación con un horizonte de pronóstico consistente con estándares de análisis de corto plazo en mercados financieros (Hyndman & Athanasopoulos, 2021).
 
 ```{r particion-datos, echo=TRUE}
 Entrenamiento <- window(Precio, start = "2022-10-07", end="2025-09-30")
-Prueba <- window(Precio, start = "2025-10-01", end="2025-11-30")
+Prueba <- window(Precio, start = "2025-10-01", end="2025-12-01")
 ```
 
 ### 4.1.2 Tabla Resumen: Observaciones por Conjunto
@@ -1893,8 +1893,8 @@ particion_resumen <- data.frame(
   Conjunto = c("Entrenamiento", "Prueba", "Total"),
   Período = c(
     "07-Oct-2022 → 30-Sep-2025",
-    "01-Oct-2025 → Presente",
-    "07-Oct-2022 → Presente"
+    "01-Oct-2025 → 01-Dic-2025",
+    "07-Oct-2022 → 01-Dic-2025"
   ),
   `Observaciones` = c(
     length(Entrenamiento),
@@ -1925,7 +1925,7 @@ kable(particion_resumen,
   row_spec(3, bold = TRUE, background = "#e8f5e9", color = qqq_pal$text_dark)
 ```
 
-El conjunto de entrenamiento contiene 747 observaciones diarias (aproximadamente 3 años de negociación), representando el 95% del total de datos disponibles. Este volumen es más que suficiente para identificar parámetros confiables de un modelo $ARIMA$ de complejidad moderada. El conjunto de prueba contiene 45 observaciones (aproximadamente 9 semanas de actividad bursátil), permitiendo validación con horizonte de pronóstico de al menos 10 días hábiles conforme lo requiere el análisis.
+El conjunto de entrenamiento contiene 747 observaciones diarias (aproximadamente 3 años de negociación), representando aproximadamente el 95% del total de datos disponibles. Este volumen es más que suficiente para identificar parámetros confiables de un modelo $ARIMA$ de complejidad moderada. El conjunto de prueba contiene observaciones de aproximadamente 2 meses (octubre a diciembre 2025), proporcionando un horizonte de validación adecuado para evaluar la capacidad predictiva del modelo en condiciones de mercado reales.
 
 ### 4.1.3 Visualización: Serie con Partición
 
@@ -1944,6 +1944,7 @@ df_test <- data.frame(
 
 df_completo <- bind_rows(df_train, df_test)
 fecha_corte <- as.Date("2025-10-01")
+fecha_fin_prueba <- as.Date("2025-12-01")
 
 ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   geom_ribbon(data = df_train, 
@@ -1956,9 +1957,14 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   geom_line(data = df_test, color = qqq_pal$secondary, linewidth = 1.1) +
   geom_vline(xintercept = fecha_corte, 
              linetype = "dashed", color = qqq_pal$negative, linewidth = 0.8) +
+  geom_vline(xintercept = fecha_fin_prueba, 
+             linetype = "dashed", color = qqq_pal$accent, linewidth = 0.8, alpha = 0.6) +
   annotate("text", x = fecha_corte, y = max(df_completo$Precio) * 1.02,
-           label = "Corte: 01-Oct-2025", hjust = -0.05, vjust = 0,
+           label = "Inicio Prueba: 01-Oct-2025", hjust = -0.05, vjust = 0,
            color = qqq_pal$negative, fontface = "bold", size = 3.5) +
+  annotate("text", x = fecha_fin_prueba, y = max(df_completo$Precio) * 0.98,
+           label = "Fin Prueba: 01-Dic-2025", hjust = 1.1, vjust = 0,
+           color = qqq_pal$accent, fontface = "bold", size = 3.5) +
   annotate("label", 
            x = as.Date("2024-01-01"), 
            y = max(df_completo$Precio) * 0.85,
@@ -1966,9 +1972,9 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
            fill = qqq_pal$primary, color = "white", 
            fontface = "bold", size = 3.5, label.padding = unit(0.5, "lines")) +
   annotate("label", 
-           x = max(df_test$Fecha) - 10,
+           x = as.Date("2025-11-01"),
            y = min(df_completo$Precio) * 1.15,
-           label = paste0("PRUEBA\n", nrow(df_test), " obs."),
+           label = paste0("PRUEBA\n", nrow(df_test), " observaciones"),
            fill = qqq_pal$secondary, color = "white", 
            fontface = "bold", size = 3.2, label.padding = unit(0.4, "lines")) +
   scale_x_date(date_breaks = "4 months", date_labels = "%b %Y",
@@ -1987,8 +1993,7 @@ ggplot(df_completo, aes(x = Fecha, y = Precio)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-------------------------------------------------------------------------
-
+---------------------------------------------------
 ## 4.2 Análisis de Estacionariedad
 
 La serie de precios del QQQ exhibe visualmente una tendencia alcista pronunciada con fluctuaciones amplias alrededor de una trayectoria creciente durante el período de entrenamiento (octubre 2022 - septiembre 2025). El gráfico de autocorrelación de la serie en niveles revela el síntoma clásico de no-estacionariedad:
