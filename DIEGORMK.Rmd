@@ -760,14 +760,14 @@ update_geom_defaults("point", list(color = qqq_pal$secondary, size = 2))
 update_geom_defaults("col", list(fill = qqq_pal$primary, color = NA))
 
 tesla_pal <- list(
-  bg        = "#ffffff",    # Tu --bg-li
-  text_main = "#1f2937",    # Tu --text-dark
-  text_gray = "#4b5563",    # Tu --text-medium
-  primary   = "#00b894",    # Tu --accent-primary (Verde/Cian principal)
-  secondary = "#06b6d4",    # Tu --accent-secondary (Cian claro)
-  positive  = "#84cc16",    # Tu --accent-positive
-  negative  = "#e17055",    # Tu --accent-negative
-  grid      = "#f3f4f6"     # Un gris muy sutil para las rejillas
+  bg        = "#ffffff",    
+  text_main = "#1f2937",    
+  text_gray = "#4b5563",    
+  primary   = "#00b894",    
+  secondary = "#06b6d4",    
+  positive  = "#84cc16",   
+  negative  = "#e17055",    
+  grid      = "#f3f4f6"     
 )
 
 theme_tesla <- function() {
